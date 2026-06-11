@@ -1,0 +1,57 @@
+name: CI (Node + Foundry)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Verify Foundry tools
+        run: |
+          forge --version
+          cast --version
+
+      - name: Run project tests
+        run: npm test
+
+      - name: Verify on-chain gate state
+        env:
+          RPC_URL: https://ethereum-rpc.publicnode.com
+          K1_ADDRESS: 0x01152d5c7467204bFa015061097b193CbceA8ca9
+          K2_ADDRESS: 0x55c73995c4194Dd87CC5aCbC4E45f48c807f4553
+          CLEAN_WALLET: 0xA0eb06a5fab172860837C4D68e75F339896500b5
+        run: |
+          node -e '
+            require("dotenv").config();
+            require("./gate.js").readState()
+              .then(state => {
+                console.log(JSON.stringify(state, null, 2));
+                if (state.overallStatusLabel !== "gate_deployed") process.exit(1);
+                if (state.model.onchainK1 !== state.model.envK1) process.exit(1);
+                if (state.model.onchainK2 !== state.model.envK2) process.exit(1);
+                if (state.model.onchainK3 !== state.model.envK3) process.exit(1);
+                console.log("Verification PASSED");
+              })
+              .catch(e => { console.error(e); process.exit(1); });
+          '
