@@ -1,0 +1,128 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Helix Fabric v1 (SecureGate stack)
+Copyright © 2026 Empress (@Hope_ology). All rights reserved worldwide.
+
+NOTICE OF AUTHORSHIP (STIPULATION)
+
+Empress (@Hope_ology) is the sole author and owner of the total build, including
+complete logic, workflow design, variables, deliberate departures from industry
+standards, and all documentation — whether produced directly or assembled
+piecemeal across various large-language-model (LLM) sessions.
+
+No LLM provider, model operator, or third-party assistant acquires authorship,
+ownership, license, or attribution rights by virtue of assisting in generation.
+All such output was directed, selected, edited, and owned by Empress.
+
+IMPORTANT — READ BEFORE ACCESSING, COPYING, OR USING ANY COMPONENT.
+
+No rights are granted by implication, estoppel, industry custom, or failure to
+enforce. Possession of a copy does not constitute a license.
+
+────────────────────────────────────────────────────────────────────────────────
+
+1. DEFINITIONS
+
+   "Software" means all source code, object code, bytecode references, ABIs,
+   specifications, lane topologies, recovery methodologies, dashboard designs,
+   relay configurations, encrypted constants, operator workflows, and derivative
+   work product in this repository or any partial extract thereof.
+
+   "Confidential Information" means Software plus any non-public operator
+   reference (including but not limited to OPERATOR.md), credentials, lane
+   wiring, deployment sequences, and trade-secret recovery paths not described
+   in public README or PROTOCOL.md materials.
+
+   "Authorized Operator" means Empress (@Hope_ology) or an individual holding
+   current written permission from Empress.
+
+2. OWNERSHIP & AUTHORSHIP STIPULATION
+
+   Software and Confidential Information are the sole and exclusive property of
+   Empress (@Hope_ology). All moral rights, trade secrets, and residual know-how
+   are retained.
+
+   Empress (@Hope_ology) is the sole author of the total build, including complete
+   logic, workflow design, variables, deliberate departures from industry
+   standards, and recovery methodology — whether produced directly or assembled
+   piecemeal across various large-language-model (LLM) sessions.
+
+   No LLM provider, model operator, or third-party assistant acquires
+   authorship, ownership, license, or attribution rights by virtue of assisting
+   in code or documentation generation. All such output was directed,
+   selected, edited, and owned by Empress.
+
+3. GRANT OF RIGHTS
+
+   NO LICENSE IS GRANTED except to Authorized Operators for internal operational
+   use. All other persons and entities are strictly prohibited from access,
+   possession, use, or retention.
+
+4. RESTRICTIONS
+
+   Without prior express written consent of Empress, you may NOT:
+
+   a) Copy, mirror, fork, distribute, publish, disclose, or transmit any part
+      of Software or Confidential Information, in any medium;
+
+   b) Reverse engineer, decompile, disassemble, decrypt, derive source from
+      obfuscated layers, or reconstruct lane wiring from telemetry constants;
+
+   c) Sublicense, sell, lease, lend, or commercially exploit any portion;
+
+   d) Remove, alter, or obscure proprietary notices in code, HTML, or docs;
+
+   e) Use for competitive analysis, benchmark publication, security conference
+      material, bug-bounty submission, or adversarial probing of operator
+      infrastructure;
+
+   f) Scrape, fuzz, or stress-test production recovery paths, relay endpoints,
+      or registry interactions without written authorization;
+
+   g) Represent public README or PROTOCOL.md materials as an open-source or
+      permissive license grant — they describe protocol telemetry only.
+
+5. PUBLIC vs CONFIDENTIAL MATERIALS
+
+   README.md and PROTOCOL.md are public-facing protocol literature. They do NOT
+   waive ownership, disclose trade secrets, or grant third-party rights.
+   OPERATOR.md and non-public deployment artifacts remain Confidential
+   Information regardless of incidental exposure.
+
+6. CONFIDENTIALITY
+
+   Unauthorized disclosure of Confidential Information may constitute
+   misappropriation of trade secrets. Recipient must protect Confidential
+   Information with at least the care used for their own sensitive materials.
+
+7. NO WARRANTY
+
+   Software is provided "AS IS" for Authorized Operator use only. Empress
+   DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY AND
+   FITNESS FOR A PARTICULAR PURPOSE. Operator assumes full risk.
+
+8. LIMITATION OF LIABILITY
+
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, Empress SHALL NOT BE LIABLE FOR ANY
+   INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR LOSS OF
+   FUNDS, KEYS, OR DATA, ARISING FROM USE OR MISUSE OF SOFTWARE.
+
+9. TERMINATION
+
+   Any breach terminates all rights immediately without notice. Upon termination,
+   all copies must be destroyed and access ceased. Empress retains all remedies
+   at law and equity, including injunctive relief and recovery of damages.
+
+10. ENFORCEMENT
+
+    Empress may pursue civil and criminal remedies where applicable. Unauthorized
+    access may violate computer fraud, trade-secret, and copyright statutes in
+    applicable jurisdictions.
+
+11. SURVIVAL
+
+    Sections 1–4, 6, 8–10 survive termination.
+
+────────────────────────────────────────────────────────────────────────────────
+
+For authorization inquiries: Empress (@Hope_ology) only.
