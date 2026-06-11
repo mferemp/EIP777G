@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#09090b"/>
+<title>Helix Fabric v1 — Protocol Telemetry</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#2dd4bf;--purple:#a78bfa;--zinc950:#09090b;--zinc900:#18181b;
+  --zinc800:#27272a;--zinc700:#3f3f46;--zinc500:#71717a;--zinc400:#a1a1aa;
+  --zinc200:#e4e4e7;--red400:#f87171;--amber300:#fcd34d;--emerald400:#34d399;
+  --tap:44px;
+}
+html,body{height:100%;background:var(--zinc950);color:var(--zinc200);font-family:'Inter',system-ui,sans-serif;font-size:15px}
+body{display:flex;flex-direction:column;min-height:100vh}
+#veil{position:fixed;inset:0;z-index:100;background:var(--zinc950);display:flex;align-items:center;justify-content:center;padding:1rem}
+.veil-box{background:var(--zinc900);border:1px solid var(--zinc700);border-radius:1.5rem;padding:2.5rem;max-width:380px;width:100%}
+.veil-box h1{font-size:1.3rem;font-weight:600;margin-bottom:.25rem}
+.veil-sub{color:var(--zinc500);font-size:.8rem;margin-bottom:1.5rem}
+.veil-box input{width:100%;background:var(--zinc950);border:1px solid var(--zinc700);border-radius:.75rem;padding:.75rem 1rem;font-size:1rem;color:var(--zinc200);margin-bottom:.75rem;min-height:var(--tap)}
+.veil-box input:focus{outline:1px solid var(--teal)}
+.btn{display:block;width:100%;background:var(--teal);color:#000;font-weight:600;border:none;border-radius:.75rem;padding:.75rem;font-size:.95rem;cursor:pointer;min-height:var(--tap);touch-action:manipulation}
+.btn:active{opacity:.85}
+.btn.secondary{background:var(--zinc800);color:var(--zinc200);font-weight:400;margin-top:.5rem}
+.btn.danger{background:#7f1d1d;color:#fca5a5}
+#veilErr{color:var(--red400);font-size:.8rem;margin-top:.5rem;min-height:1rem}
+.hidden{display:none!important}
+header{background:var(--zinc900);border-bottom:1px solid var(--zinc800);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.logo{font-size:1rem;font-weight:700;color:var(--teal);letter-spacing:.05em}
+.logo span{color:var(--zinc500);font-weight:400}
+.header-right{display:flex;gap:.5rem;align-items:center}
+.badge{font-size:.7rem;padding:.2rem .6rem;border-radius:9999px;background:var(--zinc800);color:var(--zinc400)}
+.badge.live{background:#052e16;color:var(--emerald400)}
+#lockBtn{background:transparent;border:1px solid var(--zinc700);border-radius:.5rem;color:var(--zinc400);font-size:.75rem;padding:.3rem .7rem;cursor:pointer;min-height:var(--tap);touch-action:manipulation}
+nav{display:flex;overflow-x:auto;gap:.25rem;padding:.5rem .75rem;background:var(--zinc900);border-bottom:1px solid var(--zinc800)}
+.tab{background:transparent;border:none;color:var(--zinc400);font-size:.82rem;padding:.55rem 1rem;cursor:pointer;border-radius:.5rem;white-space:nowrap;min-height:var(--tap);touch-action:manipulation;transition:background .15s,color .15s}
+.tab.active{background:var(--zinc800);color:var(--zinc200)}
+main{flex:1;padding:1rem;max-width:900px;margin:0 auto;width:100%}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--zinc900);border:1px solid var(--zinc800);border-radius:1rem;padding:1.25rem;margin-bottom:1rem}
+.card h2{font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--zinc200)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--zinc800);gap:.5rem}
+.row:last-child{border-bottom:none}
+.label{font-size:.8rem;color:var(--zinc500)}
+.value{font-size:.82rem;color:var(--zinc200);word-break:break-all;text-align:right;max-width:65%}
+.mono{font-family:'JetBrains Mono','Fira Mono',monospace;font-size:.75rem}
+.blur-addr{filter:blur(4px);transition:filter .2s;cursor:pointer}
+.blur-addr:hover,.blur-addr.unmasked{filter:none}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.4rem}
+.dot-green{background:var(--emerald400)}
+.dot-red{background:var(--red400)}
+.dot-amber{background:var(--amber300)}
+.relay-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.6rem;margin-top:.5rem}
+.relay-card{background:var(--zinc800);border-radius:.75rem;padding:.75rem;font-size:.78rem}
+.relay-name{color:var(--zinc400);margin-bottom:.25rem;font-size:.7rem}
+.relay-status.ok{color:var(--emerald400);font-weight:600}
+.relay-status.fail{color:var(--red400);font-weight:600}
+.relay-status.checking{color:var(--amber300);font-weight:600}
+.shareBox{background:var(--zinc800);border-radius:.75rem;padding:1rem;margin-top:.75rem}
+.shareBox p{font-size:.8rem;color:var(--zinc500);margin-bottom:.5rem}
+.shareBox input{width:100%;background:var(--zinc950);border:1px solid var(--zinc700);border-radius:.5rem;padding:.5rem .75rem;font-size:.78rem;color:var(--teal);font-family:monospace}
+.shareBox button{margin-top:.5rem;background:var(--teal);color:#000;border:none;border-radius:.5rem;padding:.4rem .9rem;font-size:.8rem;cursor:pointer;min-height:var(--tap)}
+.alert{border-radius:.75rem;padding:.75rem 1rem;font-size:.82rem;margin-bottom:.75rem}
+.alert.info{background:#052e16;border:1px solid #065f46;color:#6ee7b7}
+.alert.warn{background:#431407;border:1px solid #7c2d12;color:#fed7aa}
+#autoLockBar{position:fixed;bottom:0;left:0;right:0;background:var(--amber300);color:#000;font-size:.78rem;text-align:center;padding:.3rem;display:none;z-index:50}
+footer{background:var(--zinc900);border-top:1px solid var(--zinc800);text-align:center;padding:1rem;font-size:.72rem;color:#52525b;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div id="autoLockBar">Session idle — locking in <span id="lockCountdown">60</span>s
+  <button onclick="resetIdle()" style="background:#000;color:#fff;border:none;border-radius:.3rem;padding:.15rem .5rem;cursor:pointer;font-size:.75rem">Stay</button>
+</div>
+
+<!-- VEIL -->
+<div id="veil">
+  <div class="veil-box">
+    <div style="font-size:.7rem;color:var(--zinc500);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">Analytics Gateway</div>
+    <h1>Protocol Telemetry Console</h1>
+    <div class="veil-sub">Helix Fabric v1 · Authorized operators only</div>
+    <input id="veilInput" type="password" placeholder="Operator phrase" autocomplete="off"/>
+    <div id="veilErr"></div>
+    <button class="btn" onclick="unlockVeil()">Access Console</button>
+    <div style="font-size:.7rem;color:var(--zinc700);text-align:center;margin-top:1rem">Empress Hopeology · Proprietary</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header>
+    <div class="logo">HELIX <span>FABRIC v1</span></div>
+    <div class="header-right">
+      <span class="badge" id="networkBadge">ETH Mainnet</span>
+      <span class="badge live">● LIVE</span>
+      <button id="lockBtn" onclick="hardLock()">Lock</button>
+    </div>
+  </header>
+
+  <nav>
+    <button class="tab active" onclick="switchTab(0)">Telemetry</button>
+    <button class="tab" onclick="switchTab(1)">Relay Mesh</button>
+    <button class="tab" onclick="switchTab(2)">Beacon</button>
+    <button class="tab" onclick="switchTab(3)">Protocol</button>
+    <button class="tab" onclick="switchTab(4)">Share</button>
+  </nav>
+
+  <main>
+
+    <!-- TAB 0 TELEMETRY -->
+    <div class="panel active" id="panel0">
+      <div class="card">
+        <h2>Registry State</h2>
+        <div class="row"><span class="label">Chain</span><span class="value" id="t-chain">loading…</span></div>
+        <div class="row"><span class="label">Registry</span><span class="value mono blur-addr" id="t-gate" onclick="this.classList.toggle('unmasked')">loading…</span></div>
+        <div class="row"><span class="label">K1 ingress</span><span class="value mono blur-addr" id="t-k1" onclick="this.classList.toggle('unmasked')">loading…</span></div>
+        <div class="row"><span class="label">K2 attest</span><span class="value mono blur-addr" id="t-k2" onclick="this.classList.toggle('unmasked')">loading…</span></div>
+        <div class="row"><span class="label">K3 terminus</span><span class="value mono blur-addr" id="t-k3" onclick="this.classList.toggle('unmasked')">loading…</span></div>
+        <div class="row"><span class="label">Auth window</span><span class="value" id="t-auth">loading…</span></div>
+        <div class="row"><span class="label">Min delay</span><span class="value" id="t-delay">loading…</span></div>
+        <div class="row"><span class="label">K1 ETH balance</span><span class="value" id="t-bal">loading…</span></div>
+        <div class="row"><span class="label">K3 ETH balance</span><span class="value" id="t-bal3">loading…</span></div>
+        <div class="row"><span class="label">Last poll</span><span class="value" id="t-poll">—</span></div>
+      </div>
+      <div class="card">
+        <h2>Live Events</h2>
+        <div id="eventFeed" style="font-size:.78rem;color:var(--zinc400);min-height:60px">Waiting for events…</div>
+      </div>
+    </div>
+
+    <!-- TAB 1 RELAY MESH -->
+    <div class="panel" id="panel1">
+      <div class="card">
+        <h2>Relay Mesh Status</h2>
+        <div class="alert info">Live relay polling via backend. No simulation.</div>
+        <div class="relay-grid" id="relayGrid">Loading relays…</div>
+        <button class="btn secondary" style="margin-top:1rem;width:auto;padding:.5rem 1.2rem" onclick="pollRelays()">Refresh</button>
+      </div>
+    </div>
+
+    <!-- TAB 2 BEACON -->
+    <div class="panel" id="panel2">
+      <div class="card">
+        <h2>Beacon Pulse</h2>
+        <div class="row"><span class="label">Beacon status</span><span class="value" id="beaconStatus">checking…</span></div>
+        <div class="row"><span class="label">Last beacon</span><span class="value" id="beaconLast">—</span></div>
+        <div class="row"><span class="label">Beacon block</span><span class="value" id="beaconBlock">—</span></div>
+        <button class="btn secondary" style="margin-top:1rem;width:auto;padding:.5rem 1.2rem" onclick="pollBeacon()">Refresh Beacon</button>
+      </div>
+    </div>
+
+    <!-- TAB 3 PROTOCOL -->
+    <div class="panel" id="panel3">
+      <div class="card">
+        <h2>Protocol Info</h2>
+        <div class="row"><span class="label">Version</span><span class="value">SecureGate v1</span></div>
+        <div class="row"><span class="label">Veil epoch</span><span class="value">Hopeology</span></div>
+        <div class="row"><span class="label">Coherence</span><span class="value">EmpressGate</span></div>
+        <div class="row"><span class="label">K1 role</span><span class="value">Ingress / flagged</span></div>
+        <div class="row"><span class="label">K2 role</span><span class="value">Offline attestation</span></div>
+        <div class="row"><span class="label">K3 role</span><span class="value">Terminus / clean drop</span></div>
+        <div class="row"><span class="label">Backend port</span><span class="value">3001</span></div>
+      </div>
+      <div class="card">
+        <h2>Export Source Bundle</h2>
+        <button class="btn" onclick="exportSource()">Download Source Export</button>
+        <div id="exportStatus" style="margin-top:.5rem;font-size:.78rem;color:var(--zinc500)"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4 SHARE -->
+    <div class="panel" id="panel4">
+      <div class="card">
+        <h2>Share Public Dashboard</h2>
+        <div class="alert info">This link gives read-only telemetry access. Admin surface is separate and not shared.</div>
+        <div class="shareBox">
+          <p>Public share URL</p>
+          <input id="shareUrl" readonly value="Loading tunnel URL…"/>
+          <button onclick="copyShare()">Copy Link</button>
+        </div>
+        <div id="shareMsg" style="margin-top:.5rem;font-size:.78rem;color:var(--emerald400)"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>Helix Fabric v1 · SecureGate · Public Telemetry Surface<br/>Read-only · No admin functions · Empress Hopeology</footer>
+</div>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────────────────
+const BACKEND = 'http://localhost:3001';
+const REGISTRY = '0x56310d7e48d9249df358ab9daa6a2dad0e03e242';
+const K1 = '0x01152d5c7467204bFa015061097b193CbceA8ca9';
+const K2 = '0x55c73995c4194Dd87CC5aCbC4E45f48c807f4553';
+const K3 = '0xA0eb06a5fab172860837C4D68e75F339896500b5';
+const VEIL_PHRASE = 'Hopeology';
+const VEIL_SALT = 'sgv1';
+const RPC_URL = 'https://eth.llamarpc.com';
+
+let provider;
+let idleTimer, lockTimer;
+const IDLE_WARN = 60, IDLE_LOCK = 120;
+let operatorProof = '';
+
+// ── VEIL ──────────────────────────────────────────────────────────
+async function computeVeilHash(phrase) {
+  const encoded = ethers.toUtf8Bytes(phrase + VEIL_SALT);
+  return ethers.keccak256(encoded);
+}
+
+async function unlockVeil() {
+  const phrase = document.getElementById('veilInput').value.trim();
+  const expected = await computeVeilHash(VEIL_PHRASE);
+  const given = await computeVeilHash(phrase);
+  if (given === expected) {
+    operatorProof = given;
+    document.getElementById('veil').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    initApp();
+    resetIdle();
+  } else {
+    document.getElementById('veilErr').textContent = 'Invalid operator phrase.';
+    document.getElementById('veilInput').value = '';
+  }
+}
+document.getElementById('veilInput').addEventListener('keydown', e => { if(e.key==='Enter') unlockVeil(); });
+
+function hardLock() {
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('veil').classList.remove('hidden');
+  document.getElementById('veilInput').value = '';
+  document.getElementById('veilErr').textContent = '';
+  operatorProof = '';
+  clearInterval(idleTimer);
+  document.getElementById('autoLockBar').style.display = 'none';
+}
+
+function resetIdle() {
+  clearTimeout(lockTimer);
+  document.getElementById('autoLockBar').style.display = 'none';
+  let countdown = IDLE_WARN;
+  clearInterval(idleTimer);
+  idleTimer = setInterval(() => {
+    countdown--;
+    document.getElementById('lockCountdown').textContent = countdown;
+    if (countdown <= IDLE_WARN) document.getElementById('autoLockBar').style.display = 'block';
+    if (countdown <= 0) { clearInterval(idleTimer); hardLock(); }
+  }, 1000);
+}
+['click','keydown','touchstart','mousemove'].forEach(e => document.addEventListener(e, resetIdle, {passive:true}));
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(i) {
+  document.querySelectorAll('.panel').forEach((p,idx) => p.classList.toggle('active', idx===i));
+  document.querySelectorAll('.tab').forEach((t,idx) => t.classList.toggle('active', idx===i));
+  if (i===1) pollRelays();
+  if (i===2) pollBeacon();
+}
+
+// ── API HELPER ────────────────────────────────────────────────────
+async function apiFetch(path, opts={}) {
+  const headers = { 'Content-Type':'application/json', 'X-Operator-Proof': operatorProof, ...(opts.headers||{}) };
+  const res = await fetch(BACKEND + path, { ...opts, headers });
+  if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
+  return res.json();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+async function initApp() {
+  try {
+    provider = new ethers.JsonRpcProvider(RPC_URL);
+    const network = await provider.getNetwork();
+    document.getElementById('t-chain').textContent = `${network.name} (${network.chainId})`;
+    document.getElementById('t-gate').textContent = REGISTRY;
+    document.getElementById('t-k1').textContent = K1;
+    document.getElementById('t-k2').textContent = K2;
+    document.getElementById('t-k3').textContent = K3;
+    pollTelemetry();
+    setInterval(pollTelemetry, 15000);
+    loadShareUrl();
+  } catch(e) {
+    document.getElementById('t-chain').textContent = 'RPC error: ' + e.message;
+  }
+}
+
+async function pollTelemetry() {
+  try {
+    const [b1, b3] = await Promise.all([
+      provider.getBalance(K1),
+      provider.getBalance(K3)
+    ]);
+    document.getElementById('t-bal').textContent = ethers.formatEther(b1) + ' ETH';
+    document.getElementById('t-bal3').textContent = ethers.formatEther(b3) + ' ETH';
+    document.getElementById('t-poll').textContent = new Date().toLocaleTimeString();
+
+    // Try backend for registry config
+    try {
+      const data = await apiFetch('/api/registry-state');
+      document.getElementById('t-auth').textContent = data.authWindow ?? '—';
+      document.getElementById('t-delay').textContent = data.minDelay ?? '—';
+      appendEvent('Registry polled ✓');
+    } catch { document.getElementById('t-auth').textContent = 'Backend offline'; }
+  } catch(e) {
+    document.getElementById('t-bal').textContent = 'RPC error';
+  }
+}
+
+function appendEvent(msg) {
+  const feed = document.getElementById('eventFeed');
+  const ts = new Date().toLocaleTimeString();
+  const el = document.createElement('div');
+  el.style.cssText = 'padding:.25rem 0;border-bottom:1px solid var(--zinc800);color:var(--zinc400)';
+  el.textContent = `[${ts}] ${msg}`;
+  feed.prepend(el);
+  if (feed.children.length > 20) feed.removeChild(feed.lastChild);
+}
+
+// ── RELAY MESH ────────────────────────────────────────────────────
+async function pollRelays() {
+  const grid = document.getElementById('relayGrid');
+  grid.innerHTML = '<span style="color:var(--zinc500);font-size:.8rem">Polling…</span>';
+  try {
+    const data = await apiFetch('/api/relays');
+    grid.innerHTML = '';
+    data.relays.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'relay-card';
+      const cls = r.status === 'ok' ? 'ok' : r.status === 'checking' ? 'checking' : 'fail';
+      card.innerHTML = `<div class="relay-name">${r.name}</div><div class="relay-status ${cls}">${r.status.toUpperCase()}</div><div style="color:var(--zinc600);font-size:.7rem;margin-top:.2rem">${r.latency ?? ''}${r.latency ? 'ms' : ''}</div>`;
+      grid.appendChild(card);
+    });
+    appendEvent(`Relay mesh polled — ${data.relays.filter(r=>r.status==='ok').length}/${data.relays.length} online`);
+  } catch(e) {
+    grid.innerHTML = `<span style="color:var(--red400);font-size:.8rem">Relay API error: ${e.message}</span>`;
+  }
+}
+
+// ── BEACON ────────────────────────────────────────────────────────
+async function pollBeacon() {
+  document.getElementById('beaconStatus').textContent = 'checking…';
+  try {
+    const block = await provider.getBlock('latest');
+    document.getElementById('beaconStatus').innerHTML = '<span class="status-dot dot-green"></span>Online';
+    document.getElementById('beaconLast').textContent = new Date(block.timestamp * 1000).toLocaleString();
+    document.getElementById('beaconBlock').textContent = '#' + block.number;
+    appendEvent('Beacon pulse received block #' + block.number);
+  } catch(e) {
+    document.getElementById('beaconStatus').innerHTML = '<span class="status-dot dot-red"></span>Error';
+  }
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────
+async function exportSource() {
+  document.getElementById('exportStatus').textContent = 'Requesting export…';
+  try {
+    const data = await apiFetch('/api/export-source', { method: 'POST' });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'securegate-v1-source-export.json'; a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('exportStatus').textContent = 'Export downloaded.';
+    appendEvent('Source export downloaded');
+  } catch(e) {
+    document.getElementById('exportStatus').textContent = 'Export error: ' + e.message;
+  }
+}
+
+// ── SHARE ─────────────────────────────────────────────────────────
+async function loadShareUrl() {
+  try {
+    const data = await apiFetch('/api/share-url');
+    document.getElementById('shareUrl').value = data.url || 'http://localhost:3001/';
+  } catch { document.getElementById('shareUrl').value = 'http://localhost:3001/'; }
+}
+
+function copyShare() {
+  const el = document.getElementById('shareUrl');
+  el.select(); document.execCommand('copy');
+  document.getElementById('shareMsg').textContent = 'Copied to clipboard!';
+  setTimeout(() => document.getElementById('shareMsg').textContent = '', 2500);
+}
+</script>
+</body>
+</html>

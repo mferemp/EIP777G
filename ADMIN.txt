@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#09090b"/>
+<title>SecureGate v1 — Admin Gate</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#2dd4bf;--purple:#a78bfa;--zinc950:#09090b;--zinc900:#18181b;
+  --zinc800:#27272a;--zinc700:#3f3f46;--zinc500:#71717a;--zinc400:#a1a1aa;
+  --zinc200:#e4e4e7;--red400:#f87171;--amber300:#fcd34d;--emerald400:#34d399;
+  --tap:44px;
+}
+html,body{height:100%;background:var(--zinc950);color:var(--zinc200);font-family:'Inter',system-ui,sans-serif;font-size:15px}
+body{display:flex;flex-direction:column;min-height:100vh}
+#veil{position:fixed;inset:0;z-index:100;background:var(--zinc950);display:flex;align-items:center;justify-content:center;padding:1rem}
+.veil-box{background:var(--zinc900);border:1px solid var(--purple);border-radius:1.5rem;padding:2.5rem;max-width:400px;width:100%}
+.veil-box h1{font-size:1.3rem;font-weight:600;margin-bottom:.25rem;color:var(--purple)}
+.veil-sub{color:var(--zinc500);font-size:.8rem;margin-bottom:1.5rem}
+.veil-box input{width:100%;background:var(--zinc950);border:1px solid var(--zinc700);border-radius:.75rem;padding:.75rem 1rem;font-size:1rem;color:var(--zinc200);margin-bottom:.75rem;min-height:var(--tap)}
+.veil-box input:focus{outline:1px solid var(--purple)}
+.btn{display:block;width:100%;background:var(--purple);color:#000;font-weight:600;border:none;border-radius:.75rem;padding:.75rem;font-size:.95rem;cursor:pointer;min-height:var(--tap);touch-action:manipulation}
+.btn.teal{background:var(--teal);color:#000}
+.btn.danger{background:#7f1d1d;color:#fca5a5}
+.btn.secondary{background:var(--zinc800);color:var(--zinc200);font-weight:400}
+.btn:active{opacity:.85}
+#veilErr{color:var(--red400);font-size:.8rem;margin-top:.5rem;min-height:1rem}
+.hidden{display:none!important}
+header{background:var(--zinc900);border-bottom:1px solid var(--purple);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1rem;font-weight:700;color:var(--purple);letter-spacing:.05em}
+.logo span{color:var(--zinc500);font-weight:400}
+.header-right{display:flex;gap:.5rem;align-items:center}
+.badge{font-size:.7rem;padding:.2rem .6rem;border-radius:9999px;background:var(--zinc800);color:var(--zinc400)}
+.badge.admin{background:#2e1065;color:var(--purple)}
+#lockBtn{background:transparent;border:1px solid var(--zinc700);border-radius:.5rem;color:var(--zinc400);font-size:.75rem;padding:.3rem .7rem;cursor:pointer;min-height:var(--tap)}
+nav{display:flex;overflow-x:auto;gap:.25rem;padding:.5rem .75rem;background:var(--zinc900);border-bottom:1px solid var(--zinc800)}
+.tab{background:transparent;border:none;color:var(--zinc400);font-size:.82rem;padding:.55rem 1rem;cursor:pointer;border-radius:.5rem;white-space:nowrap;min-height:var(--tap);transition:background .15s,color .15s}
+.tab.active{background:var(--zinc800);color:var(--zinc200)}
+main{flex:1;padding:1rem;max-width:960px;margin:0 auto;width:100%}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--zinc900);border:1px solid var(--zinc800);border-radius:1rem;padding:1.25rem;margin-bottom:1rem}
+.card h2{font-size:1rem;font-weight:600;margin-bottom:1rem;color:var(--zinc200)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--zinc800);gap:.5rem}
+.row:last-child{border-bottom:none}
+.label{font-size:.8rem;color:var(--zinc500)}
+.value{font-size:.82rem;color:var(--zinc200);word-break:break-all;text-align:right;max-width:65%}
+.mono{font-family:'JetBrains Mono','Fira Mono',monospace;font-size:.75rem}
+.blur-addr{filter:blur(4px);transition:filter .2s;cursor:pointer}
+.blur-addr:hover,.blur-addr.unmasked{filter:none}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:.4rem}
+.dot-green{background:var(--emerald400)}
+.dot-red{background:var(--red400)}
+.dot-amber{background:var(--amber300)}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.5rem}
+@media(max-width:500px){.action-grid{grid-template-columns:1fr}}
+.action-btn{background:var(--zinc800);border:1px solid var(--zinc700);border-radius:.75rem;padding:1rem;text-align:left;cursor:pointer;min-height:var(--tap);transition:border .15s,background .15s;color:var(--zinc200)}
+.action-btn:hover{border-color:var(--teal);background:var(--zinc700)}
+.action-btn.destructive{border-color:#7f1d1d}
+.action-btn.destructive:hover{border-color:var(--red400);background:#450a0a}
+.action-btn .aname{font-weight:600;font-size:.88rem;margin-bottom:.25rem}
+.action-btn .adesc{font-size:.73rem;color:var(--zinc500)}
+.result-box{background:var(--zinc800);border-radius:.75rem;padding:1rem;margin-top:.75rem;font-size:.78rem;color:var(--teal);font-family:monospace;white-space:pre-wrap;word-break:break-all;min-height:48px;display:none}
+.alert{border-radius:.75rem;padding:.75rem 1rem;font-size:.82rem;margin-bottom:.75rem}
+.alert.warn{background:#431407;border:1px solid #7c2d12;color:#fed7aa}
+.alert.critical{background:#450a0a;border:1px solid #991b1b;color:#fca5a5}
+#autoLockBar{position:fixed;bottom:0;left:0;right:0;background:var(--amber300);color:#000;font-size:.78rem;text-align:center;padding:.3rem;display:none;z-index:50}
+footer{background:var(--zinc900);border-top:1px solid var(--zinc800);text-align:center;padding:1rem;font-size:.72rem;color:#52525b;line-height:1.6}
+input.field{width:100%;background:var(--zinc950);border:1px solid var(--zinc700);border-radius:.75rem;padding:.75rem 1rem;font-size:.88rem;color:var(--zinc200);margin-bottom:.5rem;min-height:var(--tap)}
+input.field:focus{outline:1px solid var(--purple)}
+</style>
+</head>
+<body>
+
+<div id="autoLockBar">⚠ Admin session idle — locking in <span id="lockCountdown">60</span>s
+  <button onclick="resetIdle()" style="background:#000;color:#fff;border:none;border-radius:.3rem;padding:.15rem .5rem;cursor:pointer;font-size:.75rem">Stay</button>
+</div>
+
+<!-- ADMIN VEIL -->
+<div id="veil">
+  <div class="veil-box">
+    <div style="font-size:.7rem;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">⬡ Admin Gate — Restricted</div>
+    <h1>SecureGate v1 Admin</h1>
+    <div class="veil-sub">Coherence auth required · EmpressGate epoch</div>
+    <input id="veilPhrase" type="password" placeholder="Operator phrase (Hopeology)" autocomplete="off"/>
+    <input id="veilCoherence" type="password" placeholder="Coherence secret (EmpressGate)" autocomplete="off"/>
+    <div id="veilErr"></div>
+    <button class="btn" onclick="unlockAdmin()">Enter Admin Gate</button>
+    <div style="font-size:.7rem;color:var(--zinc700);text-align:center;margin-top:1rem">Two-factor coherence auth · SecureGate v1</div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="app" class="hidden">
+  <header>
+    <div class="logo">SECUREGATE <span>v1 ADMIN</span></div>
+    <div class="header-right">
+      <span class="badge admin">⬡ ADMIN</span>
+      <span class="badge" id="networkBadge">ETH Mainnet</span>
+      <button id="lockBtn" onclick="hardLock()">Lock</button>
+    </div>
+  </header>
+
+  <nav>
+    <button class="tab active" onclick="switchTab(0)">Key Space</button>
+    <button class="tab" onclick="switchTab(1)">Operations</button>
+    <button class="tab" onclick="switchTab(2)">Queue</button>
+    <button class="tab" onclick="switchTab(3)">Relay Control</button>
+    <button class="tab" onclick="switchTab(4)">Sever</button>
+    <button class="tab" onclick="switchTab(5)">Audit Log</button>
+  </nav>
+
+  <main>
+
+    <!-- TAB 0: KEY SPACE -->
+    <div class="panel active" id="panel0">
+      <div class="card">
+        <h2>Key Space Summary</h2>
+        <div class="row"><span class="label">Registry</span><span class="value mono blur-addr" id="ks-registry" onclick="this.classList.toggle('unmasked')">loading…</span></div>
+        <div class="row"><span class="label">K1 — Ingress</span><span class="value mono blur-addr" id="ks-k1" onclick="this.classList.toggle('unmasked')">loading…</span></div>
+        <div class="row"><span class="label">K1 status</span><span class="value" id="ks-k1-status">checking…</span></div>
+        <div class="row"><span class="label">K1 balance</span><span class="value" id="ks-k1-bal">—</span></div>
+        <div class="row"><span class="label">K2 — Offline Attest</span><span class="value mono blur-addr" id="ks-k2" onclick="this.classList.toggle('unmasked')">loading…</span></div>
+        <div class="row"><span class="label">K2 status</span><span class="value" id="ks-k2-status">checking…</span></div>
+        <div class="row"><span class="label">K3 — Terminus</span><span class="value mono blur-addr" id="ks-k3" onclick="this.classList.toggle('unmasked')">loading…</span></div>
+        <div class="row"><span class="label">K3 status</span><span class="value" id="ks-k3-status">checking…</span></div>
+        <div class="row"><span class="label">K3 balance</span><span class="value" id="ks-k3-bal">—</span></div>
+        <div class="row"><span class="label">Veil hash</span><span class="value mono" id="ks-veil">—</span></div>
+        <div class="row"><span class="label">Last key poll</span><span class="value" id="ks-poll">—</span></div>
+      </div>
+    </div>
+
+    <!-- TAB 1: OPERATIONS -->
+    <div class="panel" id="panel1">
+      <div class="alert warn">⚠ All operations transmit X-Operator-Proof and are logged.</div>
+      <div class="card">
+        <h2>Operator Actions</h2>
+        <div class="action-grid">
+          <button class="action-btn" onclick="doAuthorize()">
+            <div class="aname">Authorize</div>
+            <div class="adesc">Authorize a pending operation via registry</div>
+          </button>
+          <button class="action-btn" onclick="doExecute()">
+            <div class="aname">Execute</div>
+            <div class="adesc">Execute an authorized operation</div>
+          </button>
+          <button class="action-btn" onclick="doQueue()">
+            <div class="aname">Queue</div>
+            <div class="adesc">Queue a new operation to the timelock</div>
+          </button>
+          <button class="action-btn destructive" onclick="confirmSever()">
+            <div class="aname" style="color:var(--red400)">Sever</div>
+            <div class="adesc">Emergency: sever K1 ingress path</div>
+          </button>
+        </div>
+        <div class="result-box" id="opResult"></div>
+      </div>
+      <div class="card">
+        <h2>Operation Parameters</h2>
+        <input class="field" id="opTarget" placeholder="Target address (0x…)"/>
+        <input class="field" id="opValue" placeholder="Value (wei or 0)"/>
+        <input class="field" id="opData" placeholder="Calldata (0x…)"/>
+        <input class="field" id="opSalt" placeholder="Salt / operation ID"/>
+      </div>
+    </div>
+
+    <!-- TAB 2: QUEUE -->
+    <div class="panel" id="panel2">
+      <div class="card">
+        <h2>Timelock Queue</h2>
+        <button class="btn teal" style="width:auto;padding:.5rem 1.2rem;margin-bottom:1rem" onclick="loadQueue()">Refresh Queue</button>
+        <div id="queueList" style="font-size:.8rem;color:var(--zinc400)">Loading…</div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RELAY CONTROL -->
+    <div class="panel" id="panel3">
+      <div class="card">
+        <h2>Relay Mesh Control</h2>
+        <button class="btn teal" style="width:auto;padding:.5rem 1.2rem;margin-bottom:1rem" onclick="adminPollRelays()">Refresh Relays</button>
+        <div id="adminRelayList" style="font-size:.8rem;color:var(--zinc400)">Loading…</div>
+        <div class="result-box" id="relayResult"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SEVER -->
+    <div class="panel" id="panel4">
+      <div class="alert critical">⛔ SEVER is a one-way emergency action. K1 ingress will be cut. Requires coherence confirmation.</div>
+      <div class="card">
+        <h2>Emergency Sever</h2>
+        <input class="field" id="severConfirm" placeholder="Type SEVER to confirm"/>
+        <input class="field" id="severCoherence" type="password" placeholder="Re-enter coherence secret"/>
+        <button class="btn danger" style="margin-top:.5rem" onclick="executeSever()">Execute Sever</button>
+        <div class="result-box" id="severResult"></div>
+      </div>
+    </div>
+
+    <!-- TAB 5: AUDIT LOG -->
+    <div class="panel" id="panel5">
+      <div class="card">
+        <h2>Audit Log</h2>
+        <button class="btn secondary" style="width:auto;padding:.5rem 1.2rem;margin-bottom:1rem" onclick="loadAuditLog()">Refresh Log</button>
+        <div id="auditLog" style="font-size:.78rem;color:var(--zinc400);font-family:monospace">Loading…</div>
+      </div>
+    </div>
+
+  </main>
+  <footer>SecureGate v1 · Admin Surface · EmpressGate Epoch · Restricted Access</footer>
+</div>
+
+<script>
+const BACKEND = 'http://localhost:3001';
+const REGISTRY = '0x56310d7e48d9249df358ab9daa6a2dad0e03e242';
+const K1 = '0x01152d5c7467204bFa015061097b193CbceA8ca9';
+const K2 = '0x55c73995c4194Dd87CC5aCbC4E45f48c807f4553';
+const K3 = '0xA0eb06a5fab172860837C4D68e75F339896500b5';
+const VEIL_SALT = 'sgv1';
+const COHERENCE_SECRET = 'EmpressGate';
+const RPC_URL = 'https://eth.llamarpc.com';
+
+let provider, operatorProof = '', idleTimer;
+const IDLE_WARN = 60, IDLE_LOCK = 120;
+
+// ── AUTH ──────────────────────────────────────────────────────────
+async function keccakOf(s) { return ethers.keccak256(ethers.toUtf8Bytes(s)); }
+
+async function unlockAdmin() {
+  const phrase = document.getElementById('veilPhrase').value.trim();
+  const coherence = document.getElementById('veilCoherence').value.trim();
+  const expectedProof = await keccakOf('Hopeology' + VEIL_SALT);
+  const givenProof = await keccakOf(phrase + VEIL_SALT);
+  const coherenceOk = coherence === COHERENCE_SECRET;
+  if (givenProof === expectedProof && coherenceOk) {
+    operatorProof = givenProof;
+    document.getElementById('veil').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    initAdmin();
+    resetIdle();
+  } else {
+    document.getElementById('veilErr').textContent = 'Invalid phrase or coherence secret.';
+    document.getElementById('veilPhrase').value = '';
+    document.getElementById('veilCoherence').value = '';
+  }
+}
+document.getElementById('veilCoherence').addEventListener('keydown', e => { if(e.key==='Enter') unlockAdmin(); });
+
+function hardLock() {
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('veil').classList.remove('hidden');
+  document.getElementById('veilPhrase').value = '';
+  document.getElementById('veilCoherence').value = '';
+  document.getElementById('veilErr').textContent = '';
+  operatorProof = '';
+  clearInterval(idleTimer);
+  document.getElementById('autoLockBar').style.display = 'none';
+}
+
+function resetIdle() {
+  clearInterval(idleTimer);
+  document.getElementById('autoLockBar').style.display = 'none';
+  let countdown = IDLE_WARN;
+  idleTimer = setInterval(() => {
+    countdown--;
+    document.getElementById('lockCountdown').textContent = countdown;
+    if (countdown <= IDLE_WARN) document.getElementById('autoLockBar').style.display = 'block';
+    if (countdown <= 0) { clearInterval(idleTimer); hardLock(); }
+  }, 1000);
+}
+['click','keydown','touchstart','mousemove'].forEach(e => document.addEventListener(e, resetIdle, {passive:true}));
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(i) {
+  document.querySelectorAll('.panel').forEach((p,idx) => p.classList.toggle('active', idx===i));
+  document.querySelectorAll('.tab').forEach((t,idx) => t.classList.toggle('active', idx===i));
+  if (i===2) loadQueue();
+  if (i===3) adminPollRelays();
+  if (i===5) loadAuditLog();
+}
+
+// ── API HELPER ────────────────────────────────────────────────────
+async function apiFetch(path, opts={}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-Operator-Proof': operatorProof,
+    'X-Coherence-Epoch': 'Hopeology',
+    ...(opts.headers||{})
+  };
+  const res = await fetch(BACKEND + '/admin' + path, { ...opts, headers });
+  if (!res.ok) { const t = await res.text(); throw new Error(`${res.status}: ${t}`); }
+  return res.json();
+}
+
+function showResult(id, content, isError=false) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  el.style.color = isError ? 'var(--red400)' : 'var(--teal)';
+  el.textContent = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+async function initAdmin() {
+  try {
+    provider = new ethers.JsonRpcProvider(RPC_URL);
+    const network = await provider.getNetwork();
+    document.getElementById('networkBadge').textContent = `${network.name} (${network.chainId})`;
+    document.getElementById('ks-registry').textContent = REGISTRY;
+    document.getElementById('ks-k1').textContent = K1;
+    document.getElementById('ks-k2').textContent = K2;
+    document.getElementById('ks-k3').textContent = K3;
+    const veilHash = await keccakOf('Hopeology' + VEIL_SALT);
+    document.getElementById('ks-veil').textContent = veilHash.slice(0,20) + '…';
+    pollKeySpace();
+    setInterval(pollKeySpace, 20000);
+  } catch(e) {
+    document.getElementById('networkBadge').textContent = 'RPC error';
+  }
+}
+
+async function pollKeySpace() {
+  try {
+    const [b1, b3] = await Promise.all([provider.getBalance(K1), provider.getBalance(K3)]);
+    document.getElementById('ks-k1-bal').textContent = ethers.formatEther(b1) + ' ETH';
+    document.getElementById('ks-k3-bal').textContent = ethers.formatEther(b3) + ' ETH';
+    document.getElementById('ks-k1-status').innerHTML = '<span class="status-dot dot-amber"></span>Ingress / flagged';
+    document.getElementById('ks-k2-status').innerHTML = '<span class="status-dot dot-grey" style="background:var(--zinc700)"></span>Offline attest';
+    document.getElementById('ks-k3-status').innerHTML = '<span class="status-dot dot-green"></span>Terminus / clean';
+    document.getElementById('ks-poll').textContent = new Date().toLocaleTimeString();
+  } catch(e) {
+    document.getElementById('ks-k1-bal').textContent = 'RPC error';
+  }
+}
+
+// ── OPERATIONS ────────────────────────────────────────────────────
+function getOpParams() {
+  return {
+    target: document.getElementById('opTarget').value.trim(),
+    value: document.getElementById('opValue').value.trim() || '0',
+    data: document.getElementById('opData').value.trim() || '0x',
+    salt: document.getElementById('opSalt').value.trim()
+  };
+}
+
+async function doQueue() {
+  try {
+    const params = getOpParams();
+    if (!params.target) { showResult('opResult', 'Target address required.', true); return; }
+    showResult('opResult', 'Queuing operation…');
+    const data = await apiFetch('/queue', { method: 'POST', body: JSON.stringify(params) });
+    showResult('opResult', data);
+  } catch(e) { showResult('opResult', 'Queue error: ' + e.message, true); }
+}
+
+async function doAuthorize() {
+  try {
+    const params = getOpParams();
+    if (!params.salt) { showResult('opResult', 'Operation ID / salt required.', true); return; }
+    showResult('opResult', 'Authorizing…');
+    const data = await apiFetch('/authorize', { method: 'POST', body: JSON.stringify(params) });
+    showResult('opResult', data);
+  } catch(e) { showResult('opResult', 'Authorize error: ' + e.message, true); }
+}
+
+async function doExecute() {
+  try {
+    const params = getOpParams();
+    if (!params.salt) { showResult('opResult', 'Operation ID / salt required for execute.', true); return; }
+    showResult('opResult', 'Executing…');
+    const data = await apiFetch('/execute', { method: 'POST', body: JSON.stringify(params) });
+    showResult('opResult', data);
+  } catch(e) { showResult('opResult', 'Execute error: ' + e.message, true); }
+}
+
+function confirmSever() { switchTab(4); }
+
+async function executeSever() {
+  const confirm = document.getElementById('severConfirm').value.trim();
+  const coherence = document.getElementById('severCoherence').value.trim();
+  if (confirm !== 'SEVER') { showResult('severResult', 'Type exactly SEVER to confirm.', true); return; }
+  if (coherence !== COHERENCE_SECRET) { showResult('severResult', 'Coherence secret mismatch.', true); return; }
+  try {
+    showResult('severResult', 'Transmitting SEVER command…');
+    const data = await apiFetch('/sever', { method: 'POST', body: JSON.stringify({ confirm: 'SEVER', coherence }) });
+    showResult('severResult', data);
+  } catch(e) { showResult('severResult', 'Sever error: ' + e.message, true); }
+}
+
+// ── QUEUE ─────────────────────────────────────────────────────────
+async function loadQueue() {
+  document.getElementById('queueList').textContent = 'Loading…';
+  try {
+    const data = await apiFetch('/queue');
+    if (!data.operations || data.operations.length === 0) {
+      document.getElementById('queueList').textContent = 'No operations in queue.';
+      return;
+    }
+    document.getElementById('queueList').innerHTML = data.operations.map(op =>
+      `<div style="padding:.5rem 0;border-bottom:1px solid var(--zinc800)">
+        <div style="color:var(--zinc200);font-weight:600">${op.id || op.salt}</div>
+        <div style="color:var(--zinc500);font-size:.75rem">Target: ${op.target} · Value: ${op.value} · Status: ${op.status}</div>
+        <div style="color:var(--zinc600);font-size:.7rem">${op.timestamp ? new Date(op.timestamp*1000).toLocaleString() : ''}</div>
+      </div>`
+    ).join('');
+  } catch(e) { document.getElementById('queueList').textContent = 'Error: ' + e.message; }
+}
+
+// ── RELAY CONTROL ─────────────────────────────────────────────────
+async function adminPollRelays() {
+  document.getElementById('adminRelayList').textContent = 'Polling…';
+  try {
+    const data = await apiFetch('/relays');
+    document.getElementById('adminRelayList').innerHTML = data.relays.map(r =>
+      `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--zinc800)">
+        <span>${r.name}</span>
+        <span style="color:${r.status==='ok'?'var(--emerald400)':r.status==='checking'?'var(--amber300)':'var(--red400)'}">${r.status.toUpperCase()} ${r.latency?r.latency+'ms':''}</span>
+      </div>`
+    ).join('');
+  } catch(e) { document.getElementById('adminRelayList').textContent = 'Error: ' + e.message; }
+}
+
+// ── AUDIT LOG ─────────────────────────────────────────────────────
+async function loadAuditLog() {
+  document.getElementById('auditLog').textContent = 'Loading…';
+  try {
+    const data = await apiFetch('/audit-log');
+    if (!data.entries || data.entries.length === 0) {
+      document.getElementById('auditLog').textContent = 'No log entries.';
+      return;
+    }
+    document.getElementById('auditLog').innerHTML = data.entries.map(e =>
+      `<div style="padding:.3rem 0;border-bottom:1px solid var(--zinc800);color:var(--zinc400)">[${new Date(e.ts*1000).toLocaleString()}] ${e.action} — ${e.detail}</div>`
+    ).join('');
+  } catch(e) { document.getElementById('auditLog').textContent = 'Error: ' + e.message; }
+}
+</script>
+</body>
+</html>

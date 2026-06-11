@@ -1,0 +1,4 @@
+npm install
+node server.js
+# Public:  http://localhost:3001/
+# Admin:   http://localhost:3001/admin  (requires operator proof + EmpressGate)
