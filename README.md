@@ -217,3 +217,12 @@ Proprietary. **All rights reserved.** No open-source grant. Full terms: [LICENSE
 ---
 
 *Helix Fabric v1 — sole author Empress (@Hope_ology) — total build attributed exclusively to Empress, including LLM-assisted assembly.*
+## Repository History Note
+
+Pre-refinement contract development history (early EIP777G/ERC777Gv2 sources, ALTERNATE-CHAIN-INTEGRATIONS, and related alternate-chain docs from before the project was refined to the current SecureGate v1 dashboard + telemetry form) is preserved exclusively in the `archive/pre-refinement` branch and the `archive/pre-refinement` tag. 
+
+This is retained for licensing, authorship stipulation, and workflow provenance proof (as required by the project's LOCKDOWN and author policies).
+
+The `main` branch contains only the refined project (current JS dashboard, operator tools, EIP777G.json artifact, Foundry CI workflow, and refined documentation with the author/ownership stipulations).
+
+All necessary license and CI workflow elements for the refined build are present and proven in the main history.
