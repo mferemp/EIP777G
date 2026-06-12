@@ -34,8 +34,8 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies (skip native addons)
+        run: npm ci --ignore-scripts
 
       - name: Build live dashboard
         run: npm run build:live
