@@ -9,6 +9,18 @@ node_modules/
 # Environment
 .env
 .env.local
+.env.*.local
+
+# Sensitive / Operator-only (NEVER commit to public repo)
+operator/source/
+contracts/
+certs/
+custody/
+docs/confidential/
+*.tar.gz
+securegate-v1-CUSTODY.tar.gz
+acknowledgement.log
+recovery.log
 
 # IDE
 .vscode/
@@ -19,5 +31,5 @@ node_modules/
 # OS
 .DS_Store
 
-*.tar.gz
-securegate-v1-CUSTODY.tar.gz
+# Build artifacts
+live/

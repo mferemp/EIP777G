@@ -1,27 +1,44 @@
-# Helix Fabric — Quick start
+# SecureGate v1 — Public Console Quick Reference
 
-**This page is for the public console link.** Admin uses a separate URL.
-
----
-
-## In 7 steps
-
-1. Open the link you were given (public dashboard — not `/admin`).
-2. Tap **How to** anytime — this sheet is shorter than the README.
-3. Pick your **network** (fabric) at the top. Paste an RPC only if you need a custom endpoint.
-4. **Telemetry** — check that lanes and mesh look healthy (read-only is fine).
-5. **Recovery credentials** — paste keys only if you are actively recovering. Fields start empty. Nothing is saved to disk.
-6. **Sever → Deploy → Queue → Authorize → Execute** — run in that order when executing recovery.
-7. Tap **Purge all variables** (or **Purge Tokens**) when you are done.
+**This link opens a session-only recovery console. No data is stored.**
 
 ---
 
-## Remember
+## In 5 steps
 
-- Private key = control. If a key leaked, use a **new** wallet.
-- Keys stay in browser memory only for this session.
-- For protocol background (public literature), tap **Docs** — README, PROTOCOL, LICENSE.
+1. **Open the link** — this generic analytics shell loads in your browser.
+2. **Paste your RPC endpoint** — or use the built-in public defaults.
+3. **Paste credentials** (only if actively recovering):
+   - Courier / Deployer private key (ephemeral)
+   - K1 private key — ingress wallet (ephemeral)
+   - K1 address (optional override)
+   - K2 address — attest wallet (address only, never paste key)
+   - K3 address — terminus / drop wallet
+   - Registry anchor (gate contract address)
+4. **Use the tabs**:
+   - **Telemetry** — read-only balances & gate state
+   - **Beacon** — origin pulse & drift check
+   - **Deploy** — fabric bootstrap (requires deployer key)
+   - **Trace** — local session activity log
+5. **Purge all variables** when done (or press `Esc` / close tab).
 
 ---
 
-© Empress (@Hope_ology) — Helix Fabric public surface
+## What this is NOT
+
+- ❌ Not a wallet — you hold keys briefly in browser memory only
+- ❌ Not a contract deployment UI — Deploy tab is bootstrap only
+- ❌ Not a substitute for standard EOA hygiene (rotate exposed keys)
+- ❌ Not open source — proprietary, authorized operators only
+
+---
+
+## Safety
+
+- Keys never leave your browser — memory only, wipe on `Esc` / idle / close
+- Addresses blurred by default (Unmask: OFF)
+- No server, no logs, no tracking
+
+---
+
+© Empress (@Hope_ology) — SecureGate v1 • Proprietary
