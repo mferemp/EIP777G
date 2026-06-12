@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+artifacts/
+cache/
+typechain-types/
+dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage
+coverage/
+
+# Gas reports
+gas-report.txt
+
+# Deployment files
+deployments/*.json
+
+# Hardhat
+hardhat-network-accounts/
+
+# Test mocks (if not in test/mocks)
+test/mocks/
+
+# Temporary files
+*.tmp
+*.temp
