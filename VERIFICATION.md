@@ -1,4 +1,4 @@
-# SecureGate v1 — Verification Report
+# 777G Genesis Gate v1 — Verification Report
 
 > Updated: 2026-06-10 (full sweep)  
 > **Only location:** `/home/mfere/securegate-v1`
@@ -28,7 +28,7 @@ All extraneous copies removed. Nothing else under `/home/mfere` except this proj
 /home/mfere/securegate-v1/     ← only copy
 ├── live/index.html            ← served
 ├── operator/source/index.html ← custody source
-├── docs/public/               ← Helix misdirection
+├── docs/public/               ← 777G public docs
 ├── docs/confidential/         ← spec truth
 ├── custody/                   ← portable tar
 └── .env                       ← your secrets (not in tar)

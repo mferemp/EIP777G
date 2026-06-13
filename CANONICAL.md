@@ -1,4 +1,4 @@
-# SecureGate v1 — Canonical Build (only copy)
+# 777G Genesis Gate v1 — Canonical Build (only copy)
 
 > **Project root:** `/home/mfere/securegate-v1`  
 > Old snapshots and duplicate archives have been removed (2026-06-10).
@@ -26,7 +26,7 @@ npm start
 | Source (custody + export) | `operator/source/index.html` |
 | Handover | `operator/CUSTODY.md` |
 | Access guide | `operator/ACCESS.md` |
-| Public docs (Helix Fabric) | `docs/public/` |
+| Public docs (777G Genesis Gate) | `docs/public/` |
 | Confidential spec | `docs/confidential/` |
 
 Root `index.html` mirrors `operator/source/index.html` — **not** what the server serves.
