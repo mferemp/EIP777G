@@ -1,6 +1,6 @@
-# Helix Fabric — Protocol Surface Reference (Public)
+# 777G Genesis Gate — Protocol Surface Reference (Public)
 
-> **Telemetry & lane-coherence console only.** Not a wallet. Not a custody layer.  
+> **Secure EIP-777G Genesis Lock deployment dashboard.** Not a wallet. Not a custody layer.  
 > Copyright © 2026 Empress (@Hope_ology). Proprietary — see [LICENSE](./LICENSE).
 
 ---
@@ -8,7 +8,7 @@
 ## Author & ownership stipulation
 
 > **Statement.** Empress (@Hope_ology) is the **sole author and owner** of the total
-> Helix Fabric build — including complete logic, workflow design, variables, protocol
+> 777G Genesis Gate / SecureGate build — including complete logic, workflow design, variables, protocol
 > literature, and deliberate departures from industry standards — whether produced
 > directly or **pieced across various LLM-assisted sessions**.
 >
@@ -20,19 +20,19 @@
 
 ## Design intent
 
-Helix Fabric exposes **read-mostly observability** over a multi-lane settlement registry on
-Ethereum-compatible fabrics. Operators use it to confirm that **α / β / γ** lane addresses
-match registry expectations, to review **staged packets**, and to monitor **builder mesh**
-inclusion telemetry.
+777G Genesis Gate exposes **secure deployment orchestration** for the **EIP-777G Genesis Lock** —
+an irrevocable key nullification gate for compromised wallet recovery. Operators use it to
+deploy the Genesis Lock contract with the K1/K2/K3 key architecture, orchestrate Flashbots
+atomic bundles (Revoke All → Deploy → Verify), and monitor post-deployment state.
 
-The browser session **never becomes** the on-chain registry. Lane credentials, when
+The browser session **never becomes** the on-chain contract. Keys, when
 supplied, exist **only in volatile memory** for the active tab session.
 
 ---
 
 ## Foundational assumption: standard EOAs
 
-Helix is built on the **same EOA semantics** every Ethereum user already expects:
+777G Genesis Gate is built on the **same EOA semantics** every Ethereum user already expects:
 
 | Axiom | Implication |
 |-------|-------------|
@@ -42,38 +42,37 @@ Helix is built on the **same EOA semantics** every Ethereum user already expects
 | **Revoke allowances** | Unlimited token approvals should be revoked via standard explorers. |
 | **Hardware signing** | Prefer air-gapped or hardware devices for high-value lanes. |
 
-Helix **does not** suspend, override, or replace these rules. It adds a **protocol
-telemetry layer** for operators who already follow normal wallet hygiene.
+777G Genesis Gate **does not** suspend, override, or replace these rules. It adds a **secure
+deployment orchestration layer** for operators who already follow normal wallet hygiene.
 
 ---
 
-## Lane topology (α · β · γ)
+## Key architecture (K1 · K2 · K3)
 
-| Lane | Role in protocol literature |
-|------|----------------------------|
-| **α — ingress** | Active wallet under observation; may **stage** packets into the registry flow |
-| **β — attest** | Offline corroboration; signatures produced away from this host and pasted in |
-| **γ — terminus** | Configured receive sink at registry bootstrap; passive path |
-| **Courier** | Ephemeral fee wallet for relay-paid network costs |
+| Key | Role in mechanism |
+|-----|-------------------|
+| **K1 — Genesis** | Compromised key; retains call ability, **cannot complete** (requires K2 auth) |
+| **K2 — Authority** | Air-gapped authorizer; **sole address that can authorize** intent execution |
+| **K3 — Drop** | Clean/drop wallet; **receives all swept assets**, normal wallet behavior |
+| **Clean Wallet** | Backup severance authority (ingress/egress severance) |
 
-**Registry anchor** — immutable reference contract on-chain. Dashboard reads state; it does
-not upgrade or replace registry bytecode from the browser.
+**Genesis Proof** — Immutable hash `keccak256(k1, k2, k3, clean, deployer, timestamp, chainId)` commits the exact deployment configuration. Dashboard reads contract state; it does not upgrade or replace contract bytecode from the browser.
 
 ---
 
-## Packet lifecycle (normative flow)
+## Deployment lifecycle (normative flow)
 
 ```
-α stage  →  β attest  →  cooldown  →  commit  →  γ sink
+Revoke Scan  →  Flashbots Bundle  →  Deploy  →  Verify  →  Smoke Test
 ```
 
-1. **Stage** — α emits a packet vector into the registry queue  
-2. **Attest** — β corroboration blob is pasted (air-gapped signing)  
-3. **Commit** — after attestation horizon + settlement cooldown  
-4. **Trace** — transport log records mesh / relay events  
+1. **Revoke Scan** — Auto-crawl ERC20 allowances, ERC721 delegates, custom delegates for K1
+2. **Flashbots Bundle** — Atomic bundle: Revoke All → Deploy Genesis Lock → Verify (Ethereum only)
+3. **Deploy** — Genesis Lock constructor binds K1/K2/K3/GenesisHash immutably
+4. **Verify** — `verifyGenesis()` returns K1/K2/K3/Deployer/Timestamp/ChainID/GenesisHash
+5. **Smoke Test** — Verify severance status, K1/K2/K3 balances, genesis hash match
 
-Advanced operators may run **link severance** batches and **fabric provisioning** via
-authorized local relay scripts — not from static HTML alone.
+**Advanced:** Link severance (ingress/egress) via K2 or Clean Wallet; fabric provisioning via authorized scripts — not from static HTML alone.
 
 ---
 
@@ -81,22 +80,26 @@ authorized local relay scripts — not from static HTML alone.
 
 | Plane | Purpose |
 |-------|---------|
-| **Decoy shell** | Privacy screen before console unlock |
-| **Coherence bind** | Operator origin vector + epoch marker before lane mutations |
-| **Unmask** | Optional address visibility in UI (default: blurred) |
-| **Auto-lock** | Idle, tab hide, or `Esc` wipes ephemeral state |
+| **Auth Overlay** | Owner authentication (SCAN/QR/Admin Bypass) before dashboard access |
+| **Coherence bind** | Device fingerprint + optional admin password before deployment |
+| **Admin Bypass (O-')** | Owner password modal for instant access (shareable, device-bound) |
+| **Auto-lock** | Idle, tab hide, `Esc`, or Purge wipes ephemeral state |
 
 Coherence binding is **session-local**. It is not on-chain authentication.
 
 ---
 
-## Multi-fabric notes
+## Multi-fabric support
 
-| Fabric | Behavior |
-|--------|----------|
-| **ETH mainnet** | Builder mesh telemetry (Flashbots-class relays) |
-| **HL EVM (999)** | Separate sequencer; no ETH-style private mesh |
-| **HL Core** | Clearinghouse API surface — not EVM deploy |
+| Fabric | Type | Notes |
+|--------|------|-------|
+| **Ethereum Mainnet** | EVM | Primary deployment target; Flashbots enabled |
+| **Hyperliquid EVM** | EVM | Chain ID 999; separate sequencer |
+| **Hyperliquid Core** | Non-EVM | API-based deployment; different signing |
+| **Arbitrum / Optimism / Base** | L2 EVM | Standard EVM deployment |
+| **Plasma / Monad / Ink / Unichain / Abstract** | EVM | Standard EVM deployment |
+| **Avalanche / ApeChain** | EVM | Standard EVM deployment |
+| **Polygon / BNB** | EVM | Standard EVM deployment |
 
 Treat each fabric as an **independent protocol surface**.
 
@@ -106,7 +109,7 @@ Treat each fabric as an **independent protocol surface**.
 
 - Not open source  
 - Not a consumer wallet product  
-- Not a contract deployment UI in the browser  
+- Not a contract deployment UI in the browser (it IS a deployment dashboard)  
 - Not a substitute for EOA key hygiene or fund migration  
 - Not an invitation to adversarial probing — unauthorized access prohibited  
 
@@ -119,4 +122,4 @@ Confidential operator materials exist separately and are **not** part of this pu
 
 ---
 
-*Helix Fabric v1 — sole author Empress (@Hope_ology) — © all rights reserved.*
+*777G Genesis Gate v1 — sole author Empress (@Hope_ology) — © all rights reserved.*

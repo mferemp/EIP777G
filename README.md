@@ -1,6 +1,6 @@
-# Helix Fabric v1 — Protocol Telemetry Console
+# 777G Genesis Gate — Secure Deployment Dashboard
 
-**Multi-lane settlement observability for Empress-operated relay fabrics.**
+**Secure EIP-777G Genesis Lock deployment for Empress-operated relay fabrics.**
 
 ---
 
@@ -22,7 +22,7 @@ lifecycle as normative literature. Operator-confidential materials are **not** l
 ## Author & ownership stipulation
 
 > **Statement.** Empress (@Hope_ology) is the **sole author and owner** of the total
-> Helix Fabric / SecureGate build. This includes complete logic, workflow design,
+> 777G Genesis Gate / SecureGate build. This includes complete logic, workflow design,
 > variables, and deliberate departures from industry standards — whether authored
 > directly or **assembled piecemeal across various large-language-model (LLM)
 > sessions**.
@@ -38,59 +38,55 @@ This public README does not waive ownership. Full legal terms: [LICENSE](./LICEN
 
 ## What this is (plain English)
 
-Helix Fabric is a **local dashboard** that helps you **watch** how your
-wallets line up with a **protocol registry** on Ethereum (and related fabrics
-like Hyperliquid). Think of it as a **flight deck for lane health** — not a
-trading app, not a wallet replacement, and **not** something that deploys or
-upgrades smart contracts from the browser.
+777G Genesis Gate is a **secure deployment dashboard** that deploys the **EIP-777G Genesis Lock** — an irrevocable key nullification gate for compromised wallet recovery.
 
-You use it to:
+**What it does:**
+- Deploys the Genesis Lock contract (K1/K2/K3 key architecture)
+- Flashbots atomic bundle: Revoke All → Deploy → Verify
+- Real-time revoke scanning (ERC20/ERC721/custom delegates)
+- Multi-chain support (17 EVM chains + Hyperliquid EVM/Core)
+- Owner authentication (device sweep / QR code / admin password bypass)
 
-- Check that your **lane addresses** (α / β / γ) match what the protocol expects
-- Monitor **builder mesh** activity (relay inclusion telemetry)
-- Review **staged packets** moving through the normal protocol flow
-- Run **calibration** checks when you want extra confidence nothing drifted
-
-**Important:** This console does **not** change how Ethereum EOAs work. Standard
-wallet rules always apply (see below).
-
----
-
-## How Ethereum wallets actually work (read this first)
-
-Helix Fabric assumes the **standard EOA model** everyone already knows:
-
-| Rule | What it means |
-|------|----------------|
-| **Key = control** | Whoever holds an EOA private key controls that wallet. Full stop. |
-| **Exposed key** | If a key leaked, treat the wallet as **hot** — rotate to a **brand-new** wallet immediately. |
-| **Move funds first** | Industry best practice: **transfer assets to a fresh address** you control before doing anything else. |
-| **Revoke approvals** | Open Etherscan → Token Approvals → revoke unlimited allowances. |
-| **Hardware > software** | Prefer Ledger/Trezor. Never paste seed phrases into websites. |
-
-Helix Fabric **monitors protocol lane coherence** alongside those normal hygiene
-steps. It does **not** suspend EOA rules, override private-key semantics, or
-replace the need for a clean wallet migration.
-
-> **Operator note:** If you believe a wallet is compromised, the mainstream
-> recovery playbook is still: **new wallet, move funds, revoke approvals.**
-> This tool adds a **protocol telemetry layer** on top of standard practice.
+**What it is NOT:**
+- ❌ Not a trading app or wallet replacement
+- ❌ Not a bypass for EOA private-key semantics
+- ❌ Not a consumer app — **authorized operators only**
+- ❌ Not open source — see `LICENSE`
 
 ---
 
-## Protocol lanes (α / β / γ)
+## Author & ownership stipulation
 
-Helix uses a **three-lane mental model** common in settlement fabrics:
+> **Statement.** Empress (@Hope_ology) is the **sole author and owner** of the total
+> 777G Genesis Gate / SecureGate build. This includes complete logic, workflow design,
+> variables, and deliberate departures from industry standards — whether authored
+> directly or **assembled piecemeal across various large-language-model (LLM)
+> sessions**.
+>
+> **Stipulation.** No LLM provider, model operator, or third-party assistant acquires
+> authorship, ownership, license, or attribution rights by assisting with code or
+> documentation. All output was directed, selected, edited, and owned by Empress.
+> The total work product is attributed **exclusively to Empress (@Hope_ology)**.
 
-| Lane | Plain description |
-|------|-------------------|
-| **α (ingress)** | The **active wallet** you are monitoring — emits staged packets into the protocol |
-| **β (attest)** | **Offline corroboration** — signatures are produced away from this machine and pasted in |
-| **γ (terminus)** | The **destination sink** the protocol was configured with — receive path only |
-| **Courier** | A **throwaway fee wallet** that pays network costs for routine relay helpers |
+This public README does not waive ownership. Full legal terms: [LICENSE](./LICENSE).
 
-The **registry anchor** is a **protocol reference point** on-chain. The dashboard
-reads it. Your browser session never "becomes" the registry.
+---
+
+## What this is (plain English)
+
+777G Genesis Gate is a **secure deployment dashboard** for the **EIP-777G Genesis Lock** — an irrevocable key nullification gate for compromised wallet recovery.
+
+**Core mechanism:**
+- **K1 (compromised key):** Retains call ability, **cannot complete** (requires K2 auth)
+- **K2 (air-gapped authorizer):** Sole authorization gate — only address that can authorize
+- **K3 (drop wallet):** Receives all swept assets, normal wallet behavior
+
+**Deployment flow:**
+1. Enter Deployer key (burner), K1 address, K2 address, K3 address, RPC URL
+2. Calculate funding requirements per chain
+3. Auto-scan revoke targets (ERC20/ERC721/custom delegates)
+4. Flashbots bundle: Revoke All → Deploy Genesis Lock → Verify
+5. Smoke test: Verify deployment, severance status, balances
 
 ---
 
@@ -99,96 +95,130 @@ reads it. Your browser session never "becomes" the registry.
 ### 1. Install
 
 ```bash
-cd securegate-v1
-npm install
-npm start
+cd /dashboard
+npx serve .
 ```
 
-Open **http://127.0.0.1:3001** (`npm start` serves the live dashboard + API).
-Static-only mode (`index.html` file) works for on-chain tabs but mesh/API features need the backend.
+Open the URL shown (e.g., `http://localhost:3000`). Works for all on-chain tabs.
 
-### 2. Unlock the console
+### 2. Owner Authentication
 
-You'll see an **Analytics Gateway** login — enter your **operator phrase**.
-This is just a session privacy screen, not on-chain auth.
+Open the dashboard URL → You'll see an **Owner Authentication** screen:
 
-### 3. Fill the connection row
+| Method | How it works |
+|--------|--------------|
+| **SCAN** (same device) | Click **SCAN** → Dashboard sweeps device for 4 historical artifacts (First TX, Wallet creation, App install, Device fingerprint) — 3/4 verified = access |
+| **QR Code** (separate device) | Scan QR with genesis device → Phone submits verification → Dashboard polls & unlocks |
+| **Admin Bypass (O-')** | Click tiny **O-'** (top-right) → **ADMIN** modal → Enter admin password → Instant access |
 
-| Field | What to put |
-|-------|-------------|
-| **Transport endpoint** | Your RPC URL (e.g. public Ethereum RPC) |
-| **Registry anchor** | Auto-fills after unlock — leave unless you know otherwise |
-| **Lane α** | Ephemeral credential for the **wallet you're watching** (optional for read-only telemetry) |
-| **Courier** | Ephemeral credential for **fee-paid relay helpers** (optional) |
+Credentials are **session-only** — wiped on `Esc`, tab close, idle timeout, or Purge button.
 
-Credentials are **memory-only** and wipe on refresh, `Esc`, or idle timeout.
+### 3. Deploy Genesis Lock
 
-### 4. Bind session coherence (before changes)
-
-Click **Bind Coherence** (or use **Calibrate** tab). Enter your **origin vector**
-and **epoch marker**. This proves you're the authorized operator before the
-console allows lane mutations.
-
-### 5. Use the tabs
-
-| Tab | When to use it |
-|-----|----------------|
-| **Telemetry** | Daily health check — lanes, mesh, staged packets |
-| **Stage** | Emit a protocol packet from α (advanced) |
-| **Attest** | Paste β corroboration blob for a staged packet |
-| **Commit** | Finalize after cooldown (advanced) |
-| **Calibrate** | Origin pulse + lane drift check |
-| **Sever** | Encode permission-decay batch (advanced) |
-| **Trace** | Read the activity log |
-| **Provision** | Fabric bootstrap status + mesh traces |
-
-Most users spend 90% of their time in **Telemetry** and **Calibrate**.
+1. Select network from dropdown (17 chains + Hyperliquid Core)
+2. Enter parameters:
+   - **Deployer Private Key** (burner wallet)
+   - **K1 Private Key** (compromised key)
+   - **K1 Address** (auto-derived)
+   - **K2 Address** (air-gapped authorizer)
+   - **K3 Address** (clean/drop wallet)
+   - **Clean Wallet** (backup severance, defaults to K3)
+   - **RPC URL** (auto-filled by network, or custom)
+   - **Auth Window** (default 3600s)
+   - **Min Delay** (default 86400s)
+3. Click **Calculate Funding** → Fund deployer wallet
+4. Click **Scan Revoke Targets** → Auto-crawl approvals/delegates
+5. Click **Deploy Genesis Lock** → Flashbots bundle submits
+5. **Smoke Test** → Verifies deployment, severance, balances
 
 ---
 
-## Session safety (built-in)
+## Session security (built-in)
 
-- **Decoy shell** hides the console behind a generic analytics login
-- **Unmask OFF** blurs addresses in the UI by default
-- **Coherence binding** required before Stage / Attest / Commit / Sever
-- **Auto-lock** on idle, tab hide, or `Esc`
-- **Purge tokens** wipes ephemeral credentials instantly
+- **Decoy shell** — Auth overlay hides the real dashboard
+- **O-' Master bypass** — Device-bound admin password for owner
+- **Admin password** — Shareable with others (device-bound on their end)
+- **Session-only keys** — Wiped on `Esc`, tab close, idle timeout, or Purge
+- **Coherence binding** required before deployment
+- **Auto-lock** on idle, tab close, `Esc`, or Purge
+- **Purge buttons** — Wipe ephemeral credentials instantly
 
 ---
 
-## Hyperliquid & multi-fabric
+## Supported networks (17 chains + Hyperliquid Core)
 
-Helix can show **adjacent fabric** telemetry:
+| Chain | Chain ID | RPC (default) | Native |
+|-------|----------|---------------|--------|
+| Ethereum | 1 | eth.llamarpc.com | ETH |
+| Hyperliquid EVM | 999 | rpc.hyperliquid.xyz/evm | HYPE |
+| Hyperliquid Core | — | api.hyperliquid.xyz | HYPE (Non-EVM) |
+| Arbitrum | 42161 | arb1.arbitrum.io/rpc | ETH |
+| Optimism | 10 | mainnet.optimism.io | ETH |
+| Base | 8453 | mainnet.base.org | ETH |
+| Plasma | 9745 | rpc.plasma.to | ETH |
+| Monad | 10143 | rpc.monad.xyz | MON |
+| Ink | 57073 | rpc-gel.inkonchain.com | ETH |
+| Unichain | 130 | mainnet.unichain.org | ETH |
+| Abstract | 2741 | rpc.abstract.money | ETH |
+| Avalanche | 43114 | api.avax.network/ext/bc/C/rpc | AVAX |
+| ApeChain | 33139 | rpc.apechain.com | APE |
+| Polygon | 137 | polygon-rpc.com | MATIC |
+| BNB Chain | 56 | bsc-dataseed.binance.org | BNB |
 
-- **HL Core** — clearinghouse / perps balances (API observability)
-- **HL EVM** — separate EVM fabric with its own sequencer (different from ETH mesh)
+**Custom RPC:** Paste any EVM RPC URL in the Deploy tab.
 
-Each fabric has its own provisioning rhythm. Treat them as **independent
-protocol surfaces** — don't assume ETH mainnet behavior copies over.
+---
+
+## Contract mechanism (EIP-777G Genesis Lock)
+
+| Role | Behavior |
+|------|----------|
+| **K1 (compromised)** | Retains call ability, **cannot complete** (requires K2 auth) |
+| **K2 (air-gapped)** | Sole authorizer — only address that can authorize |
+| **K3 (drop wallet)** | Receives all swept assets, normal wallet behavior |
+| **Clean Wallet** | Backup severance authority |
+
+**Key properties:**
+- K1 cannot revoke gate (requires K2 auth)
+- Assets authorized from K1 route **directly to K3**
+- Severance immutable (K2 or Clean Wallet only)
+- On-chain obfuscation: false flags, opaque predicates, decoy events, jump tables
+
+---
+
+## Multi-fabric support
+
+| Fabric | Type | Notes |
+|--------|------|-------|
+| Ethereum EVM | EVM | Main deployment target |
+| Hyperliquid EVM | EVM | Separate sequencer |
+| Hyperliquid Core | Non-EVM | API-based deployment |
+| Arbitrum/Optimism/Base | L2 EVM | Standard EVM deployment |
+
+Each fabric has its own deployment path. Treat as independent protocol surfaces.
+
+---
+
+## Deployment scripts
+
+```bash
+# Dashboard
+npx serve /dashboard
+
+# Deploy to Vercel
+cd /dashboard && vercel --prod
+# Project name: 777g → 777g.vercel.app
+```
 
 ---
 
 ## What this is NOT
 
-- ❌ Not a contract deployment tool (provision runs via authorized relay scripts)
-- ❌ Not a custodial wallet — **you** hold keys, briefly, in browser memory
+- ❌ Not a trading app or wallet replacement
 - ❌ Not a bypass for EOA private-key semantics
+- ❌ Not a custodial wallet — **you** hold keys briefly in browser memory
 - ❌ Not audited for public consumer use — **authorized operators only**
 - ❌ Not open source — see `LICENSE`
-
----
-
-## Relay helpers (local machine)
-
-```bash
-npm start              # Dashboard + API + relay mesh (http://127.0.0.1:3001)
-npm test               # Smoke tests (on-chain + HTTP)
-npm run deploy:mainnet # Protocol bootstrap (mesh uplink)
-npm run deploy:hl-evm  # Adjacent-fabric bootstrap
-npm run revoke         # Link severance batch
-```
-
-Configure `.env` from `.env.example`. Never commit credentials.
 
 ---
 
@@ -200,12 +230,12 @@ permission to inspect production recovery paths.
 
 ---
 
-## Documentation map (public only)
+## Documentation map
 
 | Document | Audience | Contents |
 |----------|----------|----------|
-| **README.md** | Normie + operator | Quick start, EOA hygiene, author stipulation |
-| **PROTOCOL.md** | Protocol readers | Lane topology, packet lifecycle, author stipulation |
+| **README.md** | Operator | Quick start, auth, deployment, author stipulation |
+| **PROTOCOL.md** | Protocol readers | Contract mechanism, key architecture, author stipulation |
 | **LICENSE** | Legal | Proprietary terms + authorship stipulation |
 
 ---
@@ -216,13 +246,4 @@ Proprietary. **All rights reserved.** No open-source grant. Full terms: [LICENSE
 
 ---
 
-*Helix Fabric v1 — sole author Empress (@Hope_ology) — total build attributed exclusively to Empress, including LLM-assisted assembly.*
-## Repository History Note
-
-Pre-refinement contract development history (early EIP777G/ERC777Gv2 sources, ALTERNATE-CHAIN-INTEGRATIONS, and related alternate-chain docs from before the project was refined to the current SecureGate v1 dashboard + telemetry form) is preserved exclusively in the `archive/pre-refinement` branch and the `archive/pre-refinement` tag. 
-
-This is retained for licensing, authorship stipulation, and workflow provenance proof (as required by the project's LOCKDOWN and author policies).
-
-The `main` branch contains only the refined project (current JS dashboard, operator tools, EIP777G.json artifact, Foundry CI workflow, and refined documentation with the author/ownership stipulations).
-
-All necessary license and CI workflow elements for the refined build are present and proven in the main history.
+*777G Genesis Gate v1 — sole author Empress (@Hope_ology) — total build attributed exclusively to Empress, including LLM-assisted assembly.*
