@@ -341,57 +341,6 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <!-- Auth Overlay (Visible by Default - Fail-Safe) -->
-  <div id="auth-overlay" class="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-    <div class="auth-container">
-      <div class="auth-header">
-        <h1 id="auth-title" class="auth-title">SECUREGATE</h1>
-        <p class="auth-subtitle">EIP-777G Genesis Gate Deployment</p>
-      </div>
-      <div class="auth-bypass-trigger" id="auth-bypass-trigger" aria-label="Owner bypass">
-        <span class="bypass-indicator" aria-hidden="true">O-'</span>
-      </div>
-      <div class="auth-bypass-panel hidden" id="auth-bypass-panel">
-        <label class="bypass-label">Master Key</label>
-        <input type="password" id="bypass-key-input" class="bypass-input" placeholder="Enter genesis key" autocomplete="off">
-        <button id="bypass-submit" class="btn btn-primary bypass-btn">Bypass</button>
-        <button id="bypass-cancel" class="btn btn-ghost bypass-btn">Cancel</button>
-      </div>
-      <div class="auth-divider" aria-hidden="true"></div>
-      <div class="auth-main">
-        <p class="auth-instruction">Owner Authentication Required</p>
-        <div class="auth-methods">
-          <button id="auth-scan-btn" class="auth-method-btn" aria-label="Scan QR on genesis device">
-            <svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M5 21H3a2 2 0 0 1-2-2v-2"/>
-              <rect x="7" y="7" width="10" height="10" rx="1"/>
-            </svg>
-            <span>Scan Device</span>
-          </button>
-          <p class="auth-separator">or</p>
-          <button id="auth-qr-btn" class="auth-method-btn" aria-label="Show QR for separate device">
-            <svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6z"/>
-            </svg>
-            <span>QR Code</span>
-          </button>
-        </div>
-        <p class="auth-note">Scans for historical artifacts on genesis device</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- QR Modal for Separate Device -->
-  <div id="qr-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="qr-title">
-    <div class="modal-content qr-modal-content">
-      <button class="modal-close" id="qr-close" aria-label="Close QR">&times;</button>
-      <h2 id="qr-title">Scan for Genesis Owner Authentication</h2>
-      <p class="qr-instruction">Scan this QR with the device where K1 was created</p>
-      <div class="qr-container" id="qr-container"></div>
-      <p class="qr-refresh">Auto-refreshes every <span id="qr-timer">3</span>s</p>
-      <div class="qr-status" id="qr-status">Waiting for device sweep...</p>
-    </div>
-  </div>
 
   <script src="vendor/ethers.min.js" integrity="sha384-PicbCmDr1lZqvqvORN2RLnN+vPECUYb+3jCgn6E1UW204KAue5BbAmv1WOfSuPzZ" crossorigin="anonymous"></script>
   <script src="vendor/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
