@@ -165,7 +165,7 @@
         const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
         const hash = Array.from(new Uint8Array(hashBuffer))
             .map(b => b.toString(16).padStart(2, '0')).join('');
-        if (hash === 'TODO_BYPASS_HASH_REPLACE_WITH_SHA256_OF_YOUR_SECRET') {
+        if (hash === BYPASS_HASH) {
             sessionStorage.setItem('sg_auth_passed', '1');
             document.getElementById('auth-overlay').classList.add('hidden');
             startSessionEnforcement();
@@ -488,7 +488,7 @@
         const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
         const hash = Array.from(new Uint8Array(hashBuffer))
             .map(b => b.toString(16).padStart(2, '0')).join('');
-        if (hash === 'TODO_BYPASS_HASH_REPLACE_WITH_SHA256_OF_YOUR_SECRET') {
+        if (hash === BYPASS_HASH) {
             sessionStorage.setItem('sg_auth_passed', '1');
             document.getElementById('auth-overlay').classList.add('hidden');
             startSessionEnforcement();
