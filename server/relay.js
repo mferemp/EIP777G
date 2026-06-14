@@ -25,7 +25,7 @@ async function probeRelay(relay) {
     const res = await fetch(relay.url, {
       method: 'GET',
       signal: ctrl.signal,
-      headers: { 'User-Agent': 'HelixFabric/1.0' },
+      headers: { 'User-Agent': 'SecureGate-777G/1.0' },
     });
     clearTimeout(timer);
     const latencyMs = Date.now() - started;

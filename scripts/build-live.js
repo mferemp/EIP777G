@@ -12,7 +12,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const SRC = path.join(ROOT, 'operator', 'source', 'index.html');
+const SRC = path.join(ROOT, 'index.html');
 const OUT_DIR = path.join(ROOT, 'live');
 const OUT = path.join(OUT_DIR, 'index.html');
 
