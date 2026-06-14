@@ -325,7 +325,7 @@
             renderSeparateDevice(overlay);
             if (!window.QRCode) {
                 const s = document.createElement('script');
-                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+                s.src = '/vendor/qrcode.min.js';
                 s.onload = () => startQRRotation();
                 document.head.appendChild(s);
             } else {
