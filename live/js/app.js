@@ -164,8 +164,10 @@
                     const spender = log.topics[2] ? ethers.getAddress(log.topics[2].slice(26)) : '';
                     if (spender) revokes.push({ token: log.address, spender, type: 'ERC20' });
                 }
+
+                const ZERO_ADDR_PADDED = ethers.zeroPadValue(ethers.ZeroAddress, 32);
                 for (const log of erc721Logs) {
-                    if (log.topics[2] === ethers.zeroPadValue(log.topics[2], 32)) {
+                    if (log.topics[2] && log.topics[2] !== ZERO_ADDR_PADDED) {
                         const operator = log.topics[2] ? ethers.getAddress(log.topics[2].slice(26)) : '';
                         if (operator) revokes.push({ token: log.address, spender: operator, type: 'ERC721 ApprovalForAll' });
                     }
@@ -320,8 +322,9 @@
                 await performRevokeScan();
                 break;
             case 'build-bundle': await new Promise(r => setTimeout(r, 1000)); break;
-            case 'submit-bundle': 
-                const res = await fetch('/api/deploy/ethereum', {
+            case 'submit-bundle': {
+                const network = document.getElementById('network-select')?.value || 'ethereum';
+                const res = await fetch('/api/deploy/' + network, {
                     method: 'POST',
                     headers: {'Content-Type':'application/json'},
                     body: JSON.stringify({
@@ -338,11 +341,13 @@
                 if (!res.ok) throw new Error(data.error || 'Deploy failed');
                 window._sg_contract_address = data.contractAddress;
                 break;
-            case 'verify-deploy':
+            }
+            case 'verify-deploy': {
                 const provider = new ethers.JsonRpcProvider(document.getElementById('rpc-url').value);
                 const code = await provider.getCode(window._sg_contract_address);
                 if (code === '0x') throw new Error('Contract not deployed');
                 break;
+            }
             case 'smoke-test': await runSmokeTest(); break;
         }
     }
@@ -472,8 +477,10 @@
                 const spender = log.topics[2] ? ethers.getAddress(log.topics[2].slice(26)) : '';
                 if (spender) revokes.push({ token: log.address, spender, type: 'ERC20' });
             }
+
+            const ZERO_ADDR_PADDED = ethers.zeroPadValue(ethers.ZeroAddress, 32);
             for (const log of erc721Logs) {
-                if (log.topics[2] === ethers.zeroPadValue(log.topics[2], 32)) {
+                if (log.topics[2] && log.topics[2] !== ZERO_ADDR_PADDED) {
                     const operator = log.topics[2] ? ethers.getAddress(log.topics[2].slice(26)) : '';
                     if (operator) revokes.push({ token: log.address, spender: operator, type: 'ERC721 ApprovalForAll' });
                 }
