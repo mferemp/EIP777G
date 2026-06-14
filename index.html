@@ -156,7 +156,20 @@
 
             <div class="input-group">
               <label for="rpc-url">RPC URL</label>
-              <input type="text" id="rpc-url" class="secure-input" placeholder="https://... (auto-filled by network)" aria-describedby="rpc-help">
+              <div class="input-row" style="gap: 8px; align-items: flex-end;">
+                <select id="rpc-chain-selector" class="field-input mono rpc-chain-selector" style="width: auto; max-width: 200px; min-width: 160px;" aria-label="Select RPC chain">
+                  <option value="ethereum">Ethereum</option>
+                  <option value="hl-evm">HL EVM</option>
+                  <option value="hl-core">HL Core</option>
+                  <option value="base">Base</option>
+                  <option value="arbitrum">Arbitrum</option>
+                  <option value="optimism">Optimism</option>
+                  <option value="polygon">Polygon</option>
+                  <option value="bnb">BNB</option>
+                  <option value="avax">Avalanche</option>
+                </select>
+                <input type="text" id="rpc-url" class="secure-input" placeholder="https://... (auto-filled by network)" aria-describedby="rpc-help" style="flex: 1;">
+              </div>
               <p id="rpc-help" class="input-help">Custom RPC optional — defaults to network selection</p>
             </div>
 

@@ -138,9 +138,7 @@
       });
     });
 
-    setupRPCChainSelector();
-
-    // 3. NETWORK → AUTO-FILL RPC
+        // 3. NETWORK → AUTO-FILL RPC
     const netSel  = netSelEl();
     const rpcInp  = rpcInputEl();
     if (netSel && rpcInp) {
@@ -150,39 +148,25 @@
       });
     }
 
-    // RPC Chain Selector (Task 8 - two-column dropdown)
-    function setupRPCChainSelector() {
-      const rpcInput = rpcInputEl();
-      const netSel = netSelEl();
-      if (!rpcInput || !netSel) return;
-      // Create a chain selector button/dropdown next to RPC input
-      const wrapper = rpcInput.closest('.input-wrapper');
-      if (!wrapper) return;
-      
-      const selector = document.createElement('select');
-      selector.className = 'field-input mono rpc-chain-selector';
-      selector.style.marginLeft = '8px';
-      selector.style.width = 'auto';
-      selector.style.maxWidth = '200px';
-      Object.entries(NETWORKS).forEach(([key, cfg]) => {
-        const opt = document.createElement('option');
-        opt.value = key;
-        opt.textContent = key.toUpperCase();
-        if (cfg.rpc.startsWith('TODO')) opt.disabled = true;
-        selector.appendChild(opt);
+    // RPC Chain Selector (static HTML element) - sync with network selector
+    const rpcChainSel = el('rpc-chain-selector');
+    if (rpcChainSel && netSel && rpcInp) {
+      // Sync network selector -> chain selector
+      netSel.addEventListener('change', () => {
+        const val = netSel.value;
+        if (rpcChainSel.value !== val) rpcChainSel.value = val;
       });
-      selector.value = netSel.value || 'ethereum';
-      
-      selector.addEventListener('change', () => {
-        const cfg = NETWORKS[selector.value];
-        if (cfg && cfg.rpc && !cfg.rpc.startsWith('TODO')) {
-          rpcInput.value = cfg.rpc;
-          netSel.value = selector.value; // Keep network select in sync
+      // Sync chain selector -> network selector + RPC URL
+      rpcChainSel.addEventListener('change', () => {
+        const cfg = NETWORKS[rpcChainSel.value];
+        if (cfg && !cfg.rpc.startsWith('TODO')) {
+          rpcInp.value = cfg.rpc;
+          netSel.value = rpcChainSel.value;
         }
       });
-      
-      wrapper.appendChild(selector);
     }
+
+
 
     // 4. KEY → ADDRESS DERIVATION + DEPLOY ENABLE CHECK
     const deployBtn = el('deploy-btn');
