@@ -43,14 +43,13 @@
 
   function rpcInputEl() { return el('rpc-url') || el('rpc-input'); }
   function netSelEl()   { return el('network-select') || document.querySelector('select[name="network"]'); }
-  function k1AddrEl() { 
+  function getK1AddrValue() {
     const el1 = el('k1-addr') || el('k1-address');
-    if (!el1) return null;
+    if (!el1) return '';
     // k1-addr is readonly input/div, use textContent
-    return { 
-      value: el1.tagName === 'INPUT' ? el1.value : el1.textContent,
-      el: el1
-    };
+    return (el1.tagName === 'INPUT' || el1.tagName === 'TEXTAREA') 
+      ? el1.value.trim() 
+      : el1.textContent.trim();
   }
   function k2AddrEl()   { return el('k2-addr') || el('k2-address'); }
   function k3AddrEl()   { return el('k3-addr') || el('k3-address'); }
@@ -139,6 +138,8 @@
       });
     });
 
+    setupRPCChainSelector();
+
     // 3. NETWORK → AUTO-FILL RPC
     const netSel  = netSelEl();
     const rpcInp  = rpcInputEl();
@@ -147,6 +148,40 @@
         const cfg = NETWORKS[netSel.value];
         if (cfg && !cfg.rpc.startsWith('TODO')) rpcInp.value = cfg.rpc;
       });
+    }
+
+    // RPC Chain Selector (Task 8 - two-column dropdown)
+    function setupRPCChainSelector() {
+      const rpcInput = rpcInputEl();
+      const netSel = netSelEl();
+      if (!rpcInput || !netSel) return;
+      // Create a chain selector button/dropdown next to RPC input
+      const wrapper = rpcInput.closest('.input-wrapper');
+      if (!wrapper) return;
+      
+      const selector = document.createElement('select');
+      selector.className = 'field-input mono rpc-chain-selector';
+      selector.style.marginLeft = '8px';
+      selector.style.width = 'auto';
+      selector.style.maxWidth = '200px';
+      Object.entries(NETWORKS).forEach(([key, cfg]) => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = key.toUpperCase();
+        if (cfg.rpc.startsWith('TODO')) opt.disabled = true;
+        selector.appendChild(opt);
+      });
+      selector.value = netSel.value || 'ethereum';
+      
+      selector.addEventListener('change', () => {
+        const cfg = NETWORKS[selector.value];
+        if (cfg && cfg.rpc && !cfg.rpc.startsWith('TODO')) {
+          rpcInput.value = cfg.rpc;
+          netSel.value = selector.value; // Keep network select in sync
+        }
+      });
+      
+      wrapper.appendChild(selector);
     }
 
     // 4. KEY → ADDRESS DERIVATION + DEPLOY ENABLE CHECK
