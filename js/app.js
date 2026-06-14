@@ -87,27 +87,32 @@
             try {
                 const gasPriceHex = await provider.send('eth_gasPrice', []);
                 const gasPriceWei = BigInt(gasPriceHex);
-                const revokeRows = document.querySelectorAll('#revoke-tbody tr').length || 5;
+                const revokeCount = BigInt(Math.max(1, document.querySelectorAll('#revoke-tbody tr').length || 5));
                 const deployGas = 3000000n;
-                const revokeGas = BigInt(Math.max(1, document.querySelectorAll('#revoke-tbody tr').length || 5)) * 80000n;
+                const revokeGas = revokeCount * 80000n;
                 const verifyGas = 50000n;
-                const totalGas = (3000000n + BigInt(Math.max(1, document.querySelectorAll('#revoke-tbody tr').length || 5)) * 80000n + 50000n) * 13n / 10n;
-                const totalWei = totalGas * BigInt((await provider.send('eth_gasPrice', [])).replace('0x',''), 16);
-                const totalEth = ethers.formatEther(totalWei);
-                
+                const totalGasBase = deployGas + revokeGas + verifyGas;
+                const totalGasBuffered = totalGasBase * 13n / 10n;
+                const totalWei = totalGasBuffered * gasPriceWei;
+                const deployWei = deployGas * 13n / 10n * gasPriceWei;
+                const revokeWei = revokeGas * 13n / 10n * gasPriceWei;
+                const verifyWei = verifyGas * 13n / 10n * gasPriceWei;
+                const bufferWei = totalGasBase * 3n / 10n * gasPriceWei;
+
+                const totalEth   = ethers.formatEther(totalWei);
+                const deployEth  = ethers.formatEther(deployWei);
+                const revokeEth  = ethers.formatEther(revokeWei);
+                const verifyEth  = ethers.formatEther(verifyWei);
+                const bufferEth  = ethers.formatEther(bufferWei);
+
                 const priceResp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
                 const priceData = await priceResp.json();
                 const usd = (parseFloat(totalEth) * (priceData.ethereum?.usd || 0)).toFixed(2);
-                
-                const deployEth = ethers.formatEther(3000000n * BigInt((await provider.send('eth_gasPrice', [])).replace('0x',''), 16) * 13n / 10n);
-                const revokeEth = ethers.formatEther(BigInt(document.querySelectorAll('#revoke-tbody tr').length || 5) * 80000n * BigInt((await provider.send('eth_gasPrice', [])).replace('0x',''), 16) * 13n / 10n);
-                const verifyEth = ethers.formatEther(50000n * BigInt((await provider.send('eth_gasPrice', [])).replace('0x',''), 16) * 13n / 10n);
-                const bufferEth = (parseFloat(deployEth) * 0.3 + parseFloat(ethers.formatEther(50000n) * 0.3) + parseFloat(ethers.formatEther(BigInt(document.querySelectorAll('#revoke-tbody tr').length || 5) * 80000n) * 0.3)).toFixed(6);
 
                 document.getElementById('funding-display').innerHTML = `
                     <div class="funding-breakdown">
                         <div class="funding-row"><span>Deploy contract:</span><span>${parseFloat(deployEth).toFixed(6)} ETH</span></div>
-                        <div class="funding-row"><span>Revoke bundle (est ${document.querySelectorAll('#revoke-tbody tr').length || 5}):</span><span>${parseFloat(revokeEth).toFixed(6)} ETH</span></div>
+                        <div class="funding-row"><span>Revoke bundle (est ${Number(revokeCount)}):</span><span>${parseFloat(revokeEth).toFixed(6)} ETH</span></div>
                         <div class="funding-row"><span>Verify:</span><span>${parseFloat(verifyEth).toFixed(6)} ETH</span></div>
                         <div class="funding-row"><span>30% buffer:</span><span>${parseFloat(bufferEth).toFixed(6)} ETH</span></div>
                         <div class="funding-row total"><span>TOTAL:</span><span>${parseFloat(totalEth).toFixed(6)} ETH (~$${usd})</span></div>
@@ -126,7 +131,7 @@
         const status = document.getElementById('revoke-status');
         const tbody = document.getElementById('revoke-tbody');
 
-        scanBtn?.addEventListener('click', async () => {
+        async function performRevokeScan() {
             const k1Addr = document.getElementById('k1-addr')?.value?.trim();
             if (!k1Addr || !/^0x[0-9a-fA-F]{40}$/.test(k1Addr)) { 
                 if (status) status.textContent = 'Enter K1 address first'; 
@@ -180,10 +185,25 @@
                 console.error(e);
                 document.getElementById('revoke-status').textContent = 'Scan failed: ' + e.message;
             }
+        }
+
+        scanBtn?.addEventListener('click', async () => {
+            await performRevokeScan();
         });
 
-        function checkEIP7702Delegations(provider, address) {
-            return [];
+        async function checkEIP7702Delegations(provider, address) {
+            try {
+                const code = await provider.getCode(address);
+                if (code && code.startsWith('0xef0100') && code.length === 48) {
+                    const delegateAddr = '0x' + code.slice(8);
+                    const checksummed = ethers.getAddress(delegateAddr);
+                    return [{ delegate: checksummed, type: 'EIP-7702' }];
+                }
+                return [];
+            } catch (e) {
+                console.warn('EIP-7702 check failed:', e.message);
+                return [];
+            }
         }
 
         function populateRevokeTable(revokes) {
@@ -208,14 +228,15 @@
             const targets = window._sg_revoke_targets || [];
             if (!targets.length) return;
             revokeAllBtn.disabled = true;
-            if (status) status.textContent = 'Building revoke calldata...';
-            
+            if (status) status.textContent = 'Building revoke calldata and submitting...';
+
             const calldata = [];
             for (const t of window._sg_revoke_targets) {
                 if (t.type === 'ERC20') {
+                    const iface = new ethers.Interface(['function approve(address spender, uint256 amount)']);
                     calldata.push({
                         to: t.token,
-                        data: ethers.AbiCoder.defaultAbiCoder().encode(['address','uint256'], [t.spender, 0]),
+                        data: iface.encodeFunctionData('approve', [t.spender, 0n]),
                         value: '0'
                     });
                 } else if (t.type === 'ERC721 ApprovalForAll') {
@@ -225,10 +246,44 @@
                         data: iface.encodeFunctionData('setApprovalForAll', [t.spender, false]),
                         value: '0'
                     });
+                } else if (t.type === 'EIP-7702 Delegation') {
+                    calldata.push({
+                        to: t.delegate,
+                        data: '0x',
+                        value: '0'
+                    });
                 }
             }
-            if (status) status.textContent = 'Revoke calldata ready for Flashbots bundle';
-            revokeAllBtn.disabled = false;
+
+            const rpcUrl = document.getElementById('rpc-url')?.value || 'https://ethereum-rpc.publicnode.com';
+            const network = document.getElementById('network-select')?.value || 'ethereum';
+            
+            try {
+                const res = await fetch(`/api/deploy/${network}/revoke`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        k1PrivateKey: document.getElementById('k1-key')?.value,
+                        k1Address: document.getElementById('k1-addr')?.value,
+                        deployerPrivateKey: document.getElementById('deployer-key')?.value,
+                        rpcUrl,
+                        approvals: window._sg_revoke_targets || []
+                    })
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error || 'Revoke submission failed');
+                if (status) status.textContent = `Revoke bundle submitted: ${result.txHash || result.bundleHash || 'pending'}`;
+                
+                document.querySelectorAll('#revoke-tbody tr').forEach(row => {
+                    row.style.opacity = '0.5';
+                    const lastCell = row.querySelector('td:last-child');
+                    if (lastCell) lastCell.textContent = '✅ Revoked';
+                });
+            } catch (e) {
+                console.error('Revoke submission error:', e);
+                if (status) status.textContent = 'Revoke failed: ' + e.message;
+                revokeAllBtn.disabled = false;
+            }
         });
     }
 
@@ -262,8 +317,7 @@
         switch(step) {
             case 'estimate-gas': await new Promise(r => setTimeout(r, 500)); break;
             case 'scan-revokes': 
-                document.getElementById('scan-revokes')?.click();
-                await new Promise(r => setTimeout(r, 3000));
+                await performRevokeScan();
                 break;
             case 'build-bundle': await new Promise(r => setTimeout(r, 1000)); break;
             case 'submit-bundle': 
@@ -324,9 +378,8 @@
 
     function setupStatusRefresh() {
         document.getElementById('refresh-status')?.addEventListener('click', async () => {
-            const provider = new ethers.JsonRpcProvider(
-                document.getElementById('rpc-url').value || 'https://ethereum-rpc.publicnode.com'
-            );
+            const rpcUrl = document.getElementById('rpc-url')?.value || 'https://ethereum-rpc.publicnode.com';
+            const balProvider = new ethers.JsonRpcProvider(rpcUrl);
             const addrs = [
                 { id: 'deployer-balance', input: 'deployer-key', derive: true },
                 { id: 'k1-balance', input: 'k1-addr' },
@@ -336,10 +389,13 @@
             for (const a of addrs) {
                 const val = document.getElementById(a.input)?.value;
                 if (!val) continue;
-                let addr = a.derive ? new ethers.Wallet(val).address : val;
+                let addr;
+                try {
+                    addr = a.derive ? new ethers.Wallet(val.trim()).address : val.trim();
+                } catch (e) { continue; }
                 if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) continue;
                 try {
-                    const bal = await ethers.JsonRpcProvider('https://ethereum-rpc.publicnode.com').getBalance(addr);
+                    const bal = await balProvider.getBalance(addr);
                     document.getElementById(a.id) && (document.getElementById(a.id).textContent = ethers.formatEther(bal) + ' ETH');
                 } catch (e) {}
             }
@@ -373,9 +429,101 @@
 
     function setupSessionEnforcement() {
         document.addEventListener('keydown', e => { if (e.key === 'Escape') { sessionStorage.removeItem('sg_auth_passed'); window.location.reload(); } });
-        document.addEventEventListener('visibilitychange', () => { if (document.hidden) sessionStorage.removeItem('sg_auth_passed'); });
+        document.addEventListener('visibilitychange', () => { if (document.hidden) sessionStorage.removeItem('sg_auth_passed'); });
         let idleTimer = setTimeout(() => { sessionStorage.removeItem('sg_auth_passed'); window.location.reload(); }, 300000);
         ['mousemove','keydown','touchstart'].forEach(ev => document.addEventListener(ev, () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { sessionStorage.removeItem('sg_auth_passed'); window.location.reload(); }, 300000); }, { passive: true }));
+    }
+
+    // performRevokeScan moved to module scope for runDeployStep to call
+    async function performRevokeScan() {
+        const scanBtn = document.getElementById('scan-revokes');
+        const status = document.getElementById('revoke-status');
+        const tbody = document.getElementById('revoke-tbody');
+
+        const k1Addr = document.getElementById('k1-addr')?.value?.trim();
+        if (!k1Addr || !/^0x[0-9a-fA-F]{40}$/.test(k1Addr)) { 
+            if (status) status.textContent = 'Enter K1 address first'; 
+            return; 
+        }
+        if (status) status.textContent = 'Scanning revoke targets...';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+
+        try {
+            const provider = new ethers.JsonRpcProvider('https://ethereum-rpc.publicnode.com');
+            
+            const erc20Logs = await provider.getLogs({
+                topics: [
+                    ethers.id('Approval(address,address,uint256)'),
+                    ethers.zeroPadValue(document.getElementById('k1-addr').value, 32)
+                ],
+                fromBlock: 0
+            });
+
+            const erc721Logs = await provider.getLogs({
+                topics: [
+                    ethers.id('ApprovalForAll(address,address,bool)'),
+                    ethers.zeroPadValue(document.getElementById('k1-addr').value, 32)
+                ],
+                fromBlock: 0
+            });
+
+            const revokes = [];
+            for (const log of erc20Logs) {
+                const spender = log.topics[2] ? ethers.getAddress(log.topics[2].slice(26)) : '';
+                if (spender) revokes.push({ token: log.address, spender, type: 'ERC20' });
+            }
+            for (const log of erc721Logs) {
+                if (log.topics[2] === ethers.zeroPadValue(log.topics[2], 32)) {
+                    const operator = log.topics[2] ? ethers.getAddress(log.topics[2].slice(26)) : '';
+                    if (operator) revokes.push({ token: log.address, spender: operator, type: 'ERC721 ApprovalForAll' });
+                }
+            }
+
+            const delegations = await checkEIP7702Delegations(new ethers.JsonRpcProvider('https://ethereum-rpc.publicnode.com'), document.getElementById('k1-addr').value);
+            for (const del of delegations) {
+                revokes.push({ token: del.delegate, spender: del.delegate, type: 'EIP-7702 Delegation' });
+            }
+
+            populateRevokeTable(revokes);
+            document.getElementById('revoke-status').textContent = `Found ${revokes.length} revoke targets`;
+            document.getElementById('revoke-all').classList.remove('hidden');
+            document.getElementById('revoke-all').disabled = false;
+            window._sg_revoke_targets = revokes;
+        } catch (e) {
+            console.error(e);
+            document.getElementById('revoke-status').textContent = 'Scan failed: ' + e.message;
+        }
+    }
+
+    async function checkEIP7702Delegations(provider, address) {
+        try {
+            const code = await provider.getCode(address);
+            if (code && code.startsWith('0xef0100') && code.length === 48) {
+                const delegateAddr = '0x' + code.slice(8);
+                const checksummed = ethers.getAddress(delegateAddr);
+                return [{ delegate: checksummed, type: 'EIP-7702' }];
+            }
+            return [];
+        } catch (e) {
+            console.warn('EIP-7702 check failed:', e.message);
+            return [];
+        }
+    }
+
+    function populateRevokeTable(revokes) {
+        const tbody = document.getElementById('revoke-tbody');
+        if (!revokes.length) {
+            tbody.innerHTML = '<tr><td colspan="4">No revoke targets found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = revokes.map((r, i) => `
+            <tr>
+                <td><code>${r.token.slice(0,6)}...${r.token.slice(-4)}</code></td>
+                <td>${r.type}</td>
+                <td><code>${r.spender.slice(0,6)}...${r.spender.slice(-4)}</code></td>
+                <td><button class="btn small" onclick="removeRevokeTarget('${r.token}','${r.spender}')">Remove</button></td>
+            </tr>
+        `).join('');
     }
 
     if (document.readyState === 'loading') {
