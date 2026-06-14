@@ -389,8 +389,8 @@ function build() {
     fs.writeFileSync(OUT, html, 'utf8');
 
   // Copy js/ and css/ directories to live/
-  fs.cpSync('C:\\c\\Users\\mfere\\EIP777G\\js', path.join(OUT_DIR, 'js'), { recursive: true });
-  fs.cpSync('C:\\Users\\mfere\\EIP777G\\css', path.join(OUT_DIR, 'css'), { recursive: true });
+  fs.cpSync(path.join(ROOT, 'js'), path.join(OUT_DIR, 'js'), { recursive: true });
+  fs.cpSync(path.join(ROOT, 'css'), path.join(OUT_DIR, 'css'), { recursive: true });
 
   // H5: Copy vendor/ directory to live/
   fs.cpSync(path.join(ROOT, 'vendor'), path.join(OUT_DIR, 'vendor'), { recursive: true });
