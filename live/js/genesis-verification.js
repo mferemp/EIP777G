@@ -323,14 +323,8 @@
             renderSameDevice(overlay);
         } else {
             renderSeparateDevice(overlay);
-            if (!window.QRCode) {
-                const s = document.createElement('script');
-                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-                s.onload = () => startQRRotation();
-                document.head.appendChild(s);
-            } else {
-                startQRRotation();
-            }
+            // QRCode.js is now loaded via vendored script tag in HTML with SRI
+            startQRRotation();
         }
 
         overlay.classList.remove('hidden');

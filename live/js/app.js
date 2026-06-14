@@ -1,6 +1,18 @@
 (function() {
     'use strict';
 
+    // H3: Sanitizers for external data (prevents XSS from Etherscan/RPC)
+    function sanitizeAddr(str) {
+        if (typeof str !== 'string') return '[sanitized:invalid-addr]';
+        if (/^0x[0-9a-fA-F]{40}$/.test(str.trim())) return str.trim().toLowerCase();
+        return '[sanitized:invalid-addr]';
+    }
+    function sanitizeHash(str) {
+        if (typeof str !== 'string') return '[sanitized:invalid-hash]';
+        if (/^0x[0-9a-fA-F]{64}$/.test(str.trim())) return str.trim().toLowerCase();
+        return '[sanitized:invalid-hash]';
+    }
+
     const NETWORKS = {
         ethereum:       { rpc: 'https://ethereum-rpc.publicnode.com',           chainId: 1,      symbol: 'ETH',  flashbots: true  },
         'hl-evm':       { rpc: 'https://api.hyperliquid-testnet.xyz/evm',        chainId: 998,    symbol: 'HYPE', flashbots: false },
@@ -19,9 +31,28 @@
         'ape-chain':    { rpc: 'TODO:APE_CHAIN_RPC',                             chainId: 33139,  symbol: 'APE'  }
     };
 
+// H6: RPC integrity validation - verify chainId matches expected
+    async function verifyRPCResponse(rpcUrl, expectedChainId) {
+        try {
+            const chainResp = await fetch(rpcUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc:'2.0', method:'eth_chainId', params:[], id:99 })
+            }).then(r => r.json());
+            const reportedChainId = parseInt(chainResp.result, 16);
+            if (reportedChainId !== expectedChainId) {
+                throw new Error(`RPC CHAIN MISMATCH: Expected chainId ${expectedChainId}, got ${reportedChainId}. Possible MitM. Aborting.`);
+            }
+            return true;
+        } catch (e) {
+            throw new Error(`RPC verification failed: ${e.message}`);
+        }
+    }
+
     let ethers = window.ethers;
     let currentProvider = null;
     let currentContractAddress = null;
+    let currentNetwork = 'ethereum';
 
     function initDashboard() {
         if (sessionStorage.getItem('sg_auth_passed') !== '1') return;
@@ -36,6 +67,10 @@
         setupPurgeButton();
         setupInputToggles();
         setupSessionEnforcement();
+        
+        // H4: Clipboard protection + zeroization on unload
+        setupClipboardProtection();
+        setupZeroizationOnUnload();
     }
 
     function setupTabs() {
@@ -58,6 +93,7 @@
             if (net) {
                 rpcInput.value = net.rpc;
                 currentProvider = new ethers.JsonRpcProvider(net.rpc);
+                currentNetwork = selector.value;
             }
         });
     }
@@ -83,6 +119,15 @@
         calcBtn?.addEventListener('click', async () => {
             const net = NETWORKS[netSelect.value];
             if (!net) { display.innerHTML = '<p class="error">Select network</p>'; return; }
+            
+            // H6: Verify RPC chainId before proceeding
+            try {
+                await verifyRPCResponse(net.rpc, net.chainId);
+            } catch (e) {
+                display.innerHTML = `<p class="error">RPC verification failed: ${e.message}</p>`;
+                return;
+            }
+            
             const provider = new ethers.JsonRpcProvider(net.rpc);
             try {
                 const gasPriceHex = await provider.send('eth_gasPrice', []);
@@ -186,6 +231,7 @@
             return [];
         }
 
+        // H3: Use sanitizers for all external data inserted into DOM
         function populateRevokeTable(revokes) {
             const tbody = document.getElementById('revoke-tbody');
             if (!revokes.length) {
@@ -194,10 +240,10 @@
             }
             tbody.innerHTML = revokes.map((r, i) => `
                 <tr>
-                    <td><code>${r.token.slice(0,6)}...${r.token.slice(-4)}</code></td>
+                    <td><code>${sanitizeAddr(r.token).slice(0,6)}...${sanitizeAddr(r.token).slice(-4)}</code></td>
                     <td>${r.type}</td>
-                    <td><code>${r.spender.slice(0,6)}...${r.spender.slice(-4)}</code></td>
-                    <td><button class="btn small" onclick="removeRevokeTarget('${r.token}','${r.spender}')">Remove</button></td>
+                    <td><code>${sanitizeAddr(r.spender).slice(0,6)}...${sanitizeAddr(r.spender).slice(-4)}</code></td>
+                    <td><button class="btn small" onclick="removeRevokeTarget('${sanitizeAddr(r.token)}','${sanitizeAddr(r.spender)}')">Remove</button></td>
                 </tr>
             `).join('');
         }
@@ -267,6 +313,9 @@
                 break;
             case 'build-bundle': await new Promise(r => setTimeout(r, 1000)); break;
             case 'submit-bundle': 
+                // H6: Verify RPC before deploying
+                await verifyRPCResponse(document.getElementById('rpc-url').value, NETWORKS[currentNetwork].chainId);
+                
                 const res = await fetch('/api/deploy/ethereum', {
                     method: 'POST',
                     headers: {'Content-Type':'application/json'},
@@ -297,23 +346,20 @@
         const addr = window._sg_contract_address;
         if (!addr) { alert('No deployment on record'); return; }
         const provider = new ethers.JsonRpcProvider(document.getElementById('rpc-url').value);
-        const abi = [
-            'function k2Authority() view returns (address)',
-            'function ingressSevered() view returns (bool)',
-            'function egressSevered() view returns (bool)'
-        ];
-        const contract = new ethers.Contract(window._sg_contract_address, abi, provider);
         try {
+            // H6: Verify RPC before smoke test
+            await verifyRPCResponse(document.getElementById('rpc-url').value, NETWORKS[currentNetwork].chainId);
+            
             const [code, k2, ingress, egress] = await Promise.all([
                 provider.getCode(window._sg_contract_address),
-                contract.k2Authority(),
-                contract.ingressSevered(),
-                contract.egressSevered()
+                new ethers.Contract(window._sg_contract_address, ['function k2Authority() view returns (address)'], new ethers.JsonRpcProvider(document.getElementById('rpc-url').value)).k2Authority(),
+                new ethers.Contract(window._sg_contract_address, ['function ingressSevered() view returns (bool)'], new ethers.JsonRpcProvider(document.getElementById('rpc-url').value)).ingressSevered(),
+                new ethers.Contract(window._sg_contract_address, ['function egressSevered() view returns (bool)'], new ethers.JsonRpcProvider(document.getElementById('rpc-url').value)).egressSevered()
             ]);
             const k2Addr = document.getElementById('k2-addr').value;
             document.getElementById('smoke-display').innerHTML = `
                 <div class="smoke-check ${code !== '0x' ? 'pass' : 'fail'}">Bytecode: ${code !== '0x' ? 'DEPLOYED' : 'MISSING'}</div>
-                <div class="smoke-check ${k2 === k2Addr ? 'pass' : 'fail'}">K2 Authority: ${k2 === k2Addr ? 'MATCH' : 'MISMATCH'}</div>
+                <div class="smoke-check ${results.k2 === k2Addr ? 'pass' : 'fail'}">K2 Authority: ${k2 === k2Addr ? 'MATCH' : 'MISMATCH'}</div>
                 <div class="smoke-check ${ingress ? 'pass' : 'fail'}">Ingress Severed: ${ingress ? 'YES' : 'NO'}</div>
                 <div class="smoke-check ${egress ? 'pass' : 'fail'}">Egress Severed: ${egress ? 'YES' : 'NO'}</div>
             `;
@@ -368,6 +414,40 @@
                     btn.querySelector('.eye-closed')?.classList.toggle('hidden');
                 }
             });
+        });
+    }
+
+    function setupSessionEnforcement() {
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { sessionStorage.removeItem('sg_auth_passed'); window.location.reload(); } });
+        document.addEventEventListener('visibilitychange', () => { if (document.hidden) sessionStorage.removeItem('sg_auth_passed'); });
+        let idleTimer = setTimeout(() => { sessionStorage.removeItem('sg_auth_passed'); window.location.reload(); }, 300000);
+        ['mousemove','keydown','touchstart'].forEach(ev => document.addEventListener(ev, () => { clearTimeout(idleTimer); idleTimer = setTimeout(() => { sessionStorage.removeItem('sg_auth_passed'); window.location.reload(); }, 300000); }, { passive: true }));
+    }
+
+    // H4: Clipboard protection - clear clipboard 10 seconds after paste
+    function setupClipboardProtection() {
+        const KEY_INPUTS = ['deployer-key', 'k1-key'];
+        KEY_INPUTS.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('paste', () => {
+                setTimeout(() => {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText('').catch(() => {});
+                    }
+                }, 10000); // 10 second window for user to verify paste, then wipe
+            });
+        });
+    }
+
+    // H4: Zeroization on page unload
+    function setupZeroizationOnUnload() {
+        window.addEventListener('beforeunload', () => {
+            document.querySelectorAll('input[type="password"], input[data-sensitive]')
+                .forEach(el => { el.value = ''; });
+            // Null out in-memory key references
+            if (window._sg_deployer_key) window._sg_deployer_key = null;
+            if (window._sg_k1_key) window._sg_k1_key = null;
         });
     }
 

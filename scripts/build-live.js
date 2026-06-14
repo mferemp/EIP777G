@@ -391,6 +391,10 @@ function build() {
   // Copy js/ and css/ directories to live/
   fs.cpSync('C:\\c\\Users\\mfere\\EIP777G\\js', path.join(OUT_DIR, 'js'), { recursive: true });
   fs.cpSync('C:\\Users\\mfere\\EIP777G\\css', path.join(OUT_DIR, 'css'), { recursive: true });
+
+  // H5: Copy vendor/ directory to live/
+  fs.cpSync(path.join(ROOT, 'vendor'), path.join(OUT_DIR, 'vendor'), { recursive: true });
+
     const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
     console.log('Hardened public build -> live/index.html (' + kb + ' KB)');
     console.log('✓ Contract addresses stripped');
@@ -404,6 +408,17 @@ function build() {
     console.log('✓ Public tabs: Telemetry, Beacon, Deploy (bootstrap only), Trace (local)');
     console.log('✓ Remedial public notice injected');
     console.log('✓ Operator variables panel PRESERVED (4 wallets + RPCs per-chain)');
+
+    // H5: Generate build integrity hash
+    const crypto = require('crypto');
+    const finalHtml = fs.readFileSync(OUT);
+    const buildHash = crypto.createHash('sha256').update(finalHtml).digest('hex');
+    console.log('\n╔══════════════════════════════════════════════╗');
+    console.log('║  BUILD INTEGRITY HASH (SHA-256)              ║');
+    console.log('║  ' + buildHash + '  ║');
+    console.log('╚══════════════════════════════════════════════╝');
+    console.log('Record this hash. Verify it matches your local build after each Vercel deploy.');
+    fs.writeFileSync(path.join(OUT_DIR, 'BUILD_HASH.txt'), buildHash + '\n');
 }
 
 build();
