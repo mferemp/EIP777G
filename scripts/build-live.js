@@ -29,6 +29,16 @@ const FORBIDDEN_TOKENS = [
     'PUBLIC_WIRING',
     'ERC-777',
     'ERC777',
+
+    // Clown decoy tokens (must be stripped from public build)
+    'ClownToken',
+    'CLWN',
+    'HonkHonk',
+    'tokenURI',
+    'totalSupply',
+    'supportsInterface',
+    'honk honk',
+    'ERC777',
     'tokensToSend',
     'tokensReceived',
     'authorizeTransaction',
