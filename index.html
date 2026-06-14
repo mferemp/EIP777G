@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0a0a0f">
-  <title>SecureGate 777G</title>
+  <title>SecureGate EIP-777G</title>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' data: https://fonts.gstatic.com https://api.fontshare.com; connect-src 'self' https://api.etherscan.io https://api.coingecko.com https://ethereum-rpc.publicnode.com https://api.hyperliquid.xyz https://api.hyperliquid-testnet.xyz https://arb1.arbitrum.io https://mainnet.base.org https://mainnet.optimism.io https://polygon-rpc.com https://bsc-dataseed.binance.org https://api.avax.network; img-src 'self' data: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
   <meta name="description" content="EIP-777G Genesis Gate — Secure Deployment Dashboard">
   <meta name="robots" content="noindex, nofollow">
@@ -117,6 +117,7 @@
                   <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/></svg>
                 </button>
               </div>
+              <div class="addr-display mono" id="deployer-addr" aria-describedby="deployer-help">—</div>
               <p id="deployer-help" class="input-help">Burner wallet — solely funds deployment + Flashbots bundle</p>
             </div>
 
@@ -135,7 +136,7 @@
             <div class="input-row">
               <div class="input-group half">
                 <label for="k1-addr">K1 CALL ADDRESS</label>
-                <input type="text" id="k1-addr" class="secure-input" placeholder="0x... (auto-derived)" readonly aria-describedby="addr-help">
+                <div class="addr-display mono" id="k1-addr" aria-describedby="addr-help">—</div>
               </div>
               <div class="input-group half">
                 <label for="k2-addr">K2 GATE ADDRESS</label>
@@ -358,7 +359,7 @@
   <script src="vendor/ethers.min.js" integrity="sha384-PicbCmDr1lZqvqvORN2RLnN+vPECUYb+3jCgn6E1UW204KAue5BbAmv1WOfSuPzZ" crossorigin="anonymous"></script>
   <script src="vendor/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
   <script src="js/genesis-verification.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <script src="js/app.js"></script>
 
   <script>
   (function() {

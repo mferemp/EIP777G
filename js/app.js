@@ -46,10 +46,8 @@
   function getK1AddrValue() {
     const el1 = el('k1-addr') || el('k1-address');
     if (!el1) return '';
-    // k1-addr is readonly input/div, use textContent
-    return (el1.tagName === 'INPUT' || el1.tagName === 'TEXTAREA') 
-      ? el1.value.trim() 
-      : el1.textContent.trim();
+    // k1-addr is a div, use textContent
+    return el1.textContent.trim();
   }
   function k2AddrEl()   { return el('k2-addr') || el('k2-address'); }
   function k3AddrEl()   { return el('k3-addr') || el('k3-address'); }
@@ -182,13 +180,13 @@
     };
 
     const dKey = el('deployer-key');
-    const dAddr = el('deployer-addr') || el('deployer-address');
-    if (dKey) {
+    const dAddr = el('deployer-addr');
+    if (dKey && dAddr) {
       dKey.addEventListener('input', () => {
         try {
           if (isKey(dKey.value.trim())) {
             const a = ethers.computeAddress(dKey.value.trim());
-            if (dAddr) { if (dAddr.tagName === 'INPUT') dAddr.value = a; else dAddr.textContent = a; }
+            dAddr.textContent = a;
           }
         } catch (e) {}
         checkDeployReady();
@@ -201,8 +199,8 @@
         try {
           if (isKey(k1Key.value.trim())) {
             const a = ethers.computeAddress(k1Key.value.trim());
-            const k1a = k1AddrEl();
-            if (k1a) k1a.value = a;
+            const k1a = el('k1-addr');
+            if (k1a) k1a.textContent = a;
           }
         } catch (e) {}
         checkDeployReady();
@@ -495,20 +493,28 @@
     }
 
     // 11. SESSION PURGE
-    const purgeBtn = el('purge-btn');
-    if (purgeBtn) {
-      purgeBtn.addEventListener('click', () => {
-        if (!confirm('Purge session? All keys and deployment data will be wiped immediately.')) return;
-        document.querySelectorAll('input').forEach(inp => { inp.value = ''; });
-        document.querySelectorAll('[data-derive]').forEach(e => { e.textContent = ''; });
-        sessionStorage.clear();
-        window._sg_contract_address = null;
-        window._sg_revoke_targets = [];
-        window._sg_k1_first_tx = null;
-        currentContractAddress = null;
-        window.location.reload();
-      });
+    // Both purge-btn (session tab) AND scrub-btn (header) call wipeSession
+    function wipeSession() {
+      if (!confirm('Purge session? All keys and deployment data will be wiped immediately.')) return;
+      document.querySelectorAll('input').forEach(inp => { inp.value = ''; });
+      // Clear address displays (now divs)
+      const dAddr = el('deployer-addr');
+      const k1Addr = el('k1-addr');
+      if (dAddr) dAddr.textContent = '—';
+      if (k1Addr) k1Addr.textContent = '—';
+      sessionStorage.clear();
+      window._sg_contract_address = null;
+      window._sg_revoke_targets = [];
+      window._sg_k1_first_tx = null;
+      currentContractAddress = null;
+      window.location.reload();
     }
+    
+    const purgeBtn = el('purge-btn');
+    if (purgeBtn) purgeBtn.addEventListener('click', wipeSession);
+    
+    const scrubBtn = el('scrub-btn');
+    if (scrubBtn) scrubBtn.addEventListener('click', wipeSession);
   } // end initDashboard
 
   // boot
