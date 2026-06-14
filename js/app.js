@@ -43,7 +43,15 @@
 
   function rpcInputEl() { return el('rpc-url') || el('rpc-input'); }
   function netSelEl()   { return el('network-select') || document.querySelector('select[name="network"]'); }
-  function k1AddrEl()   { return el('k1-addr') || el('k1-address'); }
+  function k1AddrEl() { 
+    const el1 = el('k1-addr') || el('k1-address');
+    if (!el1) return null;
+    // k1-addr is readonly input/div, use textContent
+    return { 
+      value: el1.tagName === 'INPUT' ? el1.value : el1.textContent,
+      el: el1
+    };
+  }
   function k2AddrEl()   { return el('k2-addr') || el('k2-address'); }
   function k3AddrEl()   { return el('k3-addr') || el('k3-address'); }
 
@@ -234,7 +242,7 @@
 
     if (scanBtn) {
       scanBtn.addEventListener('click', async () => {
-        const k1 = k1AddrEl()?.value?.trim();
+        const k1 = getK1AddrValue();
         if (!isAddr(k1)) { alert('Enter a valid K1 address first'); return; }
         const orig = scanBtn.textContent;
         scanBtn.textContent = 'Scanning…';
@@ -308,7 +316,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               k1PrivateKey: val('k1-key'),
-              k1Address: k1AddrEl()?.value?.trim(),
+              k1Address: getK1AddrValue(),
               deployerPrivateKey: val('deployer-key'),
               rpcUrl: rpcInp?.value?.trim(),
               approvals: window._sg_revoke_targets
@@ -374,7 +382,7 @@
             body: JSON.stringify({
               deployerPrivateKey: val('deployer-key'),
               k1PrivateKey: val('k1-key'),
-              k1Address: k1AddrEl()?.value?.trim(),
+              k1Address: getK1AddrValue(),
               k2Address: k2AddrEl()?.value?.trim(),
               k3Address: k3AddrEl()?.value?.trim(),
               rpcUrl: rpcInp?.value?.trim(),
@@ -437,7 +445,7 @@
         const provider = new ethers.JsonRpcProvider(rpc);
         const addrMap = {
           deployer: (el('deployer-addr') || el('deployer-address'))?.textContent?.trim(),
-          k1: k1AddrEl()?.value?.trim(),
+          k1: getK1AddrValue(),
           k2: k2AddrEl()?.value?.trim(),
           k3: k3AddrEl()?.value?.trim()
         };

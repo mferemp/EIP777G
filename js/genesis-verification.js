@@ -21,7 +21,9 @@
                    document.getElementById('genesis-k1') ||
                    document.querySelector('[data-field="k1-addr"]') ||
                    document.querySelector('input[id*="k1"]');
-        return el?.value?.trim() || '';
+        if (!el) return '';
+        // k1-addr is a div (readonly display), use textContent; inputs use value
+        return (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') ? el.value?.trim() : el.textContent?.trim() || '';
     }
 
     async function getFingerprint() {
