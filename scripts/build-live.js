@@ -377,6 +377,10 @@ function build() {
     if (!html.includes('SECUREGATE') && !html.includes('SecureGate')) { console.error('BUILD FAILED — SecureGate branding missing'); process.exit(1); }
 
     fs.writeFileSync(OUT, html, 'utf8');
+
+  // Copy js/ and css/ directories to live/
+  fs.cpSync('C:\\c\\Users\\mfere\\EIP777G\\js', path.join(OUT_DIR, 'js'), { recursive: true });
+  fs.cpSync('C:\\Users\\mfere\\EIP777G\\css', path.join(OUT_DIR, 'css'), { recursive: true });
     const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
     console.log('Hardened public build -> live/index.html (' + kb + ' KB)');
     console.log('✓ Contract addresses stripped');
