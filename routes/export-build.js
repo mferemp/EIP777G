@@ -40,7 +40,7 @@ router.get('/manifest', requireOperatorGate, (req, res) => {
 });
 
 router.get('/build', requireOperatorGate, (req, res) => {
-  const tmpZip = path.join(os.tmpdir(), `helix-fabric-build-${Date.now()}.zip`);
+  const tmpZip = path.join(os.tmpdir(), `securegate-777g-build-${Date.now()}.zip`);
   try {
     execSync(
       `zip -r -q "${tmpZip}" . -x "node_modules/*" -x ".git/*" -x ".env" -x "*/*.log" -x "acknowledgement.log" -x "recovery.log"`,

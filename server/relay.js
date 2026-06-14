@@ -52,7 +52,7 @@ async function probeRelay(relay) {
 }
 
 router.get('/health', (req, res) => {
-  res.json({ ok: true, service: 'helix-relay-mesh' });
+  res.json({ ok: true, service: 'securegate-777g-relay' });
 });
 
 router.get('/mesh', async (req, res) => {
