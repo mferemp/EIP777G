@@ -6,7 +6,7 @@
     const SG_FIRST_VISIT_KEY = 'sg_first_visit';
     const SG_VISIT_COUNT_KEY = 'sg_visit_count';
     const SG_AUTH_PASSED_KEY='sg_auth_passed';
-    const BYPASS_HASH = 'TODO_BYPASS_HASH_REPLACE_WITH_SHA256_OF_YOUR_SECRET';
+    const BYPASS_HASH = '7ddbb34d1958f6977d1c162d16a92549449e9f23b477d17181cd08c24fe4ae95';
 
     let authOverlay = null;
     let qrInterval = null;
@@ -274,7 +274,14 @@
 
     function startSessionEnforcement() {
         document.addEventListener('keydown', e => { if (e.key === 'Escape') wipeSession(); });
-        document.addEventListener('visibilitychange', () => { if (document.hidden) wipeSession(); });
+        let visibilityTimer;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        visibilityTimer = setTimeout(wipeSession, 30000);
+      } else {
+        clearTimeout(visibilityTimer);
+      }
+    });
         let idleTimer = setTimeout(wipeSession, 300000);
         ['mousemove', 'keydown', 'touchstart'].forEach(ev => {
             document.addEventListener(ev, () => {
