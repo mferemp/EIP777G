@@ -6,7 +6,7 @@
     const SG_GENESIS_FP_KEY = 'sg_genesis_fp';
     const SG_FIRST_VISIT_KEY = 'sg_first_visit';
     const SG_VISIT_COUNT_KEY = 'sg_visit_count';
-    const SG_AUTH_PASSED_KEY = 'sg_auth_passed';
+    const SG_AUTH_PASSED_KEY = '***';
     const BYPASS_HASH = '7ddbb34d1958f6977d1c162d16a92549449e9f23b477d17181cd08c24fe4ae95';
 
     // 2. Module-level state
@@ -44,7 +44,7 @@
             .map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // 5. QR functions
+    // 4. QR functions
     function renderQR() {
         const canvas = document.getElementById('qr-canvas');
         if (!canvas || !window.QRCode) return;
@@ -69,7 +69,7 @@
         if (qrInterval) clearInterval(qrInterval);
     }
 
-    // 6. Auth overlay render functions
+    // 5. Auth overlay render functions
     function renderSameDevice(overlay) {
         overlay.innerHTML = `
             <div class="auth-modal">
@@ -128,7 +128,7 @@
         bindSeparateDeviceEvents();
     }
 
-    // 7. Event binders
+    // 6. Event binders
     function bindSameDeviceEvents() {
         const btn = document.getElementById('auth-scan-btn');
         const trigger = document.getElementById('auth-bypass-trigger');
@@ -163,7 +163,7 @@
         cancel?.addEventListener('click', () => { panel.classList.add('hidden'); input.value = ''; });
     }
 
-    // 8. Bypass handler
+    // 7. Bypass handler
     async function handleBypassSubmit() {
         const input = document.getElementById('bypass-key-input');
         const error = document.getElementById('bypass-error');
@@ -182,7 +182,7 @@
         }
     }
 
-    // 9. Artifact checks
+    // 8. Artifact checks
     async function checkArtifact1_FirstVisit() {
         const val = localStorage.getItem(SG_FIRST_VISIT_KEY);
         if (!val) {
@@ -226,7 +226,7 @@
         return count >= 2;
     }
 
-    // 10. Sweep orchestrator
+    // 9. Sweep orchestrator
     async function runArtifactSweep() {
         const btn = document.getElementById('auth-scan-btn');
         const statusEl = document.getElementById('auth-status');
@@ -272,7 +272,7 @@
         }
     }
 
-    // 11. Session functions
+    // 10. Session functions
     function hideOverlay() {
         const overlay = document.getElementById('auth-overlay');
         if (overlay) {
@@ -309,7 +309,7 @@
         window.location.reload();
     }
 
-    // 12. Init
+    // 11. Init
     async function initAuthOverlay() {
         const overlay = document.getElementById('auth-overlay');
         if (!overlay) return;
@@ -336,7 +336,7 @@
         overlay.classList.remove('hidden');
     }
 
-    // 13. Boot
+    // 12. Boot
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAuthOverlay);
     } else {
