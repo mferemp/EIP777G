@@ -1,3 +1,4 @@
+// PROJECT: SecureGate 777G | OPERATOR: Empress | NO HELIX REFERENCES ANYWHERE
 // SecureGate v1 — unified backend + dashboard host
 // Owner: Empress (@Hope_ology)
 // Public recovery console: /
@@ -52,7 +53,7 @@ function buildApp() {
   app.get('/health', (req, res) => {
     res.json({
       ok: true,
-      service: 'securegate',
+      service: 'securegate-777g',
       publicDashboard: '/',
       adminDashboard: '/admin',
       tls: Boolean(req.socket.encrypted),

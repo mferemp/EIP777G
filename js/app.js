@@ -1,3 +1,4 @@
+// PROJECT: SecureGate 777G | OPERATOR: Empress | NO HELIX REFERENCES ANYWHERE
 (function () {
   'use strict';
 
@@ -269,6 +270,16 @@
           (r721.result || []).forEach(log => {
             if (log.topics && log.topics[2]) addRow(log.address, '0x' + log.topics[2].slice(26), 'ERC721');
           });
+
+          // EIP-7702 delegation check via eth_getCode on K1 address
+          const rpc = rpcInp?.value?.trim() || cfg.rpc;
+          try {
+            const codeData = await rpcPost(rpc, 'eth_getCode', [k1, 'latest']);
+            if (codeData.result && codeData.result !== '0x' && codeData.result.startsWith('0xef01')) {
+              const delegateTo = '0x' + codeData.result.slice(6, 46);
+              addRow(k1, delegateTo, 'EIP-7702-DELEGATE');
+            }
+          } catch (e) {}
 
           const count = window._sg_revoke_targets.length;
           if (revokeStatus) revokeStatus.textContent = 'Found ' + count + ' revoke target' + (count !== 1 ? 's' : '') + '.';
