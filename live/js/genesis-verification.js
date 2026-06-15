@@ -339,6 +339,12 @@
         overlay.classList.remove('hidden');
     }
 
+    // Expose simplified bypass for admin-dot panel in index.html
+    window._sg_adminBypass = async function(key) {
+      document.getElementById('bypass-key-input').value = key;
+      await handleBypassSubmit();
+    };
+
     // 12. Boot
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAuthOverlay);
