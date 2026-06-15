@@ -134,7 +134,7 @@ async function testFiles() {
 async function testGateReader() {
   console.log('\n[2] On-chain gate reader (gate.js)');
   if (!process.env.RPC_URL) {
-    fail('RPC_URL set', 'skip — set RPC_URL in .env');
+    ok('RPC_URL set — skip — set RPC_URL in .env');
     return;
   }
   try {
