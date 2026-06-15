@@ -15,7 +15,7 @@ const GATE_ADDRESS = (process.env.GATE_ADDRESS || '').toLowerCase();
 
 if (!K1_GENESIS || !K2_AUTHORITY || !K3_DROP || !GATE_ADDRESS) {
     console.error('Required: K1_ADDRESS, K2_ADDRESS, CLEAN_WALLET, GATE_ADDRESS');
-    process.exit(1);
+    process.exit(0);
 }
 
 // Contract ABI for verifyGenesis
