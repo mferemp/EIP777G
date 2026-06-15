@@ -26,7 +26,7 @@
   window._sg_revoke_targets = [];
   window._sg_k1_first_tx = null;
 
-  // ── helpers ──────────────────────────────────────────────────────────────
+  // helpers
   function el(id) { return document.getElementById(id); }
   function val(id) { const e = el(id); return e ? e.value.trim() : ''; }
   function isAddr(s) { return /^0x[0-9a-fA-F]{40}$/.test(s); }
@@ -46,7 +46,6 @@
   function getK1AddrValue() {
     const el1 = el('k1-addr') || el('k1-address');
     if (!el1) return '';
-    // k1-addr is a div, use textContent
     return el1.textContent.trim();
   }
   function k2AddrEl()   { return el('k2-addr') || el('k2-address'); }
@@ -61,7 +60,7 @@
     return r.json();
   }
 
-  // ── smoke test (called from deploy flow AND button) ───────────────────────
+  // smoke test
   async function runSmokeTest() {
     const addr = window._sg_contract_address || currentContractAddress;
     const out = el('smoke-output') || el('smoke-results');
@@ -109,7 +108,7 @@
     return true;
   }
 
-  // ── main init ─────────────────────────────────────────────────────────────
+  // main init
   function initDashboard() {
     if (sessionStorage.getItem('sg_auth_passed') !== '1') return;
 
@@ -136,7 +135,7 @@
       });
     });
 
-        // 3. NETWORK → AUTO-FILL RPC
+    // 3. NETWORK -> AUTO-FILL RPC
     const netSel  = netSelEl();
     const rpcInp  = rpcInputEl();
     if (netSel && rpcInp) {
@@ -146,27 +145,38 @@
       });
     }
 
-    // RPC Chain Selector (static HTML element) - sync with network selector
+    // 3b. RPC CHAIN SELECTOR - Two-column chip grid sync
     const rpcChainSel = el('rpc-chain-selector');
     if (rpcChainSel && netSel && rpcInp) {
-      // Sync network selector -> chain selector
       netSel.addEventListener('change', () => {
         const val = netSel.value;
-        if (rpcChainSel.value !== val) rpcChainSel.value = val;
+        const chips = rpcChainSel.querySelectorAll('.chain-chip');
+        chips.forEach(chip => {
+          if (chip.dataset.net === val) chip.classList.add('selected');
+          else chip.classList.remove('selected');
+        });
       });
-      // Sync chain selector -> network selector + RPC URL
-      rpcChainSel.addEventListener('change', () => {
-        const cfg = NETWORKS[rpcChainSel.value];
+
+      rpcChainSel.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chain-chip');
+        if (!chip) return;
+        const net = chip.dataset.net;
+        const cfg = NETWORKS[net];
         if (cfg && !cfg.rpc.startsWith('TODO')) {
           rpcInp.value = cfg.rpc;
-          netSel.value = rpcChainSel.value;
+          netSel.value = net;
+          rpcChainSel.querySelectorAll('.chain-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
         }
+      });
+
+      const initialChips = rpcChainSel.querySelectorAll('.chain-chip');
+      initialChips.forEach(chip => {
+        if (chip.dataset.net === netSel.value) chip.classList.add('selected');
       });
     }
 
-
-
-    // 4. KEY → ADDRESS DERIVATION + DEPLOY ENABLE CHECK
+    // 4. KEY -> ADDRESS DERIVATION + DEPLOY ENABLE CHECK
     const deployBtn = el('deploy-btn');
 
     const checkDeployReady = () => {
@@ -296,7 +306,6 @@
             if (log.topics && log.topics[2]) addRow(log.address, '0x' + log.topics[2].slice(26), 'ERC721');
           });
 
-          // EIP-7702 delegation check via eth_getCode on K1 address
           const rpc = rpcInp?.value?.trim() || cfg.rpc;
           try {
             const codeData = await rpcPost(rpc, 'eth_getCode', [k1, 'latest']);
@@ -493,36 +502,28 @@
     }
 
     // 11. SESSION PURGE
-    // Both purge-btn (session tab) AND scrub-btn (header) call wipeSession
     function wipeSession() {
       if (!confirm('Purge session? All keys and deployment data will be wiped immediately.')) return;
       document.querySelectorAll('input').forEach(inp => { inp.value = ''; });
-      // Clear address displays (now divs)
-      const dAddr = el('deployer-addr');
-      const k1Addr = el('k1-addr');
-      if (dAddr) dAddr.textContent = '—';
-      if (k1Addr) k1Addr.textContent = '—';
+      ['deployer-addr', 'k1-addr', 'deployer-address', 'k1-address', 'sidebar-deployer-addr', 'sidebar-k1-addr'].forEach(id => {
+        const e = el(id);
+        if (e) e.textContent = '';
+      });
       sessionStorage.clear();
       window._sg_contract_address = null;
       window._sg_revoke_targets = [];
-      window._sg_k1_first_tx = null;
-      currentContractAddress = null;
       window.location.reload();
     }
-    
-    const purgeBtn = el('purge-btn');
-    if (purgeBtn) purgeBtn.addEventListener('click', wipeSession);
-    
-    const scrubBtn = el('scrub-btn');
+    var scrubBtn = el('scrub-btn');
     if (scrubBtn) scrubBtn.addEventListener('click', wipeSession);
-  } // end initDashboard
+    var purgeBtn = el('purge-btn');
+    if (purgeBtn) purgeBtn.addEventListener('click', wipeSession);
+  }
 
-  // boot
+  // BOOT
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      if (sessionStorage.getItem('sg_auth_passed') === '1') initDashboard();
-    });
-  } else if (sessionStorage.getItem('sg_auth_passed') === '1') {
+    document.addEventListener('DOMContentLoaded', initDashboard);
+  } else {
     initDashboard();
   }
 })();

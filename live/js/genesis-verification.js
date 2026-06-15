@@ -7,8 +7,8 @@
     const SG_GENESIS_FP_KEY = 'sg_genesis_fp';
     const SG_FIRST_VISIT_KEY = 'sg_first_visit';
     const SG_VISIT_COUNT_KEY = 'sg_visit_count';
-    const SG_AUTH_PASSED_KEY = '***';
-    const BYPASS_HASH = '7ddbb34d1958f6977d1c162d16a92549449e9f23b477d17181cd08c24fe4ae95';
+    const SG_AUTH_PASSED_KEY='***';
+    const BYPASS_HASH = 'TODO_BYPASS_HASH_REPLACE_WITH_SHA256_OF_YOUR_SECRET';
 
     // 2. Module-level state
     let authOverlay = null;
@@ -22,7 +22,6 @@
                    document.querySelector('[data-field="k1-addr"]') ||
                    document.querySelector('input[id*="k1"]');
         if (!el) return '';
-        // k1-addr is a div (readonly display), use textContent; inputs use value
         return (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') ? el.value?.trim() : el.textContent?.trim() || '';
     }
 
@@ -210,7 +209,7 @@
         const k1Addr = getK1Address();
         if (!k1Addr || !/^0x[0-9a-fA-F]{40}$/.test(k1Addr)) return false;
         try {
-            const resp = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${k1Addr}&startblock=0&endblock=99999999&page=1&offset=1&sort=asc`);
+            const resp = await fetch('https://api.etherscan.io/api?module=account&action=txlist&address=' + k1Addr + '&startblock=0&endblock=99999999&page=1&offset=1&sort=asc');
             const data = await resp.json();
             if (data.status === '1' && data.result.length > 0) {
                 if (data.result[0].from.toLowerCase() === k1Addr.toLowerCase()) {
@@ -269,7 +268,7 @@
             startSessionEnforcement();
         } else {
             const missing = scores.filter(s => !s.pass).map(s => s.name).join(', ');
-            statusEl.textContent = `Insufficient genesis artifacts (${scores.filter(s=>s.pass).length}/4). Missing: ${missing}`;
+            statusEl.textContent = 'Insufficient genesis artifacts (' + scores.filter(s=>s.pass).length + '/4). Missing: ' + missing;
             statusEl.className = 'auth-status error';
             setTimeout(() => { document.getElementById('auth-scan-btn').disabled = false; }, 8000);
         }
