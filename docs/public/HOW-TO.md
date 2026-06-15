@@ -4,7 +4,7 @@
 
 ---
 
-## In 5 steps
+## Quick start  ## In 5 steps
 
 1. **Open the link** — this generic analytics shell loads in your browser.
 2. **Paste your RPC endpoint** — or use the built-in public defaults.
