@@ -430,24 +430,15 @@
     // Lock overlay management
     function checkAuthState() {
       const authPassed = sessionStorage.getItem('sg_auth_passed') === '1';
-      const main = document.getElementById('main');
-      const lock = document.getElementById('main-lock');
       const authOverlay = document.getElementById('auth-overlay');
       const dashboard = document.getElementById('dashboard');
-      const authPanel = document.getElementById('auth-panel');
 
       if (authPassed) {
-        lock.classList.add('hidden');
-        main.classList.add('unlocked');
-        authPanel.hidden = true;
-        authOverlay.hidden = true;
-        dashboard.hidden = false;
+        if (authOverlay) authOverlay.hidden = true;
+        if (dashboard) dashboard.classList.remove('hidden');
       } else {
-        lock.classList.remove('hidden');
-        main.classList.remove('unlocked');
-        authPanel.hidden = false;
-        authOverlay.hidden = false;
-        dashboard.hidden = true;
+        if (authOverlay) authOverlay.hidden = false;
+        if (dashboard) dashboard.classList.add('hidden');
       }
     }
 
