@@ -42,7 +42,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Verify on-chain gate state  
+      - name: Verify on-chain gate state 
                 continue-on-error: true
         env:
           RPC_URLS: ${{ secrets.RPC_URLS }}
