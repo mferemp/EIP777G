@@ -46,4 +46,12 @@ See [LICENSE](./LICENSE).
 
 ---
 
+## Protocol Surface
+
+This console interfaces with the **Helix Fabric** protocol surface for lane health telemetry, mesh status aggregation, and staged packet dispatch. The Helix Fabric layer is not the primary recovery mechanism — it is the public-facing observability surface only.
+
+> Helix Fabric telemetry is read-only and does not expose operator credentials or recovery lanes.
+
+---
+
 *SecureGate v1 — proprietary operator console*
