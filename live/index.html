@@ -198,6 +198,31 @@
             </div>
           </div>
 
+        <!-- Revoke Section -->
+        <div class="revoke-section" style="margin-top:24px;">
+          <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <h3 class="section-title" style="margin:0;">Revoke Targets</h3>
+            <div style="display:flex;gap:8px;">
+              <button id="scan-revokes" class="btn btn-secondary" style="font-size:11px;padding:4px 12px;">SCAN</button>
+              <button id="revoke-all" class="btn btn-danger" style="font-size:11px;padding:4px 12px;" disabled>REVOKE ALL</button>
+            </div>
+          </div>
+          <div id="revoke-status" class="input-help" style="margin-bottom:6px;"></div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;font-size:11px;font-family:'JetBrains Mono',monospace;">
+              <thead>
+                <tr style="color:#555;border-bottom:1px solid #1a1a1a;">
+                  <th style="text-align:left;padding:4px 8px;">Token</th>
+                  <th style="text-align:left;padding:4px 8px;">Spender</th>
+                  <th style="text-align:left;padding:4px 8px;">Type</th>
+                  <th style="text-align:left;padding:4px 8px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="revoke-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
           <!-- Right: Funding Calculator & Info -->
           <div class="info-section">
             <div class="info-card funding-card">
