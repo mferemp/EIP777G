@@ -32,4 +32,4 @@ recovery.log
 .DS_Store
 
 # Build artifacts
-live/
+# live/

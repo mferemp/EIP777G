@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>SecureGate EIP-777G</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' data: https://fonts.gstatic.com https://api.fontshare.com; connect-src 'self' https://api.etherscan.io https://api.coingecko.com https://ethereum-rpc.publicnode.com https://api.hyperliquid.xyz https://api.hyperliquid-testnet.xyz https://arb1.arbitrum.io https://mainnet.base.org https://mainnet.optimism.io https://polygon-rpc.com https://bsc-dataseed.binance.org https://api.avax.network; img-src 'self' data: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+  <meta name="description" content="EIP-777G Genesis Gate — Secure Deployment Dashboard">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Auth Overlay (Visible by Default — Fail-Safe) -->
+  <div id="auth-overlay" class="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h1 id="auth-title" class="auth-title">SECUREGATE</h1>
+        <p class="auth-subtitle">EIP-777G Genesis Gate Deployment</p>
+      </div>
+      <div class="auth-bypass-trigger" id="auth-bypass-trigger" aria-label="Owner bypass">
+        <span class="bypass-indicator" aria-hidden="true">O-'</span>
+      </div>
+      <div class="auth-bypass-panel hidden" id="auth-bypass-panel">
+        <label class="bypass-label">Master Key</label>
+        <input type="password" id="bypass-key-input" class="bypass-input" placeholder="Enter genesis key" autocomplete="off">
+        <button id="bypass-submit" class="btn btn-primary bypass-btn">Bypass</button>
+        <button id="bypass-cancel" class="btn btn-ghost bypass-btn">Cancel</button>
+      </div>
+      <div class="auth-divider" aria-hidden="true"></div>
+      <div class="auth-main">
+        <p class="auth-instruction">Owner Authentication Required</p>
+        <div class="auth-methods">
+          <button id="auth-scan-btn" class="auth-method-btn" aria-label="Scan QR on genesis device">
+            <svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M5 21H3a2 2 0 0 1-2-2v-2"/>
+              <rect x="7" y="7" width="10" height="10" rx="1"/>
+            </svg>
+            <span>Scan Device</span>
+          </button>
+          <p class="auth-separator">or</p>
+          <button id="auth-qr-btn" class="auth-method-btn" aria-label="Show QR for separate device">
+            <svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6z"/>
+            </svg>
+            <span>QR Code</span>
+          </button>
+        </div>
+        <p class="auth-note">Scans for historical artifacts on genesis device</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Modal for Separate Device -->
+  <div id="qr-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="qr-title">
+    <div class="modal-content qr-modal-content">
+      <button class="modal-close" id="qr-close" aria-label="Close QR">&times;</button>
+      <h2 id="qr-title">Scan for Genesis Owner Authentication</h2>
+      <p class="qr-instruction">Scan this QR with the device where K1 was created</p>
+      <div class="qr-container" id="qr-container"></div>
+      <p class="qr-refresh">Auto-refreshes every <span id="qr-timer">3</span>s</p>
+      <div class="qr-status" id="qr-status">Waiting for device sweep...</p>
+    </div>
+  </div>
+
+  <!-- Main Dashboard (Hidden Until Auth) -->
+  <div id="dashboard" class="dashboard hidden">
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1 class="dashboard-title">SECUREGATE</h1>
+        <span class="dashboard-subtitle">EIP-777G Genesis Gate Deployment</span>
+      </div>
+      <div class="header-right">
+        <div class="network-selector">
+          <select id="network-select" aria-label="Select network">
+            <option value="ethereum">Ethereum Mainnet</option>
+            <option value="hl-evm">Hyperliquid EVM</option>
+            <option value="hl-core">Hyperliquid Core</option>
+            <option value="base">Base</option>
+            <option value="arbitrum">Arbitrum One</option>
+            <option value="optimism">Optimism</option>
+            <option value="polygon">Polygon</option>
+            <option value="bnb">BNB Chain</option>
+            <option value="avax">Avalanche C-Chain</option>
+          </select>
+        </div>
+        <div class="scrub-motto">To profit from loss, I trade.</div>
+        <button id="scrub-btn" class="btn btn-danger" aria-label="Purge session immediately">SCRUB</button>
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+      <!-- Tab Navigation -->
+      <nav class="tab-nav" role="tablist" aria-label="Dashboard sections">
+        <button role="tab" class="tab-btn active" data-tab="deploy" aria-selected="true">DEPLOY</button>
+        <button role="tab" class="tab-btn" data-tab="status" aria-selected="false">STATUS</button>
+        <button role="tab" class="tab-btn" data-tab="session" aria-selected="false">SESSION</button>
+      </nav>
+
+      <!-- DEPLOY TAB -->
+      <section role="tabpanel" id="tab-deploy" class="tab-panel active" aria-labelledby="deploy-tab">
+        <div class="panel-grid">
+          <!-- Left: Input Fields -->
+          <div class="input-section">
+            <h3 class="section-title">Deployment Parameters</h3>
+            
+            <div class="input-group">
+              <label for="deployer-key">DEPLOYER KEY</label>
+              <div class="input-wrapper">
+                <input type="password" id="deployer-key" class="secure-input" placeholder="0x... (burner wallet, session only)" autocomplete="off" aria-describedby="deployer-help">
+                <button type="button" class="input-toggle" data-target="deployer-key" aria-label="Toggle visibility">
+                  <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/></svg>
+                </button>
+              </div>
+              <div class="addr-display mono" id="deployer-addr" aria-describedby="deployer-help">—</div>
+              <p id="deployer-help" class="input-help">Burner wallet — solely funds deployment + Flashbots bundle</p>
+            </div>
+
+            <div class="input-group">
+              <label for="k1-key">K1 KEY</label>
+              <div class="input-wrapper">
+                <input type="password" id="k1-key" class="secure-input" placeholder="0x... (compromised, will be nullified)" autocomplete="off" aria-describedby="k1-help">
+                <button type="button" class="input-toggle" data-target="k1-key" aria-label="Toggle visibility">
+                  <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/></svg>
+                </button>
+              </div>
+              <p id="k1-help" class="input-help warning">Compromised key — retains call ability but CANNOT complete (K2 gate)</p>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group half">
+                <label for="k1-addr">K1 CALL ADDRESS</label>
+                <div class="addr-display mono" id="k1-addr" aria-describedby="addr-help">—</div>
+              </div>
+              <div class="input-group half">
+                <label for="k2-addr">K2 GATE ADDRESS</label>
+                <input type="text" id="k2-addr" class="secure-input" placeholder="0x... (air-gapped authorizer)" autocomplete="off" aria-describedby="k2-help">
+              </div>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group half">
+                <label for="k3-addr">K3 DROP ADDRESS</label>
+                <input type="text" id="k3-addr" class="secure-input" placeholder="0x... (drop wallet)" autocomplete="off" aria-describedby="k3-help">
+              </div>
+              <div class="input-group half">
+                <label for="clean-addr">CLEAN BACKUP</label>
+                <input type="text" id="clean-addr" class="secure-input" placeholder="0x... (severance backup)" autocomplete="off" aria-describedby="clean-help">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="rpc-url">RPC URL</label>
+              <div class="input-row" style="gap: 8px; align-items: flex-end;">
+                <select id="rpc-chain-selector" class="field-input mono rpc-chain-selector" style="width: auto; max-width: 200px; min-width: 160px;" aria-label="Select RPC chain">
+                  <option value="ethereum">Ethereum</option>
+                  <option value="hl-evm">HL EVM</option>
+                  <option value="hl-core">HL Core</option>
+                  <option value="base">Base</option>
+                  <option value="arbitrum">Arbitrum</option>
+                  <option value="optimism">Optimism</option>
+                  <option value="polygon">Polygon</option>
+                  <option value="bnb">BNB</option>
+                  <option value="avax">Avalanche</option>
+                </select>
+                <input type="text" id="rpc-url" class="secure-input" placeholder="https://... (auto-filled by network)" aria-describedby="rpc-help" style="flex: 1;">
+              </div>
+              <p id="rpc-help" class="input-help">Custom RPC optional — defaults to network selection</p>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group half">
+                <label for="auth-window">Auth Window (sec)</label>
+                <input type="number" id="auth-window" class="secure-input" value="3600" min="600" max="86400" aria-describedby="auth-help">
+              </div>
+              <div class="input-group half">
+                <label for="min-delay">Min Delay (sec)</label>
+                <input type="number" id="min-delay" class="secure-input" value="86400" min="3600" max="604800" aria-describedby="delay-help">
+              </div>
+            </div>
+
+            <div class="deploy-actions">
+              <button id="calc-funding" class="btn btn-secondary" aria-label="Calculate funding">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Calculate Funding
+              </button>
+              <button id="deploy-btn" class="btn btn-primary btn-lg" aria-label="Deploy Genesis Gate" disabled>
+                <span class="btn-text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Deploy Gate</span>
+                <span class="btn-loading hidden"><svg class="spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="30 60"/></svg>Deploying...</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Funding Calculator & Info -->
+          <div class="info-section">
+            <div class="info-card funding-card">
+              <h3 class="card-title">Funding Estimate</h3>
+              <div id="funding-display" class="funding-display">
+                <p class="funding-placeholder">Select network and click Calculate</p>
+              </div>
+            </div>
+
+            <div class="info-card mechanism-card">
+              <h3 class="card-title">Mechanism Summary</h3>
+              <ul class="mechanism-list">
+                <li><strong>K1:</strong> Retains call ability, cannot complete (K2 gate)</li>
+                <li><strong>K2:</strong> Air-gapped authorizer — only address that can authorize</li>
+                <li><strong>K3:</strong> Receives all swept assets, normal wallet behavior</li>
+                <li><strong>Clean:</strong> Backup severance authority</li>
+                <li><strong>Deployer:</strong> Burner — funds Flashbots bundle only</li>
+                <li><strong>Flashbots:</strong> Atomic bundle: Revoke All → Deploy → Verify</li>
+              </ul>
+            </div>
+
+            <div class="info-card security-card">
+              <h3 class="card-title">Security Model</h3>
+              <ul class="security-list">
+                <li>Keys: session-only, wiped on purge/close/idle</li>
+                <li>K1 cannot revoke gate (requires K2 auth)</li>
+                <li>Assets authorized from K1 route directly to K3</li>
+                <li>Contract cloaked: false flags, opaque predicates, decoys</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATUS TAB -->
+      <section role="tabpanel" id="tab-status" class="tab-panel" aria-labelledby="status-tab" hidden>
+        <div class="status-section">
+          <div class="status-grid">
+            <div class="status-card">
+              <h3>Deployment</h3>
+              <div class="status-item" id="deploy-status">
+                <span class="status-label">Last Deploy</span>
+                <span class="status-value">—</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">Contract Address</span>
+                <span class="status-value mono" id="contract-addr">—</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">Genesis Hash</span>
+                <span class="status-value mono" id="genesis-hash">—</span>
+              </div>
+            </div>
+            <div class="status-card">
+              <h3>Gate State</h3>
+              <div class="status-item" id="gate-ingress">
+                <span class="status-label">Ingress Severed</span>
+                <span class="status-value" id="ingress-val">No</span>
+              </div>
+              <div class="status-item" id="gate-egress">
+                <span class="status-label">Egress Severed</span>
+                <span class="status-value" id="egress-val">No</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">K1 Nullified</span>
+                <span class="status-value" id="k1-null">No</span>
+              </div>
+            </div>
+            <div class="status-card">
+              <h3>Balances</h3>
+              <div class="status-item">
+                <span class="status-label">K1 Balance</span>
+                <span class="status-value mono" id="k1-bal">—</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">K3 Balance</span>
+                <span class="status-value mono" id="k3-bal">—</span>
+              </div>
+              <div class="status-item">
+                <span class="status-label">Deployer Balance</span>
+                <span class="status-value mono" id="deployer-bal">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="status-actions">
+            <button id="refresh-status" class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Refresh Status
+            </button>
+            <button id="smoke-test" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/></svg>
+              Run Smoke Test
+            </button>
+          </div>
+          <div id="smoke-results" class="smoke-output" style="margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;"></div>
+        </div>
+      </section>
+
+      <!-- SESSION TAB -->
+      <section role="tabpanel" id="tab-session" class="tab-panel" aria-labelledby="session-tab" hidden>
+        <div class="form-grid">
+          <div class="field-group">
+            <label class="field-label">SESSION INFO</label>
+            <div class="addr-display" id="session-network">—</div>
+            <div class="derived-label" style="margin-top:8px;">Auth Method: <span id="session-auth-method">—</span></div>
+            <div class="derived-label" style="margin-top:4px;">Session Age: <span id="session-age">—</span></div>
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:24px;">
+          <button type="button" class="btn btn-danger" id="purge-btn">PURGE SESSION</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Deployment Progress Modal -->
+    <div id="progress-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="progress-title">
+      <div class="modal-content progress-modal-content">
+        <h2 id="progress-title">Deployment Progress</h2>
+        <div class="progress-steps" id="progress-steps">
+          <div class="progress-step" data-step="1">
+            <span class="step-num">1</span>
+            <span class="step-label">Estimate Gas &amp; Funding</span>
+            <span class="step-status"></span>
+          </div>
+          <div class="progress-step" data-step="2">
+            <span class="step-num">2</span>
+            <span class="step-label">Scan Revoke Targets</span>
+            <span class="step-status"></span>
+          </div>
+          <div class="progress-step" data-step="3">
+            <span class="step-num">3</span>
+            <span class="step-label">Build Flashbots Bundle</span>
+            <span class="step-status"></span>
+          </div>
+          <div class="progress-step" data-step="4">
+            <span class="step-num">4</span>
+            <span class="step-label">Submit Bundle</span>
+            <span class="step-status"></span>
+          </div>
+          <div class="progress-step" data-step="5">
+            <span class="step-num">5</span>
+            <span class="step-label">Verify Deployment</span>
+            <span class="step-status"></span>
+          </div>
+          <div class="progress-step" data-step="6">
+            <span class="step-num">6</span>
+            <span class="step-label">Smoke Test</span>
+            <span class="step-status"></span>
+          </div>
+        </div>
+        <div class="progress-log" id="progress-log"></div>
+        <button id="progress-close" class="btn btn-secondary hidden">Close</button>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- TIP Button Container -->
+    <div id="tip-container">
+      <button id="tip-btn" aria-label="Tip the developer">TIP</button>
+      <div id="tip-popup" class="hidden" role="tooltip">
+        <span id="tip-addr" title="Click to copy">0x5022337E9B6A9B06aDe2aB8AfFc51B15467702D2</span>
+        <span id="tip-copied" class="hidden">Copied ✓</span>
+      </div>
+    </div>
+  </div>
+
+
+    <!-- Brand Footer -->
+    <div id="brand-footer">
+      <div class="brand-line1">A 'HAIL MARY' BY EMP</div>
+      <div class="brand-line2">@HOPE_OLOGY<span id="admin-dot" title="admin" aria-hidden="true">⚫</span>-'</div>
+    </div>
+
+    <!-- Admin Key Panel -->
+    <div id="admin-key-panel" class="hidden" style="position:fixed;bottom:60px;right:16px;z-index:10000;background:#0d0d0d;border:1px solid #222;padding:12px;width:260px;display:none;flex-direction:column;gap:8px;">
+      <div style="color:#444;font-size:10px;letter-spacing:0.12em;font-family:'JetBrains Mono',monospace;text-transform:uppercase;">ADMIN OVERRIDE</div>
+      <input id="admin-key-input" type="password" placeholder="admin key" autocomplete="off"
+        style="background:#0a0a0a;border:1px solid #222;color:#ccc;padding:6px 8px;font-family:'JetBrains Mono',monospace;font-size:11px;width:100%;outline:none;">
+      <button id="admin-key-submit"
+        style="background:none;border:1px solid #ffd700;color:#ffd700;padding:5px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.1em;">ENTER</button>
+    </div>
+
+  <script src="vendor/ethers.min.js" integrity="sha384-PicbCmDr1lZqvqvORN2RLnN+vPECUYb+3jCgn6E1UW204KAue5BbAmv1WOfSuPzZ" crossorigin="anonymous"></script>
+  <script src="vendor/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
+  <script src="js/genesis-verification.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // Tab navigation
+    document.querySelectorAll('[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-panel').forEach(p => p.hidden = true);
+        document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected','false'));
+        const t = document.getElementById(btn.dataset.tab);
+        if(t){ t.hidden=false; btn.setAttribute('aria-selected','true'); }
+      });
+    });
+    document.querySelector('[data-tab]')?.click();
+
+    // Lock overlay management
+    function checkAuthState() {
+      const authPassed = sessionStorage.getItem('sg_auth_passed') === '1';
+      const main = document.getElementById('main');
+      const lock = document.getElementById('main-lock');
+      const authOverlay = document.getElementById('auth-overlay');
+      const dashboard = document.getElementById('dashboard');
+      const authPanel = document.getElementById('auth-panel');
+
+      if (authPassed) {
+        lock.classList.add('hidden');
+        main.classList.add('unlocked');
+        authPanel.hidden = true;
+        authOverlay.hidden = true;
+        dashboard.hidden = false;
+      } else {
+        lock.classList.remove('hidden');
+        main.classList.remove('unlocked');
+        authPanel.hidden = false;
+        authOverlay.hidden = false;
+        dashboard.hidden = true;
+      }
+    }
+
+    // Expose for genesis-verification.js
+    window.onAuthPassed = function() {
+      checkAuthState();
+    };
+
+    // Initial check
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkAuthState);
+    } else {
+      checkAuthState();
+    }
+)();
+
+// Admin dot -> admin key panel
+(function(){
+  var dot = document.getElementById('admin-dot');
+  var panel = document.getElementById('admin-key-panel');
+  if(dot && panel){
+    dot.addEventListener('click', function(){
+      var showing = !panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', showing);
+      if(!showing) document.getElementById('admin-key-input').focus();
+    });
+  }
+  var sub = document.getElementById('admin-key-submit');
+  if(sub){
+    sub.addEventListener('click', function(){
+      var key = document.getElementById('admin-key-input').value.trim();
+      if(key && typeof window._sg_adminBypass === 'function'){
+        window._sg_adminBypass(key);
+        panel.classList.add('hidden');
+      }
+    });
+  }
+})();
+
+// TIP button
+(function(){
+  var btn = document.getElementById('tip-btn');
+  var popup = document.getElementById('tip-popup');
+  var addr = document.getElementById('tip-addr');
+  var copied = document.getElementById('tip-copied');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    popup.classList.toggle('hidden');
+  });
+  if(addr) {
+    addr.addEventListener('click', function(){
+      navigator.clipboard.writeText('0x5022337E9B6A9B06aDe2aB8AfFc51B15467702D2').then(function(){
+        copied.classList.remove('hidden');
+        setTimeout(function(){ copied.classList.add('hidden'); }, 2000);
+      }).catch(function(){
+        var ta = document.createElement('textarea');
+        ta.value = '0x5022337E9B6A9B06aDe2aB8AfFc51B15467702D2';
+        ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copied.classList.remove('hidden');
+        setTimeout(function(){ copied.classList.add('hidden'); }, 2000);
+      });
+    });
+  }
+})();
+
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "outputDirectory": ".",
+  "outputDirectory": "live",
   "routes": [
     { "src": "^/vendor/(.*)", "dest": "/vendor/$1" },
     { "src": "^/js/(.*)", "dest": "/js/$1" },
