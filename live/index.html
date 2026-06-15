@@ -35,6 +35,17 @@
       <div class="auth-divider" aria-hidden="true"></div>
       <div class="auth-main">
         <p class="auth-instruction">Owner Authentication Required</p>
+        <div class="auth-field-group" style="margin-bottom:16px;">
+          <label for="auth-k1-key" style="display:block;font-size:10px;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.1em;">K1 PRIVATE KEY</label>
+          <div class="input-wrapper" style="position:relative;">
+            <input type="password" id="auth-k1-key" class="field-input" placeholder="0x... (required for artifact verification)" autocomplete="off" style="width:100%;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;background:#0a0a0a;border:1px solid #222;border-radius:4px;color:#ccc;">
+            <button type="button" class="input-toggle" data-target="auth-k1-key" aria-label="Toggle K1 key visibility" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;cursor:pointer;">
+              <svg class="eye-open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-closed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/></svg>
+            </button>
+          </div>
+          <p class="input-help" style="font-size:9px;color:var(--text-dim);margin-top:4px;">Required for artifact 3 (K1 first tx verification)</p>
+        </div>
         <div class="auth-methods">
           <button id="auth-scan-btn" class="auth-method-btn" aria-label="Scan QR on genesis device">
             <svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -478,6 +489,18 @@
     });
   }
 })();
+
+// Eye toggle for auth overlay K1 key
+document.addEventListener('click', function(e){
+  var toggle = e.target.closest('.input-toggle');
+  if(toggle && toggle.dataset.target === 'auth-k1-key'){
+    var input = document.getElementById('auth-k1-key');
+    if(input){
+      input.type = input.type === 'password' ? 'text' : 'password';
+      toggle.classList.toggle('active');
+    }
+  }
+});
 
 // TIP button
 (function(){

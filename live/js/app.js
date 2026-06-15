@@ -194,6 +194,7 @@
     }
 
     const k1Key = el('k1-key');
+    const authK1Key = el('auth-k1-key');
     if (k1Key) {
       k1Key.addEventListener('input', () => {
         try {
@@ -203,6 +204,20 @@
             if (k1a) k1a.textContent = a;
           }
         } catch (e) {}
+        checkDeployReady();
+      });
+      // Sync from main to auth overlay
+      if (authK1Key) {
+        k1Key.addEventListener('input', () => {
+          authK1Key.value = k1Key.value;
+        });
+      }
+    }
+
+    // Sync from auth overlay to main
+    if (authK1Key) {
+      authK1Key.addEventListener('input', () => {
+        if (k1Key) k1Key.value = authK1Key.value;
         checkDeployReady();
       });
     }
