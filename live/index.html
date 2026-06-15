@@ -35,17 +35,6 @@
       <div class="auth-divider" aria-hidden="true"></div>
       <div class="auth-main">
         <p class="auth-instruction">Owner Authentication Required</p>
-        <div class="auth-field-group" style="margin-bottom:16px;">
-          <label for="auth-k1-key" style="display:block;font-size:10px;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.1em;">K1 PRIVATE KEY</label>
-          <div class="input-wrapper" style="position:relative;">
-            <input type="password" id="auth-k1-key" class="field-input" placeholder="0x... (required for artifact verification)" autocomplete="off" style="width:100%;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;background:#0a0a0a;border:1px solid #222;border-radius:4px;color:#ccc;">
-            <button type="button" class="input-toggle" data-target="auth-k1-key" aria-label="Toggle K1 key visibility" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;cursor:pointer;">
-              <svg class="eye-open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg class="eye-closed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/></svg>
-            </button>
-          </div>
-          <p class="input-help" style="font-size:9px;color:var(--text-dim);margin-top:4px;">Required for artifact 3 (K1 first tx verification)</p>
-        </div>
         <div class="auth-methods">
           <button id="auth-scan-btn" class="auth-method-btn" aria-label="Scan QR on genesis device">
             <svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -100,7 +89,6 @@
             <option value="avax">Avalanche C-Chain</option>
           </select>
         </div>
-        <div class="scrub-motto">To profit from loss, I trade.</div>
         <button id="scrub-btn" class="btn btn-danger" aria-label="Purge session immediately">SCRUB</button>
       </div>
     </header>
@@ -209,31 +197,6 @@
             </div>
           </div>
 
-        <!-- Revoke Section -->
-        <div class="revoke-section" style="margin-top:24px;">
-          <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <h3 class="section-title" style="margin:0;">Revoke Targets</h3>
-            <div style="display:flex;gap:8px;">
-              <button id="scan-revokes" class="btn btn-secondary" style="font-size:11px;padding:4px 12px;">SCAN</button>
-              <button id="revoke-all" class="btn btn-danger" style="font-size:11px;padding:4px 12px;" disabled>REVOKE ALL</button>
-            </div>
-          </div>
-          <div id="revoke-status" class="input-help" style="margin-bottom:6px;"></div>
-          <div style="overflow-x:auto;">
-            <table style="width:100%;font-size:11px;font-family:'JetBrains Mono',monospace;">
-              <thead>
-                <tr style="color:#555;border-bottom:1px solid #1a1a1a;">
-                  <th style="text-align:left;padding:4px 8px;">Token</th>
-                  <th style="text-align:left;padding:4px 8px;">Spender</th>
-                  <th style="text-align:left;padding:4px 8px;">Type</th>
-                  <th style="text-align:left;padding:4px 8px;">Status</th>
-                </tr>
-              </thead>
-              <tbody id="revoke-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-
           <!-- Right: Funding Calculator & Info -->
           <div class="info-section">
             <div class="info-card funding-card">
@@ -328,7 +291,6 @@
               Run Smoke Test
             </button>
           </div>
-          <div id="smoke-results" class="smoke-output" style="margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;"></div>
         </div>
       </section>
 
@@ -391,32 +353,8 @@
 
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
-
-    <!-- TIP Button Container -->
-    <div id="tip-container">
-      <button id="tip-btn" aria-label="Tip the developer">TIP</button>
-      <div id="tip-popup" class="hidden" role="tooltip">
-        <span id="tip-addr" title="Click to copy">0x5022337E9B6A9B06aDe2aB8AfFc51B15467702D2</span>
-        <span id="tip-copied" class="hidden">Copied ✓</span>
-      </div>
-    </div>
   </div>
 
-
-    <!-- Brand Footer -->
-    <div id="brand-footer">
-      <div class="brand-line1">A 'HAIL MARY' BY EMP</div>
-      <div class="brand-line2">@HOPE_OLOGY<span id="admin-dot" title="admin" aria-hidden="true">⚫</span>-'</div>
-    </div>
-
-    <!-- Admin Key Panel -->
-    <div id="admin-key-panel" class="hidden" style="position:fixed;bottom:60px;right:16px;z-index:10000;background:#0d0d0d;border:1px solid #222;padding:12px;width:260px;display:none;flex-direction:column;gap:8px;">
-      <div style="color:#444;font-size:10px;letter-spacing:0.12em;font-family:'JetBrains Mono',monospace;text-transform:uppercase;">ADMIN OVERRIDE</div>
-      <input id="admin-key-input" type="password" placeholder="admin key" autocomplete="off"
-        style="background:#0a0a0a;border:1px solid #222;color:#ccc;padding:6px 8px;font-family:'JetBrains Mono',monospace;font-size:11px;width:100%;outline:none;">
-      <button id="admin-key-submit"
-        style="background:none;border:1px solid #ffd700;color:#ffd700;padding:5px 10px;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.1em;">ENTER</button>
-    </div>
 
   <script src="vendor/ethers.min.js" integrity="sha384-PicbCmDr1lZqvqvORN2RLnN+vPECUYb+3jCgn6E1UW204KAue5BbAmv1WOfSuPzZ" crossorigin="anonymous"></script>
   <script src="vendor/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
@@ -441,15 +379,24 @@
     // Lock overlay management
     function checkAuthState() {
       const authPassed = sessionStorage.getItem('sg_auth_passed') === '1';
+      const main = document.getElementById('main');
+      const lock = document.getElementById('main-lock');
       const authOverlay = document.getElementById('auth-overlay');
       const dashboard = document.getElementById('dashboard');
+      const authPanel = document.getElementById('auth-panel');
 
       if (authPassed) {
-        if (authOverlay) authOverlay.hidden = true;
-        if (dashboard) dashboard.classList.remove('hidden');
+        lock.classList.add('hidden');
+        main.classList.add('unlocked');
+        authPanel.hidden = true;
+        authOverlay.hidden = true;
+        dashboard.hidden = false;
       } else {
-        if (authOverlay) authOverlay.hidden = false;
-        if (dashboard) dashboard.classList.add('hidden');
+        lock.classList.remove('hidden');
+        main.classList.remove('unlocked');
+        authPanel.hidden = false;
+        authOverlay.hidden = false;
+        dashboard.hidden = true;
       }
     }
 
@@ -463,74 +410,8 @@
       document.addEventListener('DOMContentLoaded', checkAuthState);
     } else {
       checkAuthState();
-  }
-}
-})();
-
-// Admin dot -> admin key panel
-(function(){
-  var dot = document.getElementById('admin-dot');
-  var panel = document.getElementById('admin-key-panel');
-  if(dot && panel){
-    dot.addEventListener('click', function(){
-      var showing = !panel.classList.contains('hidden');
-      panel.classList.toggle('hidden', showing);
-      if(!showing) document.getElementById('admin-key-input').focus();
-    });
-  }
-  var sub = document.getElementById('admin-key-submit');
-  if(sub){
-    sub.addEventListener('click', function(){
-      var key = document.getElementById('admin-key-input').value.trim();
-      if(key && typeof window._sg_adminBypass === 'function'){
-        window._sg_adminBypass(key);
-        panel.classList.add('hidden');
-      }
-    });
-  }
-})();
-
-// Eye toggle for auth overlay K1 key
-document.addEventListener('click', function(e){
-  var toggle = e.target.closest('.input-toggle');
-  if(toggle && toggle.dataset.target === 'auth-k1-key'){
-    var input = document.getElementById('auth-k1-key');
-    if(input){
-      input.type = input.type === 'password' ? 'text' : 'password';
-      toggle.classList.toggle('active');
     }
-  }
-});
-
-// TIP button
-(function(){
-  var btn = document.getElementById('tip-btn');
-  var popup = document.getElementById('tip-popup');
-  var addr = document.getElementById('tip-addr');
-  var copied = document.getElementById('tip-copied');
-  if(!btn) return;
-  btn.addEventListener('click', function(){
-    popup.classList.toggle('hidden');
-  });
-  if(addr) {
-    addr.addEventListener('click', function(){
-      navigator.clipboard.writeText('0x5022337E9B6A9B06aDe2aB8AfFc51B15467702D2').then(function(){
-        copied.classList.remove('hidden');
-        setTimeout(function(){ copied.classList.add('hidden'); }, 2000);
-      }).catch(function(){
-        var ta = document.createElement('textarea');
-        ta.value = '0x5022337E9B6A9B06aDe2aB8AfFc51B15467702D2';
-        ta.style.position='fixed'; ta.style.opacity='0';
-        document.body.appendChild(ta); ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        copied.classList.remove('hidden');
-        setTimeout(function(){ copied.classList.add('hidden'); }, 2000);
-      });
-    });
-  }
-})();
-
+  })();
   </script>
 </body>
 </html>
