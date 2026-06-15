@@ -43,7 +43,7 @@ jobs:
         run: npm test
 
       - name: Verify on-chain gate state
-      env:
+        env:
           RPC_URLS: ${{ secrets.RPC_URLS }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           K1_PRIVATE_KEY: ${{ secrets.K1_PRIVATE_KEY }}
