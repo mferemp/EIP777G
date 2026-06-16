@@ -33,3 +33,4 @@ recovery.log
 
 # Build artifacts
 # live/
+.vercel

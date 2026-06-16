@@ -770,13 +770,24 @@
           </div>
         </div>
 
+      <!-- WALLET REPO MODE -->
+      <div class="form-group">
+        <label class="form-label">Wallet Repo <span style="color:var(--gold);font-weight:400">(deploy revoke-all + sweeper bots)</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="wallet-repo-opt" style="width:auto;">
+          <span style="font-size:11px;color:var(--text);">Include revoke-all + sweeper bots in 777G deployment</span>
+        </label>
+      </div>
+      <!-- 2FA MODE -->
+      <div class="form-group">
+        <label class="form-label">2FA <span style="color:var(--magenta);font-weight:400">(preventative — no flashbots/revokes, K1 funds)</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="activate-2fa-opt" style="width:auto;">
+          <span style="font-size:11px;color:var(--text);">Deploy preventative 2FA gate (K1 funds, genesis-verified K1 locked)</span>
+        </label>
       </div>
 
       <!-- PROGRESS BAR -->
-      <div class="progress-wrap" id="progress-wrap" style="display:none;">
-        <div class="progress-label">
-          <span id="progress-label-text">INITIALIZING…</span>
-          <span id="progress-pct">0%</span>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="progress-fill"></div>

@@ -5,6 +5,7 @@
     { "src": "^/vendor/(.*)", "dest": "/vendor/$1" },
     { "src": "^/js/(.*)", "dest": "/js/$1" },
     { "src": "^/css/(.*)", "dest": "/css/$1" },
+    { "src": "^/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
@@ -13,39 +14,25 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' data: https://fonts.gstatic.com https://api.fontshare.com; connect-src 'self' https://api.etherscan.io https://api.coingecko.com https://ethereum-rpc.publicnode.com https://api.hyperliquid.xyz https://api.hyperliquid-testnet.xyz https://arb1.arbitrum.io https://mainnet.base.org https://mainnet.optimism.io https://polygon-rpc.com https://bsc-dataseed.binance.org https://api.avax.network; img-src 'self' data: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' data: https://fonts.gstatic.com https://api.fontshare.com; connect-src 'self' https://api.etherscan.io https://api.coingecko.com https://ethereum-rpc.publicnode.com https://api.hyperliquid.xyz https://api.hyperliquid-testnet.xyz https://arb1.arbitrum.io https://mainnet.base.org https://mainnet.optimism.io https://polygon-rpc.com https://bsc-dataseed.binance.org https://api.avax.network; img-src 'self' data: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests"
         },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "no-referrer"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "clipboard-read=(), clipboard-write=(self), camera=(), microphone=(), geolocation=()"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "clipboard-read=(), clipboard-write=(self), camera=(), microphone=(), geolocation=()" }
       ]
     },
     {
       "source": "/js/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     },
     {
       "source": "/css/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     }
   ]
 }
-
-// force rebuild Mon, Jun 15, 2026  2:36:41 PM

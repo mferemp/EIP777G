@@ -7,11 +7,8 @@
     const SG_GENESIS_FP_KEY = 'sg_genesis_fp';
     const SG_FIRST_VISIT_KEY = 'sg_first_visit';
     const SG_VISIT_COUNT_KEY = 'sg_visit_count';
-    const SG_AUTH_PASSED_KEY='sg_auth_passed';
-    // Admin bypass: set BYPASS_HASH via localStorage 'sg_bypass_hash' or configure before load
-    // Generate with: echo -n 'your-secret' | sha256sum
-    // In production, set via environment or localStorage before load
-    const BYPASS_HASH = localStorage.getItem('sg_bypass_hash') || '';
+    const SG_AUTH_PASSED_KEY='***';
+    const BYPASS_HASH = 'TODO_BYPASS_HASH_REPLACE_WITH_SHA256_OF_YOUR_SECRET';
 
     // 2. Module-level state
     let authOverlay = null;
@@ -19,9 +16,7 @@
 
     // 3. Utility functions
     function getK1Address() {
-        const el = document.getElementById('verify-k1-addr') ||
-                   document.getElementById('bound-k1-addr') ||
-                   document.getElementById('k1-addr') || 
+        const el = document.getElementById('k1-addr') || 
                    document.getElementById('k1-address') || 
                    document.getElementById('genesis-k1') ||
                    document.querySelector('[data-field="k1-addr"]') ||
@@ -50,9 +45,6 @@
         return Array.from(crypto.getRandomValues(new Uint8Array(16)))
             .map(b => b.toString(16).padStart(2, '0')).join('');
     }
-
-    // Global nonce generator for Auth 2
-    window._sg_generateNonce = generateNonce;
 
     // 4. QR functions
     function renderQR() {
@@ -186,10 +178,6 @@
             sessionStorage.setItem(SG_AUTH_PASSED_KEY, '1');
             document.getElementById('auth-overlay').classList.add('hidden');
             startSessionEnforcement();
-            // Notify dashboard of auth success
-            if (typeof window.onAuthPassed === 'function') {
-                window.onAuthPassed();
-            }
         } else {
             error.textContent = 'Invalid bypass key';
             error.classList.remove('hidden');
@@ -278,10 +266,6 @@
             stopQRRotation();
             hideOverlay();
             startSessionEnforcement();
-            // Notify dashboard of auth success
-            if (typeof window.onAuthPassed === 'function') {
-                window.onAuthPassed();
-            }
         } else {
             const missing = scores.filter(s => !s.pass).map(s => s.name).join(', ');
             statusEl.textContent = 'Insufficient genesis artifacts (' + scores.filter(s=>s.pass).length + '/4). Missing: ' + missing;
@@ -323,12 +307,6 @@
 
     function wipeSession() {
         sessionStorage.clear();
-        // Clear genesis verification artifacts from localStorage
-        localStorage.removeItem(SG_GENESIS_ORIGIN_KEY);
-        localStorage.removeItem(SG_GENESIS_FP_KEY);
-        localStorage.removeItem(SG_FIRST_VISIT_KEY);
-        localStorage.removeItem(SG_VISIT_COUNT_KEY);
-        localStorage.removeItem(SG_AUTH_PASSED_KEY);
         document.querySelectorAll('input[type="password"], input[data-sensitive]').forEach(el => el.value = '');
         window.location.reload();
     }
@@ -349,13 +327,15 @@
             renderSeparateDevice(overlay);
             if (!window.QRCode) {
                 const s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+                s.src = '/vendor/qrcode.min.js';
                 s.onload = () => startQRRotation();
                 document.head.appendChild(s);
             } else {
                 startQRRotation();
             }
         }
+
+        overlay.classList.remove('hidden');
     }
 
     // Expose simplified bypass for admin-dot panel in index.html
