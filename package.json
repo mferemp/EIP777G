@@ -5,12 +5,17 @@
   "private": true,
   "scripts": {
     "check": "node --check live/js/genesis-verification.js && node --check live/js/app.js && node --check live/api/deploy/funding.js && node --check live/api/deploy/[chain].js && node --check live/api/deploy/[chain]/revoke.js",
+    "test": "npm run check",
+    "build:live": "cp -r live _live && echo 'Build complete: _live directory ready for deployment'",
     "vercel-build": "npm run check"
   },
   "dependencies": {
     "ethers": "^6.13.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "terser": "^5.31.0",
+    "javascript-obfuscator": "^4.1.1"
+  },
   "engines": {
     "node": ">=20.0.0"
   }
