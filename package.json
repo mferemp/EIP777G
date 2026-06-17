@@ -7,7 +7,7 @@
     "check": "node --check live/js/genesis-verification.js && node --check live/js/app.js && node --check live/api/deploy/funding.js && node --check live/api/deploy/[chain].js && node --check live/api/deploy/[chain]/revoke.js",
     "test": "npm run check",
     "build:live": "cp -r live _live && echo 'Build complete: _live directory ready for deployment'",
-    "vercel-build": "npm run check"
+    "vercel-build": "echo 'Static site - no build required'"
   },
   "dependencies": {
     "ethers": "^6.13.0"

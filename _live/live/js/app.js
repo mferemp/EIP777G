@@ -467,7 +467,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              
+              k1PrivateKey: val('k1-key'),
               k1Address: getK1AddrValue(),
               deployerPrivateKey: val('deployer-key'), // accepted for compatibility but not used in revoke flow
               rpcUrl: rpcInp?.value?.trim(),
@@ -526,7 +526,7 @@
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                
+                k1PrivateKey: val('k1-key'),
                 k1Address: window._sg_verified_k1_addr,
                 k2Address: k2AddrEl()?.value?.trim(),
                 k3Address: '',
@@ -572,7 +572,7 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 deployerPrivateKey: val('deployer-key'),
-                
+                k1PrivateKey: val('k1-key'),
                 k1Address: window._sg_verified_k1_addr,
                 k2Address: k2AddrEl()?.value?.trim(),
                 k3Address: k3AddrEl()?.value?.trim(),
