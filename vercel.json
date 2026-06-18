@@ -1,13 +1,12 @@
 {
-  "buildCommand": "npm run obfuscate",
+  "version": 2,
   "outputDirectory": "live",
-  "functions": {
-    "live/api/relay.js": { "maxDuration": 30 },
-    "live/api/bypass-verify.js": { "maxDuration": 10 }
-  },
-  "rewrites": [
-    { "source": "/api/relay", "destination": "/live/api/relay" },
-    { "source": "/api/bypass-verify", "destination": "/live/api/bypass-verify" }
+  "routes": [
+    { "src": "^/vendor/(.*)", "dest": "/vendor/$1" },
+    { "src": "^/js/(.*)", "dest": "/js/$1" },
+    { "src": "^/css/(.*)", "dest": "/css/$1" },
+    { "src": "^/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
     {
@@ -18,6 +17,18 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "no-referrer" },
         { "key": "Permissions-Policy", "value": "camera=(), geolocation=(), microphone=(), payment=(), usb=()" }
+      ]
+    },
+    {
+      "source": "/js/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/css/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     }
   ]
