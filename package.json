@@ -6,8 +6,8 @@
   "scripts": {
     "check": "node --check live/js/app.js && node --check api/relay.js && node --check api/bypass-verify.js",
     "test": "npm run check",
-    "obfuscate": "node scripts/obfuscate.js",
-    "vercel-build": "npm run obfuscate",
+    "obfuscate": "echo 'Skipping obfuscation for production'",
+    "vercel-build": "echo 'Skipping obfuscation for production'",
     "build:live": "cp -r live _live && echo 'Build complete: _live directory ready for deployment'"
   },
   "dependencies": {
