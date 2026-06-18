@@ -1,4 +1,5 @@
 // gate.js — Auth Gate Module
+// PROJECT: SecureGate 777G | OPERATOR: Empress | NO HELIX REFERENCES ANYWHERE
 // Runs ENTIRELY in browser. No network egress (CSP: connect-src 'self').
 // Advisor: heuristic risk score. Never a hard lock. Opt-in, consensual.
 
@@ -6,7 +7,7 @@
   'use strict';
 
   const SG_AUTH_KEY='***';
-  
+  const SG_BYPASS_KEY = 'sg_bypass_hash';
   const SG_VERIFIED_K1 = 'sg_verified_k1_addr';
   const SG_GENESIS_ORIGIN = 'sg_genesis_origin';
   const SG_GENESIS_FP = 'sg_genesis_fp';
@@ -51,28 +52,7 @@
     return { pass: stored === fp, detail: stored === fp ? 'Fingerprint matches' : 'Fingerprint mismatch' };
   }
 
-  async function checkArtifact3_K1Tx(k1Addr) {
-    if (!/^0x[0-9a-fA-F]{40}$/.test(k1Addr || '')) {
-      return { pass: false, detail: 'No valid K1 address' };
-    }
-    try {
-      const resp = await fetch(
-        'https://api.etherscan.io/api?module=account&action=txlist&address=' + k1Addr + '&startblock=0&endblock=99999999&page=1&offset=1&sort=asc'
-      );
-      const data = await resp.json();
-      if (data.status === '1' && data.result.length > 0) {
-        const firstTx = data.result[0];
-        if (firstTx.from.toLowerCase() === k1Addr.toLowerCase()) {
-          return { pass: true, detail: 'First K1 tx: ' + firstTx.hash.slice(0,10) + '...' };
-        }
-      }
-      return { pass: false, detail: 'No matching K1 tx found' };
-    } catch (e) {
-      return { pass: false, detail: 'Etherscan check failed' };
-    }
-  }
-
-  async function checkArtifact4_VisitCount() {
+  async function checkArtifact3_VisitCount() {
     let count = parseInt(localStorage.getItem(SG_VISIT_COUNT) || '0', 10);
     count++;
     localStorage.setItem(SG_VISIT_COUNT, count.toString());
@@ -99,7 +79,7 @@
         '</div>' +
         '<div id="auth-bypass-panel" class="auth-bypass-panel hidden">' +
           '<h3>ADMIN BYPASS</h3>' +
-          '<input type="password" id="bypass-key-input" placeholder="Paste bypass token" autocomplete="off">' +
+          '<input type="password" id="bypass-key-input" placeholder="Enter bypass secret" autocomplete="off">' +
           '<div id="bypass-error" class="auth-error hidden"></div>' +
           '<div class="bypass-actions">' +
             '<button id="bypass-submit" class="btn primary">UNLOCK</button>' +
@@ -131,8 +111,7 @@
       artifacts = await Promise.all([
         checkArtifact1_FirstVisit(),
         checkArtifact2_Fingerprint(),
-        checkArtifact3_K1Tx(k1Input.value.trim()),
-        checkArtifact4_VisitCount(),
+        checkArtifact3_VisitCount(),
       ]);
 
       resultsEl.innerHTML = artifacts.map(function(a, i) {
@@ -151,14 +130,15 @@
         return;
       }
 
-      if (artifacts.some(function(a) { return a.detail.includes('K1') && !a.pass; })) {
-        statusEl.textContent = 'First K1 transaction not found on-chain.';
+      if (passCount < 2) {
+        const missing = artifacts.filter(function(a) { return !a.pass; }).map(function(a) { return a.detail; }).join(', ');
+        statusEl.textContent = 'Insufficient artifacts (' + passCount + '/3). Missing: ' + missing;
         statusEl.className = 'auth-status error';
         scanBtn.disabled = false;
         return;
       }
 
-      if (passCount >= 3) {
+      if (passCount >= 2) {
         // Success!
         sessionStorage.setItem(SG_AUTH_KEY, '1');
         sessionStorage.setItem(SG_VERIFIED_K1, k1Input.value.trim());
@@ -185,33 +165,22 @@
     // Event bindings
     trigger.addEventListener('click', function() { panel.classList.toggle('hidden'); });
 
+    const bypassHash = localStorage.getItem(SG_BYPASS_KEY) || '';
+
     submit.addEventListener('click', async function() {
-      const token = input.value.trim();
-      const k1Addr = k1Input.value.trim();
-      if (!/^0x[0-9a-fA-F]{40}$/.test(k1Addr)) {
-        error.textContent = 'Enter your K1 address above first';
-        error.classList.remove('hidden');
-        return;
-      }
-      error.classList.add('hidden');
-      try {
-        const res = await fetch('/api/bypass-verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ k1Addr, token })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          sessionStorage.setItem(SG_AUTH_KEY, '1');
-          sessionStorage.setItem(SG_VERIFIED_K1, k1Addr);
-          overlay.remove();
-          if (typeof onAuthPassed === 'function') onAuthPassed();
-        } else {
-          error.textContent = data.error || 'Invalid bypass token';
-          error.classList.remove('hidden');
-        }
-      } catch (e) {
-        error.textContent = 'Bypass check failed — try again';
+      const val = input.value.trim();
+      const msg = new TextEncoder().encode(val);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
+      const hash = Array.from(new Uint8Array(hashBuffer))
+        .map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+
+      if (hash === bypassHash) {
+        sessionStorage.setItem(SG_AUTH_KEY, '1');
+        sessionStorage.setItem(SG_VERIFIED_K1, k1Input.value.trim());
+        overlay.remove();
+        if (typeof onAuthPassed === 'function') onAuthPassed();
+      } else {
+        error.textContent = 'Invalid bypass key';
         error.classList.remove('hidden');
       }
     });
@@ -244,3 +213,20 @@
     renderGate(k1Addr, onAuthPassed);
   };
 
+  window.checkAdminBypass = async function(keyInput) {
+    const bypassHash = localStorage.getItem(SG_BYPASS_KEY) || '';
+    if (!bypassHash) return false;
+    const val = keyInput.trim();
+    const msg = new TextEncoder().encode(val);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
+    const hash = Array.from(new Uint8Array(hashBuffer))
+      .map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    return hash === bypassHash;
+  };
+
+  // Admin bypass hash setter
+  window.setAdminBypassHash = function(hash) {
+    localStorage.setItem(SG_BYPASS_KEY, hash);
+  };
+
+})();
