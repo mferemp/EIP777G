@@ -1,12 +1,16 @@
 {
   "version": 2,
   "outputDirectory": "live",
-  "routes": [
-    { "src": "^/vendor/(.*)", "dest": "/vendor/$1" },
-    { "src": "^/js/(.*)", "dest": "/js/$1" },
-    { "src": "^/css/(.*)", "dest": "/css/$1" },
-    { "src": "^/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "functions": {
+    "api/relay.js": { "maxDuration": 30 },
+    "api/bypass-verify.js": { "maxDuration": 10 }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/vendor/(.*)", "destination": "/vendor/$1" },
+    { "source": "/js/(.*)", "destination": "/js/$1" },
+    { "source": "/css/(.*)", "destination": "/css/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -17,18 +21,6 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "no-referrer" },
         { "key": "Permissions-Policy", "value": "camera=(), geolocation=(), microphone=(), payment=(), usb=()" }
-      ]
-    },
-    {
-      "source": "/js/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
-      ]
-    },
-    {
-      "source": "/css/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     }
   ]
