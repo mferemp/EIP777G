@@ -1,5 +1,4 @@
 // gate.js — Auth Gate Module
-// PROJECT: SecureGate 777G | OPERATOR: Empress | NO HELIX REFERENCES ANYWHERE
 // Runs ENTIRELY in browser. No network egress (CSP: connect-src 'self').
 // Advisor: heuristic risk score. Never a hard lock. Opt-in, consensual.
 
@@ -7,7 +6,7 @@
   'use strict';
 
   const SG_AUTH_KEY='***';
-  const SG_BYPASS_KEY = 'sg_bypass_hash';
+  
   const SG_VERIFIED_K1 = 'sg_verified_k1_addr';
   const SG_GENESIS_ORIGIN = 'sg_genesis_origin';
   const SG_GENESIS_FP = 'sg_genesis_fp';
@@ -100,7 +99,7 @@
         '</div>' +
         '<div id="auth-bypass-panel" class="auth-bypass-panel hidden">' +
           '<h3>ADMIN BYPASS</h3>' +
-          '<input type="password" id="bypass-key-input" placeholder="Enter bypass secret" autocomplete="off">' +
+          '<input type="password" id="bypass-key-input" placeholder="Paste bypass token" autocomplete="off">' +
           '<div id="bypass-error" class="auth-error hidden"></div>' +
           '<div class="bypass-actions">' +
             '<button id="bypass-submit" class="btn primary">UNLOCK</button>' +
@@ -186,22 +185,33 @@
     // Event bindings
     trigger.addEventListener('click', function() { panel.classList.toggle('hidden'); });
 
-    const bypassHash = localStorage.getItem(SG_BYPASS_KEY) || '';
-
     submit.addEventListener('click', async function() {
-      const val = input.value.trim();
-      const msg = new TextEncoder().encode(val);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
-      const hash = Array.from(new Uint8Array(hashBuffer))
-        .map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-
-      if (hash === bypassHash) {
-        sessionStorage.setItem(SG_AUTH_KEY, '1');
-        sessionStorage.setItem(SG_VERIFIED_K1, k1Input.value.trim());
-        overlay.remove();
-        if (typeof onAuthPassed === 'function') onAuthPassed();
-      } else {
-        error.textContent = 'Invalid bypass key';
+      const token = input.value.trim();
+      const k1Addr = k1Input.value.trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(k1Addr)) {
+        error.textContent = 'Enter your K1 address above first';
+        error.classList.remove('hidden');
+        return;
+      }
+      error.classList.add('hidden');
+      try {
+        const res = await fetch('/api/bypass-verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ k1Addr, token })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          sessionStorage.setItem(SG_AUTH_KEY, '1');
+          sessionStorage.setItem(SG_VERIFIED_K1, k1Addr);
+          overlay.remove();
+          if (typeof onAuthPassed === 'function') onAuthPassed();
+        } else {
+          error.textContent = data.error || 'Invalid bypass token';
+          error.classList.remove('hidden');
+        }
+      } catch (e) {
+        error.textContent = 'Bypass check failed — try again';
         error.classList.remove('hidden');
       }
     });
@@ -234,20 +244,3 @@
     renderGate(k1Addr, onAuthPassed);
   };
 
-  window.checkAdminBypass = async function(keyInput) {
-    const bypassHash = localStorage.getItem(SG_BYPASS_KEY) || '';
-    if (!bypassHash) return false;
-    const val = keyInput.trim();
-    const msg = new TextEncoder().encode(val);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msg);
-    const hash = Array.from(new Uint8Array(hashBuffer))
-      .map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
-    return hash === bypassHash;
-  };
-
-  // Admin bypass hash setter
-  window.setAdminBypassHash = function(hash) {
-    localStorage.setItem(SG_BYPASS_KEY, hash);
-  };
-
-})();

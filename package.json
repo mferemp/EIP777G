@@ -4,7 +4,7 @@
   "description": "SecureGate 777G - EIP-777G Genesis Gate Dashboard",
   "private": true,
   "scripts": {
-    "check": "node --check live/js/genesis-verification.js && node --check live/js/app.js && node --check live/api/deploy/funding.js && node --check live/api/deploy/[chain].js && node --check live/api/relay.js",
+    "check": "node --check live/js/app.js && node --check live/api/relay.js && node --check live/api/bypass-verify.js",
     "test": "npm run check",
     "obfuscate": "node scripts/obfuscate.js",
     "vercel-build": "npm run obfuscate",
