@@ -4,10 +4,11 @@
   "description": "SecureGate 777G - EIP-777G Genesis Gate Dashboard",
   "private": true,
   "scripts": {
-    "check": "node --check live/js/genesis-verification.js && node --check live/js/app.js && node --check live/api/deploy/funding.js && node --check live/api/deploy/[chain].js && node --check live/api/deploy/[chain]/revoke.js",
+    "check": "node --check live/js/genesis-verification.js && node --check live/js/app.js && node --check live/api/deploy/funding.js && node --check live/api/deploy/[chain].js && node --check live/api/relay.js",
     "test": "npm run check",
-    "build:live": "cp -r live _live && echo 'Build complete: _live directory ready for deployment'",
-    "vercel-build": "echo 'Static site - no build required'"
+    "obfuscate": "node scripts/obfuscate.js",
+    "vercel-build": "npm run obfuscate",
+    "build:live": "cp -r live _live && echo 'Build complete: _live directory ready for deployment'"
   },
   "dependencies": {
     "ethers": "^6.13.0"
