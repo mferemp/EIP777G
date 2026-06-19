@@ -1,7 +1,6 @@
 {
-  "buildId": "22ad3cd49f62-20260619032700",
-  "commit": "22ad3cd49f62",
-  "appFile": "app.22ad3cd49f62-20260619032700.js",
-  "builtAt": "2026-06-19T03:27:00.073Z",
-  "note": "cache-busted production deployment marker"
+  "buildId": "73466d4af37b-20260619034801",
+  "appFile": "app.73466d4af37b-20260619034801.js",
+  "commit": "73466d4af37b6b41ed14ed810c024998deca64c0",
+  "builtAt": "2026-06-19T03:48:47.280Z"
 }
