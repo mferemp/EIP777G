@@ -4,11 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SECUREGATE — EIP-777G</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com; font-src 'self' data: https://fonts.gstatic.com https://api.fontshare.com; connect-src 'self' https://api.etherscan.io https://api.coingecko.com https://ethereum-rpc.publicnode.com https://api.hyperliquid.xyz https://api.hyperliquid-testnet.xyz https://arb1.arbitrum.io https://mainnet.base.org https://mainnet.optimism.io https://polygon-rpc.com https://bsc-dataseed.binance.org https://api.avax.network; img-src 'self' data: https:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
 <style>
-  @import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
-
-  :root {
+:root {
     --black:    #000000;
     --bg:       #080808;
     --surface:  #0f0f0f;
@@ -707,8 +705,8 @@
 </div>
 
 <!-- SCRIPTS -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="vendor/ethers.min.js"></script>
+<script src="vendor/qrcode.min.js"></script>
 <script src="js/genesis-verification.js"></script>
 <script src="js/app.js"></script>
 

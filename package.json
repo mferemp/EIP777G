@@ -9,7 +9,8 @@
     "obfuscate": "node scripts/obfuscate.js",
     "vercel-build": "npm run obfuscate",
     "final-check": "node scripts/final-check.cjs",
-    "build:live": "cp -r live _live && echo 'Build complete: _live directory ready for deployment'"
+    "build:live": "cp -r live _live && echo 'Build complete: _live directory ready for deployment'",
+    "live-check": "node scripts/live-check.cjs"
   },
   "dependencies": {
     "ethers": "^6.13.0"
