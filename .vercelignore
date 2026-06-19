@@ -7,4 +7,10 @@ node_modules/
 *.log
 *.tmp
 *.bak
-_vercel
+_vercel/
+abi.json
+bytecode.txt
+EIP777G.json
+contracts/
+artifacts/
+uploads/
