@@ -1,15 +1,14 @@
-import { ethers } from 'ethers';
+const { ethers } = require('ethers');
 
 let kv = null;
 
 try {
-  const mod = await import('@vercel/kv');
-  kv = mod.kv;
+  kv = require('@vercel/kv').kv;
 } catch (_) {
   kv = null;
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST only' });
   }
@@ -77,3 +76,5 @@ export default async function handler(req, res) {
 
   return res.status(200).json({ ok: true });
 }
+
+module.exports = handler;

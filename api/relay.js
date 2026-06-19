@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+const { ethers } = require('ethers');
 
 const RPC_ENV = {
   1: 'RPC_ETHEREUM',
@@ -15,9 +15,7 @@ const RPC_ENV = {
   10143: 'RPC_MONAD',
 };
 
-const FLASHBOTS_RELAY = 'https://relay.flashbots.net';
-
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST only' });
   }
@@ -30,7 +28,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const { chainId, signedTxs, useFlashbots } = req.body || {};
+  const { chainId, signedTxs } = req.body || {};
 
   if (!Number.isInteger(chainId) || !Array.isArray(signedTxs) || signedTxs.length === 0) {
     return res.status(400).json({ error: 'Expected { chainId:int, signedTxs:[0x...] }' });
@@ -48,15 +46,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (chainId === 1 && useFlashbots && signedTxs.length > 1) {
-      const result = await sendFlashbotsBundle(rpcUrl, signedTxs);
-      return res.status(200).json({
-        ok: true,
-        hashes: result.hashes,
-        bundleHash: result.bundleHash,
-      });
-    }
-
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const hashes = [];
 
@@ -70,68 +59,9 @@ export default async function handler(req, res) {
     console.error('relay failed', e);
     return res.status(502).json({
       error: 'relay failed',
-      detail: String(e?.message || e),
+      detail: String(e && e.message ? e.message : e),
     });
   }
 }
 
-async function sendFlashbotsBundle(rpcUrl, signedTxs) {
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const bundleSigner = ethers.Wallet.createRandom();
-
-  const block = await provider.getBlock('latest');
-  const targetBlock = block.number + 1;
-
-  const bundleTxs = signedTxs.map(rawTx => ({
-    signedTransaction: rawTx,
-    maxBlockNumber: targetBlock + 20,
-  }));
-
-  const bundle = {
-    txs: bundleTxs.map(t => t.signedTransaction),
-    blockNumber: targetBlock.toString(16),
-    minTimestamp: 0,
-    maxTimestamp: Math.floor(Date.now() / 1000) + 300,
-  };
-
-  const bundleHash = ethers.keccak256(
-    ethers.concat([
-      ethers.toUtf8Bytes('flashbots'),
-      ethers.keccak256(ethers.concat(bundleTxs.map(t => ethers.getBytes(t.signedTransaction)))),
-      ethers.toBeHex(targetBlock, 32),
-      ethers.toBeHex(0, 32),
-      ethers.toBeHex(bundle.maxTimestamp, 32),
-    ])
-  );
-
-  const signature = await bundleSigner.signMessage(ethers.getBytes(bundleHash));
-
-  const response = await fetch(FLASHBOTS_RELAY, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'eth_sendBundle',
-      params: [
-        bundle,
-        targetBlock.toString(16),
-        {
-          signature,
-          bundleSigner: bundleSigner.address,
-        },
-      ],
-    }),
-  });
-
-  const relayResult = await response.json();
-
-  if (relayResult.error) {
-    throw new Error(`Flashbots error: ${JSON.stringify(relayResult.error)}`);
-  }
-
-  return {
-    hashes: signedTxs.map(rawTx => ethers.Transaction.from(rawTx).hash),
-    bundleHash: relayResult.result?.bundleHash || 'unknown',
-  };
-}
+module.exports = handler;
