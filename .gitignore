@@ -34,3 +34,4 @@ recovery.log
 # Build artifacts
 # live/
 .vercel
+.env.vercel

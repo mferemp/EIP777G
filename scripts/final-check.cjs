@@ -12,7 +12,7 @@ const EXCLUDE_TEXT = new Set([
   'live/artifacts/EIP777G.json',
 ]);
 
-const ALLOWED_WALLET = '0xA0eb06a5fab172860837C4D68e75F339896500b5'.toLowerCase();
+const ALLOWED_WALLET = '0xREPLACE_ME'.toLowerCase();
 
 let failures = 0;
 const fail = m => { failures++; console.error('FAIL:', m); };

@@ -22,7 +22,7 @@ const FORBIDDEN_TOKENS = [
     '0x56310d7e48d9249df358ab9daa6a2dad0e03e242',  // Gate
     '0x01152d5c7467204bFa015061097b193CbceA8ca9',  // K1
     '0x55c73995c4194Dd87CC5aCbC4E45f48c807f4553',  // K2
-    '0xA0eb06a5fab172860837C4D68e75F339896500b5',  // K3
+    '0xREPLACE_ME',  // K3
     '0xa4c60c5ccfea05e8b27697666b16c4b44fa8bc5340384f39946d67d452bcc31c', // Mantle
 
     // Mechanism identifiers (contract function names, specific terms)
