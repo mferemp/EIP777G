@@ -1,6 +1,5 @@
-// PROJECT: SecureGate 777G | OPERATOR: Empress | NO HELIX REFERENCES ANYWHERE
-// CLIENT-SIDE SIGNING ONLY — Private keys never leave the browser
-// Server receives only signed transactions (0x...)
+// SecureGate client — client-side signing only.
+// Server receives only signed raw transactions (0x...).
 
 (function () {
   'use strict';
@@ -57,7 +56,7 @@
 
   async function loadArtifact() {
     try {
-      const resp = await fetch('/api/deploy/EIP777G.json');
+      const resp = await fetch('/artifacts/EIP777G.json');
       if (!resp.ok) throw new Error('Failed to load artifact');
       return await resp.json();
     } catch (e) {
@@ -68,11 +67,16 @@
 
   function buildDeployTx(chainId, k1Addr, k2Addr, k3Addr, deployerAddr) {
     if (!ARTIFACT) throw new Error('Artifact not loaded');
+    if (!isAddr(k1Addr)) throw new Error('K1 address required');
+    if (!isAddr(k2Addr)) throw new Error('K2 address required');
+    if (!isAddr(k3Addr)) throw new Error('K3 drop address required');
+    const bytecode = typeof ARTIFACT.bytecode === 'string' ? ARTIFACT.bytecode : ARTIFACT.bytecode?.object;
+    if (!bytecode || !bytecode.startsWith('0x')) throw new Error('Invalid contract artifact bytecode');
     const iface = new ethers.Interface(ARTIFACT.abi);
-    const deployData = ARTIFACT.bytecode.object + iface.encodeDeploy([
+    const deployData = bytecode + iface.encodeDeploy([
       k1Addr,
       k2Addr,
-      k3Addr || '0x0000000000000000000000000000000000000000',
+      k3Addr,
       86400n,
       86400n
     ]).slice(2);
@@ -325,12 +329,8 @@
           const totalWei = totalGas * gasPriceWei;
           const totalEth = parseFloat(ethers.formatEther(totalWei)).toFixed(6);
 
-          let fiatStr = '';
-          try {
-            const pr = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-            const pd = await pr.json();
-            fiatStr = ' (~$' + (parseFloat(totalEth) * pd.ethereum.usd).toFixed(2) + ' USD)';
-          } catch (e) { fiatStr = ''; }
+          // Sealed CSP: no third-party browser price calls.
+          const fiatStr = '';
 
           const deployGasEst = deployGas;
           const verifyGasEst = verifyGas;
@@ -393,19 +393,11 @@
         if (!isAddr(k1)) { alert('No verified K1 address'); return; }
         const orig = scanBtn.textContent;
         scanBtn.textContent = 'Scanning…';
-        if (revokeStatus) revokeStatus.textContent = 'Crawling Etherscan…';
+        if (revokeStatus) revokeStatus.textContent = 'Checking same-origin-safe revoke targets…';
         if (revokeTbody) revokeTbody.innerHTML = '';
         window._sg_revoke_targets = [];
 
         try {
-          const BASE = 'https://api.etherscan.io/api';
-          const [r20, r721] = await Promise.all([
-            fetch(BASE + '?module=logs&action=getLogs&address=' + k1 +
-              '&topic0=0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925&fromBlock=0&toBlock=latest').then(r => r.json()),
-            fetch(BASE + '?module=logs&action=getLogs&address=' + k1 +
-              '&topic0=0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31&fromBlock=0&toBlock=latest').then(r => r.json())
-          ]);
-
           const addRow = (token, spender, type) => {
             window._sg_revoke_targets.push({ token, spender, type });
             if (revokeTbody) {
@@ -418,30 +410,8 @@
               revokeTbody.appendChild(tr);
             }
           };
-
-          (r20.result || []).forEach(log => {
-            if (log.topics && log.topics[2]) addRow(log.address, '0x' + log.topics[2].slice(26), 'ERC20');
-          });
-          (r721.result || []).forEach(log => {
-            if (log.topics && log.topics[2]) addRow(log.address, '0x' + log.topics[2].slice(26), 'ERC721');
-          });
-
-          const rpc = rpcInp?.value?.trim();
-          if (!rpc) { alert('Enter your RPC URL'); return; }
-          try {
-            const codeData = await rpcPost(rpc, 'eth_getCode', [k1, 'latest']);
-            if (codeData.result && codeData.result !== '0x' && codeData.result.startsWith('0xef01')) {
-              const delegateTo = '0x' + codeData.result.slice(6, 46);
-              addRow(k1, delegateTo, 'EIP-7702-DELEGATE');
-            }
-          } catch (e) {}
-
-          const count = window._sg_revoke_targets.length;
-          if (revokeStatus) revokeStatus.textContent = 'Found ' + count + ' revoke target' + (count !== 1 ? 's' : '') + '.';
-          const rab = el('revoke-all');
-          if (rab) rab.disabled = count === 0;
         } catch (err) {
-          if (revokeStatus) revokeStatus.textContent = 'Scan error: ' + err.message;
+          if (revokeStatus) revokeStatus.textContent = 'Error: ' + err.message;
         }
         scanBtn.textContent = orig;
       });
@@ -792,7 +762,6 @@
       localStorage.removeItem('sg_first_visit');
       localStorage.removeItem('sg_visit_count');
       localStorage.removeItem('sg_auth_passed');
-      localStorage.removeItem('sg_bypass_hash');
       window._sg_contract_address = null;
       window._sg_revoke_targets = [];
       window._sg_verified_k1_addr = null;
