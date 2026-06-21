@@ -31,12 +31,6 @@
       "destination": "/index.html"
     }
   ],
-  "routes": [
-    {
-      "src": "/(artifacts/.*|contracts/.*|uploads/.*|EIP777G\\.json|abi\\.json|bytecode\\.txt|.*\\.map)$",
-      "status": 404
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
