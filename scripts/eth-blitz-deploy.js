@@ -10,7 +10,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 const { ethers } = require('ethers');
-const artifact = require('../EIP777G.json');
+const artifact = require('../private-artifacts/EIP777G.json');
 const { assertDeployAllowed } = require('./lib/severance-gate');
 const { maxBaseFeeInFutureBlock, submitBundleToMesh, PRIORITY_TIERS_GWEI } = require('./lib/builder-mesh');
 

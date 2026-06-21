@@ -30,6 +30,14 @@ interface IERC777Recipient {
     function tokensReceived(address operator, address from, address to, uint256 amount, bytes calldata userData, bytes calldata operatorData) external;
 }
 
+interface IERC20 {
+    function balanceOf(address account) external view returns (uint256);
+    function safeTransfer(address to, uint256 amount) external;
+}
+interface IERC721 {
+    function ownerOf(uint256 tokenId) external view returns (address);
+    function safeTransferFrom(address from, address to, uint256 tokenId) external;
+}
 contract EIP777G {
     // ════════════════════════════════════════════════════════════════════════
     // IMMUTABLE GENESIS BINDING — SET ONCE AT DEPLOYMENT
@@ -209,7 +217,7 @@ contract EIP777G {
         bytes32 nonce
     ) external returns (bytes32) {
         require(msg.sender == k1Genesis, "Only K1 Genesis can queue");
-        require(!ingressSevered, "Ingress severed — no new intents");
+        require(!ingressSevered, "Ingress severed - no new intents");
         require(!k1Blacklisted[msg.sender], "K1 blacklisted");
         require(gasLimit <= GAS_CAP || whitelisted[msg.sender], "Gas cap exceeded");
         
@@ -334,14 +342,7 @@ contract EIP777G {
         emit NFTForwarded(nft, tokenId, intentHash, i.k2OverrideDest);
     }
     
-    interface IERC20 {
-        function balanceOf(address account) external view returns (uint256);
-        function safeTransfer(address to, uint256 amount) external;
-    }
-    interface IERC721 {
-        function ownerOf(uint256 tokenId) external view returns (address);
-        function safeTransferFrom(address from, address to, uint256 tokenId) external;
-    }
+    
     
     // ════════════════════════════════════════════════════════════════════════
     // SEVERANCE — IRREVERSIBLE, K2 OR CLEAN WALLET
@@ -380,7 +381,7 @@ contract EIP777G {
     }
     
     fallback() external {
-        revert("Unknown call — use queueIntent/authorizeIntent/executeIntent");
+        revert("Unknown call - use queueIntent/authorizeIntent/executeIntent");
     }
     
     // ════════════════════════════════════════════════════════════════════════
@@ -434,17 +435,4 @@ contract EIP777G {
         return keccak256("eip777g.genesis.v1");
     }
     
-    // ════════════════════════════════════════════════════════════════════════
-    // REENTRANCY GUARD
-    // ═══════════════════════════════════════════════════════════════════════
-    uint256 private constant NOT_ENTERED = 1;
-    uint256 private constant ENTERED = 2;
-    uint256 private status;
-    
-    modifier nonReentrant() {
-        require(status != 2, "ReentrancyDetected");
-        status = 2;
-        _;
-        status = 1;
-    }
 }

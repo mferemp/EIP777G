@@ -35,3 +35,6 @@ recovery.log
 # live/
 .vercel
 .env.vercel
+
+# Private contract artifacts
+private-artifacts/

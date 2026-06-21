@@ -10,7 +10,8 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 
 const path = require('path');
 const { ethers } = require('ethers');
-const artifact = require('../EIP777G.json');
+const artifact = require('../private-artifacts/EIP777G.json');
+const abi = artifact.abi;
 const { assertDeployAllowed } = require('./lib/severance-gate');
 
 const FABRICS = {

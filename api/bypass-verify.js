@@ -1,14 +1,15 @@
-const { ethers } = require('ethers');
+import { ethers } from 'ethers';
 
 let kv = null;
 
 try {
-  kv = require('@vercel/kv').kv;
+  const mod = await import('@vercel/kv');
+  kv = mod.kv;
 } catch (_) {
   kv = null;
 }
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST only' });
   }
@@ -47,9 +48,7 @@ async function handler(req, res) {
     return res.status(403).json({ error: 'token not bound to this K1' });
   }
 
-  const digest = ethers.keccak256(
-    ethers.toUtf8Bytes(JSON.stringify({ k1, nonce, exp }))
-  );
+  const digest = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify({ k1, nonce, exp })));
 
   let signer;
 
@@ -77,4 +76,3 @@ async function handler(req, res) {
   return res.status(200).json({ ok: true });
 }
 
-module.exports = handler;

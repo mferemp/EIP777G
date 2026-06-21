@@ -1,4 +1,4 @@
-const { ethers } = require('ethers');
+import { ethers } from 'ethers';
 
 const RPC_ENV = {
   1: 'RPC_ETHEREUM',
@@ -15,7 +15,7 @@ const RPC_ENV = {
   10143: 'RPC_MONAD',
 };
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'POST only' });
   }
@@ -23,9 +23,7 @@ async function handler(req, res) {
   const rawBody = JSON.stringify(req.body || {});
 
   if (/privateKey|mnemonic|secret|seedPhrase/i.test(rawBody)) {
-    return res.status(400).json({
-      error: 'Request rejected: looks like it contains a secret. Keys never leave your device.',
-    });
+    return res.status(400).json({ error: 'Request rejected: looks like it contains a secret. Keys never leave your device.' });
   }
 
   const { chainId, signedTxs } = req.body || {};
@@ -57,11 +55,7 @@ async function handler(req, res) {
     return res.status(200).json({ ok: true, hashes });
   } catch (e) {
     console.error('relay failed', e);
-    return res.status(502).json({
-      error: 'relay failed',
-      detail: String(e && e.message ? e.message : e),
-    });
+    return res.status(502).json({ error: 'relay failed', detail: String(e && e.message ? e.message : e) });
   }
 }
 
-module.exports = handler;
