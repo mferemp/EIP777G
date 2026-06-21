@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const body = { token };
-    if (k1Addr && ethers.isAddress(k1Addr)) {
+    if (k1Addr && typeof ethers !== 'undefined' && ethers.isAddress(k1Addr)) {
       body.k1Addr = k1Addr;
     }
 
@@ -56,7 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bypassError) bypassError.classList.add('hidden');
         panel.classList.add('hidden');
         if (bypassInput) bypassInput.value = '';
-        try { sessionStorage.setItem('sg_bypass_passed', '1'); } catch (_) {}
+        try { sessionStorage.setItem('sg_auth_passed', '1'); } catch (_) {}
+        if (typeof window.onAuthPassed === 'function') {
+          window.onAuthPassed();
+        }
       } else {
         const msg = data.error || 'Bypass rejected.';
         if (bypassError) {
