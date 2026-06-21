@@ -30,19 +30,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const decoded = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
-      if (decoded && typeof decoded.k1 === 'string') {
-        k1Addr = decoded.k1;
+      if (decoded && typeof decoded === 'object') {
+        k1Addr = decoded.k1 || decoded.k1Addr || decoded.address || decoded.addr || decoded.from || decoded.signer || null;
+        if (k1Addr && typeof k1Addr === 'string') {
+          k1Addr = k1Addr.trim();
+        }
       }
     } catch (_) {
       // not base64url JSON; use raw as token directly
     }
 
-    const body = {};
-    if (k1Addr) {
+    const body = { token };
+    if (k1Addr && ethers.isAddress(k1Addr)) {
       body.k1Addr = k1Addr;
-      body.token = raw;
-    } else {
-      body.token = raw;
     }
 
     try {
