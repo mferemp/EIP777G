@@ -13,7 +13,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'ETH',
     receiveVerified: true,
-    rpcUrl: 'https://eth-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_ETHEREUM',
   },
   optimism: {
     chainId: 10,
@@ -25,7 +25,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'ETH',
     receiveVerified: false,
-    rpcUrl: 'https://opt-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_OPTIMISM',
   },
   arbitrum: {
     chainId: 42161,
@@ -37,7 +37,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'ETH',
     receiveVerified: false,
-    rpcUrl: 'https://arb-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_ARBITRUM',
   },
   base: {
     chainId: 8453,
@@ -49,7 +49,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'ETH',
     receiveVerified: false,
-    rpcUrl: 'https://base-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_BASE',
   },
   polygon: {
     chainId: 137,
@@ -61,7 +61,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'POL',
     receiveVerified: false,
-    rpcUrl: 'https://polygon-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_POLYGON',
     note: 'Genesis receive() has no ETH-specific assumptions per local source check; still needs Genesis deployment before workshopping',
   },
   bnb: {
@@ -74,7 +74,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'BNB',
     receiveVerified: false,
-    rpcUrl: 'https://bnb-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_BNB',
     note: 'Genesis receive() has no ETH-specific assumptions per local source check; still needs Genesis deployment before workshopping',
   },
   avalanche: {
@@ -87,7 +87,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'AVAX',
     receiveVerified: false,
-    rpcUrl: 'https://avax-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_AVALANCHE',
     note: 'Genesis receive() has no ETH-specific assumptions per local source check; still needs Genesis deployment before workshopping',
   },
   hyperliquid: {
@@ -100,7 +100,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'HYPE',
     receiveVerified: false,
-    rpcUrl: 'https://hyperliquid-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_HYPERLIQUID',
     note: 'Genesis receive() has no ETH-specific assumptions per local source check; still needs Genesis deployment before workshopping',
   },
   plasma: {
@@ -113,7 +113,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown — likely ETH-compatible',
     receiveVerified: false,
-    rpcUrl: 'https://plasma-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_PLASMA',
     blockers: ['confirm native token', 'confirm Solidity 0.8.24 support'],
   },
   ink: {
@@ -126,7 +126,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown',
     receiveVerified: false,
-    rpcUrl: 'https://ink-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_INK',
     blockers: ['confirm native token', 'confirm Solidity 0.8.24 support'],
   },
   abstract: {
@@ -139,7 +139,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown',
     receiveVerified: false,
-    rpcUrl: 'https://abstract-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_ABSTRACT',
     blockers: ['Solidity 0.8.24 unverified', 'native token unverified', 'Genesis TBD'],
   },
   monad: {
@@ -152,7 +152,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown',
     receiveVerified: false,
-    rpcUrl: 'https://monad-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_MONAD',
     blockers: ['Solidity 0.8.24 unverified', 'native token unverified', 'Genesis TBD'],
   },
   monadTestnet: {
@@ -165,7 +165,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown',
     receiveVerified: false,
-    rpcUrl: 'https://monad-testnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_MONAD_TESTNET',
     blockers: ['chainId unknown', 'Genesis TBD'],
   },
   apechain: {
@@ -178,7 +178,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown',
     receiveVerified: false,
-    rpcUrl: 'https://apechain-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_APECHAIN',
     blockers: ['chainId unknown', 'Genesis TBD'],
   },
   degen: {
@@ -191,7 +191,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown',
     receiveVerified: false,
-    rpcUrl: 'https://degen-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_DEGEN',
     blockers: ['chainId unknown', 'Genesis TBD'],
   },
   lens: {
@@ -204,7 +204,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown',
     receiveVerified: false,
-    rpcUrl: 'https://lens-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_LENS',
     blockers: ['chainId unknown', 'Genesis TBD'],
   },
   unichain: {
@@ -217,7 +217,7 @@ const CHAINS = {
     minDelay: 60,
     nativeToken: 'unknown',
     receiveVerified: false,
-    rpcUrl: 'https://unichain-mainnet.g.alchemy.com/v2/EGxV3ohnDNT2IpUbHvNSl',
+    rpcEnv: 'RPC_UNICHAIN',
     blockers: ['chainId unknown', 'Genesis TBD'],
   },
 };
