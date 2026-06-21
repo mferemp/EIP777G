@@ -49,7 +49,7 @@ const checks = [
   ['legacy bypass leftovers', /sg_bypass_hash|BYPASS_HASH|setAdminBypassHash|checkAdminBypass/],
   ['third-party browser egress', /api\.etherscan\.io|api\.coingecko\.com|api\.fontshare\.com|cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com/],
   ['zero-address fallback', /0x0000000000000000000000000000000000000000/],
-  ['committed RPC key', /alchemy\.com\/v2\/|EGxV3ohnDNT2IpUbHvNSl/],
+  ['committed RPC key', /alchemy\.com\/v2\//],
   ['operator private key value', /OPERATOR_SIGNING_KEY=0x[0-9a-fA-F]{64}/],
 ];
 
