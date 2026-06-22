@@ -32,12 +32,10 @@ async function main() {
       if (f === 'gate.js') continue;
       const filePath = join(DIR, f);
       const { size } = await stat(filePath);
-      if (size > 2_000_000) {
-        const head = await readFile(filePath, 'utf8');
-        if (head.startsWith('(function(_0x') || head.startsWith('(function(_0x')) {
-          console.log(`[obfuscate] skip obfuscated ${f}`);
-          continue;
-        }
+      const head = size > 0 ? await readFile(filePath, 'utf8') : '';
+      if (head.startsWith('(function(_0x') || head.startsWith('const _0x') && head.includes('while(!![])')) {
+        console.log(`[obfuscate] skip obfuscated ${f}`);
+        continue;
       }
       console.log(`[obfuscate] file=${f} size=${size}`);
 

@@ -10,11 +10,16 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, 'index.html');
 const OUT_DIR = path.join(ROOT, 'live');
 const OUT = path.join(OUT_DIR, 'index.html');
+const ROOT_JS = path.join(ROOT, 'js');
+const LIVE_JS = path.join(OUT_DIR, 'js');
+const PRIVATE_ARTIFACTS = path.join(ROOT, 'private-artifacts', 'EIP777G.json');
+const LIVE_ARTIFACTS = path.join(OUT_DIR, 'artifacts', 'EIP777G.json');
 
 // FORBIDDEN TOKENS — ANY PRESENCE FAILS BUILD
 const FORBIDDEN_TOKENS = [
@@ -144,7 +149,12 @@ const PUBLIC_BODY_INJECTION = `
 `;
 
 // Regex for SG_LIVE_REMOVE sections
-const LIVE_REMOVE_REGEX = /(?:<!--\s*SG_LIVE_REMOVE_START\s*-->|\s*\/\*\s*SG_LIVE_REMOVE_START\s*\*\/)[\s\S]*?(?:<!--\s*SG_LIVE_REMOVE_END\s*-->|\s*\/\*\s*SG_LIVE_REMOVE_END\s*\*\/)/g;
+function makeLiveRemoveRegex() {
+    const start = '(?:<![ \\t]*SG_LIVE_REMOVE_START[ \\t]*-->|<![ \\t]*\\/[ \\t]*SG_LIVE_REMOVE_START[ \\t]*\\*[ \\t]*\\/)';
+    const end = '(?:<![ \\t]*SG_LIVE_REMOVE_END[ \\t]*-->|<![ \\t]*\\/[ \\t]*SG_LIVE_REMOVE_END[ \\t]*\\*[ \\t]*\\/)';
+    return new RegExp(start + '[\\s\\S]*?' + end, 'g');
+}
+const LIVE_REMOVE_REGEX = makeLiveRemoveRegex();
 
 function stripLiveSections(html) {
     let out = html;
@@ -323,7 +333,7 @@ const SessionVault = { store: {}, idleTimer: null, idleMs: 300000, set(key, valu
 const RpcManager = { endpoints: {}, mode: 'per-chain', set(chain, url) { this.endpoints[chain] = url; }, get(chain) { return this.endpoints[chain] || ''; }, getAll() { return { ...this.endpoints }; }, setMode(m) { this.mode = m; }, applyBulk(text) { const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#')); for (const line of lines) { const eq = line.indexOf('='); if (eq > 0) { const k = line.slice(0, eq).trim().toLowerCase(); const v = line.slice(eq + 1).trim(); if (v.startsWith('http')) this.endpoints[k] = v; } } } };
 
 // PUBLIC TABS
-const PublicTabs = { current: 0, tabs: ['Telemetry', 'Beacon', 'Deploy', 'Trace'], init() { this.renderTabs(); this.renderContent(); }, renderTabs() { const nav = document.querySelector('nav.flex.border-b'); if (!nav) return; nav.innerHTML = this.tabs.map((t, i) => '<button onclick="switchTab(' + i + ')" class="tab ' + (i === this.current ? 'active' : '') + ' px-4 py-3 text-sm font-medium">' + t + '</button>').join(''); }, switch(i) { this.current = i; this.renderTabs(); this.renderContent(); }, renderContent() { const main = document.getElementById('main-content'); if (!main) return; const wiring = SessionWiring.validate(); const rpc = wiring.rpc || RpcManager.get('ethereum') || 'https://ethereum-rpc.publicnode.com'; switch (this.current) { case 0: main.innerHTML = this.telemetryHtml(rpc, wiring); break; case 1: main.innerHTML = this.beaconHtml(rpc, wiring); break; case 2: main.innerHTML = this.deployHtml(rpc, wiring); break; case 3: main.innerHTML = this.traceHtml(); break; } this.bindEvents(); }, telemetryHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-brand-teal font-medium mb-3">Gate State</h3><div class="grid grid-cols-2 gap-4 text-sm" id="gateState"><div><span class="text-zinc-500">Gate:</span> <span class="mono" id="gateAddr">' + (wiring.gate || '—') + '</span></div><div><span class="text-zinc-500">K1:</span> <span class="mono" id="k1Addr">' + (wiring.k1 || '—') + '</span></div><div><span class="text-zinc-500">K2:</span> <span class="mono" id="k2Addr">' + (wiring.k2 || '—') + '</span></div><div><span class="text-zinc-500">K3:</span> <span class="mono" id="k3Addr">' + (wiring.k3 || '—') + '</span></div></div><button id="refreshGate" class="mt-3 w-full sm:w-auto px-4 py-2 bg-brand-teal/20 hover:bg-brand-teal/30 text-brand-teal rounded-lg text-sm min-h-[44px]">Refresh Gate State</button></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-brand-teal font-medium mb-3">Balances</h3><div class="grid grid-cols-2 gap-4 text-sm" id="balances"><div>K1: <span id="balK1" class="mono">—</span></div><div>K2: <span id="balK2" class="mono">—</span></div><div>K3: <span id="balK3" class="mono">—</span></div><div>Gate: <span id="balGate" class="mono">—</span></div></div></div></div>'; }, beaconHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-brand-purple font-medium mb-3">Beacon — Origin Pulse</h3><p class="text-zinc-500 text-sm mb-4">Verify lane coherence against on-chain registry.</p><button id="runBeacon" class="w-full sm:w-auto px-4 py-3 bg-brand-purple hover:bg-purple-700 rounded-xl font-medium min-h-[44px]">Run Beacon Check</button><div id="beaconResult" class="mt-4 hidden glass p-4 rounded-xl border border-zinc-700 text-sm"></div></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Drift Check</h3><div id="driftTable" class="text-xs mono overflow-x-auto"></div></div></div>'; }, deployHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-amber-500/30 bg-amber-500/5"><h3 class="text-amber-400 font-medium mb-2">⚠ Deploy Bootstrap</h3><p class="text-zinc-500 text-sm mb-4">Bootstrap fabric on selected chain. Requires deployer key + gas funds.</p><div class="space-y-2 mb-4"><select id="deployChain" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-sm mono"><option value="ethereum">Ethereum Mainnet</option><option value="hl-evm">Hyperliquid EVM (999)</option><option value="base">Base</option><option value="arbitrum">Arbitrum One</option><option value="optimism">Optimism</option><option value="polygon">Polygon</option><option value="bnb">BNB Chain</option></select><textarea id="deployerKeyInput" rows="2" placeholder="0x... Deployer private key (session only)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-sm mono resize-y"></textarea></div><button id="bootstrapFabric" class="w-full sm:w-auto px-4 py-3 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded-xl font-medium min-h-[44px]">Bootstrap Fabric</button><div id="deployResult" class="mt-4 hidden glass p-4 rounded-xl border border-zinc-700 text-sm"></div></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Funding Estimates (manual)</h3><p class="text-zinc-500 text-xs">Use Deploy tab in operator build for live estimates. Public console requires manual gas calculation.</p></div></div>'; }, traceHtml() { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Session Trace</h3><p class="text-zinc-500 text-sm mb-2">Local session activity only — no server logs.</p><div id="sessionTrace" class="log-scroll mono text-xs bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 min-h-[200px] font-mono"></div><button id="clearTrace" class="mt-2 text-xs px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-400">Clear Session Log</button></div></div>'; }, bindEvents() { document.getElementById('refreshGate')?.addEventListener('click', () => this.refreshGate()); document.getElementById('runBeacon')?.addEventListener('click', () => this.runBeacon()); document.getElementById('bootstrapFabric')?.addEventListener('click', () => this.bootstrapFabric()); document.getElementById('clearTrace')?.addEventListener('click', () => this.clearTrace()); }, refreshGate() { this.log('Gate refresh requested'); }, runBeacon() { const el = document.getElementById('beaconResult'); if (el) { el.classList.remove('hidden'); el.innerHTML = 'Beacon check initiated — requires operator coherence binding (not available in public console).'; } this.log('Beacon check requested'); }, bootstrapFabric() { const chain = document.getElementById('deployChain')?.value; const el = document.getElementById('deployResult'); if (el) { el.classList.remove('hidden'); el.innerHTML = 'Fabric bootstrap for ' + chain + ' — requires operator build for execution.'; } this.log('Bootstrap requested for ' + chain); }, log(msg) { const trace = document.getElementById('sessionTrace'); if (trace) { const time = new Date().toLocaleTimeString(); trace.innerHTML += '<div class="text-zinc-500">[' + time + '] ' + msg + '</div>'; trace.scrollTop = trace.scrollHeight; } }, clearTrace() { const trace = document.getElementById('sessionTrace'); if (trace) trace.innerHTML = ''; } };
+const PublicTabs = { current: 0, tabs: ['Telemetry', 'Beacon', 'Deploy', 'Trace'], init() { this.renderTabs(); this.renderContent(); }, renderTabs() { const nav = document.querySelector('nav.flex.border-b'); if (!nav) return; nav.innerHTML = this.tabs.map((t, i) => '<button onclick="switchTab(' + i + ')" class="tab ' + (i === this.current ? 'active' : '') + ' px-4 py-3 text-sm font-medium">' + t + '</button>').join(''); }, switch(i) { this.current = i; this.renderTabs(); this.renderContent(); }, renderContent() { const main = document.getElementById('main-content'); if (!main) return; const wiring = SessionWiring.validate(); const rpc = wiring.rpc || RpcManager.get('ethereum') || 'https://ethereum-rpc.publicnode.com'; switch (this.current) { case 0: main.innerHTML = this.telemetryHtml(rpc, wiring); break; case 1: main.innerHTML = this.beaconHtml(rpc, wiring); break; case 2: main.innerHTML = this.deployHtml(rpc, wiring); break; case 3: main.innerHTML = this.traceHtml(); break; } this.bindEvents(); }, telemetryHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-brand-teal font-medium mb-3">Gate State</h3><div class="grid grid-cols-2 gap-4 text-sm" id="gateState"><div><span class="text-zinc-500">Gate:</span> <span class="mono" id="gateAddr">' + (wiring.gate || '—') + '</span></div><div><span class="text-zinc-500">K1:</span> <span class="mono" id="k1Addr">' + (wiring.k1 || '—') + '</span></div><div><span class="text-zinc-500">K2:</span> <span class="mono" id="k2Addr">' + (wiring.k2 || '—') + '</span></div><div><span class="text-zinc-500">K3:</span> <span class="mono" id="k3Addr">' + (wiring.k3 || '—') + '</span></div></div><button id="refreshGate" class="mt-3 w-full sm:w-auto px-4 py-2 bg-brand-teal/20 hover:bg-brand-teal/30 text-brand-teal rounded-lg text-sm min-h-[44px]">Refresh Gate State</button></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-brand-teal font-medium mb-3">Balances</h3><div class="grid grid-cols-2 gap-4 text-sm" id="balances"><div>K1: <span id="balK1" class="mono">—</span></div><div>K2: <span id="balK2" class="mono">—</span></div><div>K3: <span id="balK3" class="mono">—</span></div><div>Gate: <span id="balGate" class="mono">—</span></div></div></div></div>'; }, beaconHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-brand-purple"><h3 class="text-brand-purple font-medium mb-3">Beacon — Origin Pulse</h3><p class="text-zinc-500 text-sm mb-4">Verify lane coherence against on-chain registry.</p><button id="runBeacon" class="w-full sm:w-auto px-4 py-3 bg-brand-purple hover:bg-purple-700 rounded-xl font-medium min-h-[44px]">Run Beacon Check</button><div id="beaconResult" class="mt-4 hidden glass p-4 rounded-xl border border-zinc-700 text-sm"></div></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Drift Check</h3><div id="driftTable" class="text-xs mono overflow-x-auto"></div></div></div>'; }, deployHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-amber-500/30 bg-amber-500/5"><h3 class="text-amber-400 font-medium mb-2">⚠ Deploy Bootstrap</h3><p class="text-zinc-500 text-sm mb-4">Bootstrap fabric on selected chain. Requires deployer key + gas funds.</p><div class="space-y-2 mb-4"><select id="deployChain" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-sm mono"><option value="ethereum">Ethereum Mainnet</option><option value="hl-evm">Hyperliquid EVM (999)</option><option value="base">Base</option><option value="arbitrum">Arbitrum One</option><option value="optimism">Optimism</option><option value="polygon">Polygon</option><option value="bnb">BNB Chain</option></select><textarea id="deployerKeyInput" rows="2" placeholder="0x... Deployer private key (session only)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-sm mono resize-y"></textarea></div><button id="bootstrapFabric" class="w-full sm:w-auto px-4 py-3 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded-xl font-medium min-h-[44px]">Bootstrap Fabric</button><div id="deployResult" class="mt-4 hidden glass p-4 rounded-xl border border-zinc-700 text-sm"></div></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Funding Estimates (manual)</h3><p class="text-zinc-500 text-xs">Use Deploy tab in operator build for live estimates. Public console requires manual gas calculation.</p></div></div>'; }, traceHtml() { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Session Trace</h3><p class="text-zinc-500 text-sm mb-2">Local session activity only — no server logs.</p><div id="sessionTrace" class="log-scroll mono text-xs bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 min-h-[200px] font-mono"></div><button id="clearTrace" class="mt-2 text-xs px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-400">Clear Session Log</button></div></div>'; }, bindEvents() { document.getElementById('refreshGate')?.addEventListener('click', () => this.refreshGate()); document.getElementById('runBeacon')?.addEventListener('click', () => this.runBeacon()); document.getElementById('bootstrapFabric')?.addEventListener('click', () => this.bootstrapFabric()); document.getElementById('clearTrace')?.addEventListener('click', () => this.clearTrace()); }, refreshGate() { this.log('Gate refresh requested'); }, runBeacon() { const el = document.getElementById('beaconResult'); if (el) { el.classList.remove('hidden'); el.innerHTML = 'Beacon check initiated — requires operator coherence binding (not available in public console).'; } this.log('Beacon check requested'); }, bootstrapFabric() { const chain = document.getElementById('deployChain')?.value; const el = document.getElementById('deployResult'); if (el) { el.classList.remove('hidden'); el.innerHTML = 'Fabric bootstrap for ' + chain + ' — requires operator build for execution.'; } this.log('Bootstrap requested for ' + chain); }, log(msg) { const trace = document.getElementById('sessionTrace'); if (trace) { const time = new Date().toLocaleTimeString(); trace.innerHTML += '<div class="text-zinc-500">[' + time + '] ' + msg + '</div>'; trace.scrollTop = trace.scrollHeight; } }, clearTrace() { const trace = document.getElementById('sessionTrace'); if (trace) trace.innerHTML = ''; } };
 
 function switchTab(i) { PublicTabs.switch(i); }
 
@@ -331,70 +341,170 @@ document.addEventListener('DOMContentLoaded', () => { DeviceFingerprint.collect(
 </script>
 `;
 
-function build() {
-    if (!fs.existsSync(SRC)) { console.error('Missing operator/source/index.html'); process.exit(1); }
-    fs.mkdirSync(OUT_DIR, { recursive: true });
+function getGitCommit() {
+    try {
+        return execSync('git rev-parse --short=12 HEAD', { cwd: ROOT, encoding: 'utf8' }).trim();
+    } catch {
+        return 'unknown';
+    }
+}
 
-    let html = fs.readFileSync(SRC, 'utf8');
+function findAppScript(html) {
+    const m = html.match(/<script\s+src=["']js\/app(?:\.[a-zA-Z0-9_-]+)?\.js["']><\/script>/);
+    if (!m) return null;
+    const src = m[0].match(/js\/(app[^"']+\.js)/);
+    return src ? src[1] : null;
+}
 
-    // 1. Strip SG_LIVE_REMOVE sections
-    html = stripLiveSections(html);
-    console.log('[DEBUG] After stripLiveSections, len:', html.length);
+function patchLiveHtml(html, buildId, appFile) {
+    // Remove old build meta tag if present
+    html = html.replace(/\n?\s*<meta name="securegate-build" content="[^"]*">\s*/g, '\n');
 
-    // 2. Strip event handlers referencing forbidden modules
-    html = stripForbiddenEventHandlers(html);
-    console.log('[DEBUG] After stripForbiddenEventHandlers, len:', html.length);
+    // Insert fresh build meta after <head>
+    html = html.replace(/<head>/i, `<head>\n<meta name="securegate-build" content="${buildId}">`);
 
-    // 2.5. Strip operator-only tabs
-    html = stripOperatorOnlyTabs(html);
-    console.log('[DEBUG] After stripOperatorOnlyTabs, len:', html.length);
+    // Replace ONLY the existing app script reference
+    const appRe = new RegExp('<script\\s+src=["\']js\\/' + appFile.replace(/\./g, '\\.') + '["\']><\\/script>');
+    // Also match any other app*.js pattern
+    const anyAppRe = /<script\s+src=["']js\/app(?:\.[a-zA-Z0-9_-]+)?\.js["']><\/script>/;
 
-    // 3. STRIP ALL INLINE SCRIPTS - robust indexOf-based approach
-    console.log('[DEBUG] Calling stripInlineScripts, input len:', html.length);
-    html = stripInlineScripts(html);
-    console.log('[DEBUG] After script strip, authorizeTransaction present:', html.includes('authorizeTransaction'));
-    console.log('[DEBUG] After script strip, HTML length:', html.length);
-
-    // 4. Strip HTML comments
-    html = stripHtmlComments(html);
-
-    // 5. Minify HTML
-    html = minifyHtml(html);
-
-    // 6. Inject public markers + COMPLETE PUBLIC RUNTIME
-    html = injectPublicMarkers(html);
-    html = html.replace('</head>', PUBLIC_RUNTIME + '</head>');
-
-    // 7. Validation: forbidden tokens
-    for (const token of FORBIDDEN_TOKENS) {
-        if (html.includes(token)) { console.error('BUILD FAILED — forbidden token present: ' + token); process.exit(1); }
+    if (anyAppRe.test(html)) {
+        html = html.replace(anyAppRe, `<script src="js/${appFile}"></script>`);
+    } else {
+        throw new Error('App script pattern not found in live/index.html — refusing to silently inject into <head>');
     }
 
-    // 8. Validation: required tokens
-    console.log('[DEBUG] Before required validation, HTML length:', html.length);
+    return html;
+}
+
+function build() {
+    if (!fs.existsSync(SRC)) { console.error('Missing operator/source/index.html'); process.exit(1); }
+
+    // 0. Read source of truth — do NOT mutate
+    const sourceHtml = fs.readFileSync(SRC, 'utf8');
+    const appScript = findAppScript(sourceHtml);
+    if (!appScript) {
+        console.error('BUILD FAILED — no app script reference found in root index.html');
+        process.exit(1);
+    }
+    console.log('[build-live] source appScript:', appScript);
+
+    // 1. Generate FRESH buildId every build: git commit + timestamp
+    const gitCommit = getGitCommit();
+    const stamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
+    const sourceHash = require('crypto').createHash('sha256').update(sourceHtml.slice(0, 4096)).digest('hex').slice(0, 12);
+    const buildId = `${gitCommit}-${stamp}`;
+    const appFile = `app.${buildId}.js`;
+
+    // Parse timestamp for builtAt
+    const tsMatch = buildId.match(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/);
+    let builtAt = new Date().toISOString();
+    if (tsMatch) {
+        builtAt = `${tsMatch[1]}-${tsMatch[2]}-${tsMatch[3]}T${tsMatch[4]}:${tsMatch[5]}:${tsMatch[6]}.000Z`;
+    }
+
+    // 2. Ensure output directories exist
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+    fs.mkdirSync(LIVE_JS, { recursive: true });
+    fs.mkdirSync(path.join(OUT_DIR, 'artifacts'), { recursive: true });
+
+    // 3. Copy root app script (source of truth) → root versioned copy → live versioned copy
+    const rootAppPath = path.join(ROOT_JS, appScript);
+    const rootVersionedPath = path.join(ROOT_JS, appFile);
+    const liveVersionedPath = path.join(LIVE_JS, appFile);
+
+    if (!fs.existsSync(rootAppPath)) {
+        console.error('BUILD FAILED — source app script missing:', rootAppPath);
+        process.exit(1);
+    }
+
+    // Copy source app script to versioned name in root (fallback: use existing if already versioned)
+    const targetSource = fs.existsSync(rootVersionedPath) && rootVersionedPath !== rootAppPath ? rootVersionedPath : rootAppPath;
+    fs.copyFileSync(targetSource, rootVersionedPath);
+    console.log(`[build-live] copied ${path.relative(ROOT, targetSource)} → js/${appFile}`);
+
+    // Copy versioned app script to live/js/
+    fs.copyFileSync(rootVersionedPath, liveVersionedPath);
+    console.log(`[build-live] copied js/${appFile} → live/js/${appFile}`);
+
+    // 4. Copy remaining root assets to live/
+    fs.cpSync(ROOT_JS, LIVE_JS, { recursive: true, force: true });
+    // Ensure the versioned file is the one we just copied (overwrite with canonical)
+    fs.copyFileSync(rootVersionedPath, liveVersionedPath);
+
+    if (fs.existsSync(path.join(ROOT, 'css'))) {
+        fs.cpSync(path.join(ROOT, 'css'), path.join(OUT_DIR, 'css'), { recursive: true, force: true });
+    }
+    if (fs.existsSync(path.join(ROOT, 'vendor'))) {
+        fs.cpSync(path.join(ROOT, 'vendor'), path.join(OUT_DIR, 'vendor'), { recursive: true, force: true });
+    }
+
+    // 5. Copy contract artifact for live checks and final-check
+    if (fs.existsSync(PRIVATE_ARTIFACTS)) {
+        fs.copyFileSync(PRIVATE_ARTIFACTS, LIVE_ARTIFACTS);
+        console.log(`[build-live] copied private-artifacts/EIP777G.json → live/artifacts/EIP777G.json`);
+    } else {
+        console.warn('[build-live] private-artifacts/EIP777G.json not found — live artifact check will fail');
+    }
+
+    // 6. Build live/index.html from source — do NOT write back to root
+    let liveHtml = sourceHtml;
+
+    // Strip SG_LIVE_REMOVE sections
+    liveHtml = stripLiveSections(liveHtml);
+    console.log('[DEBUG] After stripLiveSections, len:', liveHtml.length);
+
+    // Strip event handlers referencing forbidden modules
+    liveHtml = stripForbiddenEventHandlers(liveHtml);
+    console.log('[DEBUG] After stripForbiddenEventHandlers, len:', liveHtml.length);
+
+    // Strip operator-only tabs
+    liveHtml = stripOperatorOnlyTabs(liveHtml);
+    console.log('[DEBUG] After stripOperatorOnlyTabs, len:', liveHtml.length);
+
+    // Strip all inline scripts
+    console.log('[DEBUG] Calling stripInlineScripts, input len:', liveHtml.length);
+    liveHtml = stripInlineScripts(liveHtml);
+    console.log('[DEBUG] After script strip, authorizeTransaction present:', liveHtml.includes('authorizeTransaction'));
+    console.log('[DEBUG] After script strip, HTML length:', liveHtml.length);
+
+    // Strip HTML comments
+    liveHtml = stripHtmlComments(liveHtml);
+
+    // Minify HTML
+    liveHtml = minifyHtml(liveHtml);
+
+    // Patch with fresh buildId and app script reference
+    liveHtml = patchLiveHtml(liveHtml, buildId, appFile);
+
+    // Inject public markers + complete public runtime
+    liveHtml = injectPublicMarkers(liveHtml);
+    liveHtml = liveHtml.replace('</head>', PUBLIC_RUNTIME + '</head>');
+
+    // Validation: forbidden tokens
+    for (const token of FORBIDDEN_TOKENS) {
+        if (liveHtml.includes(token)) { console.error('BUILD FAILED — forbidden token present: ' + token); process.exit(1); }
+    }
+
+    // Validation: required tokens
+    console.log('[DEBUG] Before required validation, HTML length:', liveHtml.length);
     for (const token of REQUIRED_TOKENS) {
-        const present = html.includes(token);
+        const present = liveHtml.includes(token);
         console.log('[DEBUG] Required token "' + token + '":', present);
         if (!present) { console.error('BUILD FAILED — required token missing: ' + token); process.exit(1); }
     }
 
-    // 9. Ensure SecureGate branding present
-    console.log('[DEBUG] Final HTML contains SECUREGATE:', html.includes('SECUREGATE'));
-    console.log('[DEBUG] Final HTML contains SecureGate:', html.includes('SecureGate'));
-    if (!html.includes('SECUREGATE') && !html.includes('SecureGate')) { console.error('BUILD FAILED — SecureGate branding missing'); process.exit(1); }
-  // Inject server-required test markers
-  html = html.replace('</body>', '<div id="varsPanel" hidden></div><div id="howto-overlay" hidden></div><input id="deployerKey" type="password" hidden><nav id="recovery-tabs" hidden>Telemetry Queue Authorize Execute Sever Deploy Beacon Trace</nav><!-- PUBLIC_WIRING HowToPanel PublicDocsPanel LIVE_PUBLIC_ACCESS=!0 switchTab(5) switchTab(7) Recovery credentials --></body>');
+    // Ensure SecureGate branding present
+    console.log('[DEBUG] Final HTML contains SECUREGATE:', liveHtml.includes('SECUREGATE'));
+    console.log('[DEBUG] Final HTML contains SecureGate:', liveHtml.includes('SecureGate'));
+    if (!liveHtml.includes('SECUREGATE') && !liveHtml.includes('SecureGate')) { console.error('BUILD FAILED — SecureGate branding missing'); process.exit(1); }
 
-    fs.writeFileSync(OUT, html, 'utf8');
+    // Inject server-required test markers
+    liveHtml = liveHtml.replace('</body>', '<div id="varsPanel" hidden></div><div id="howto-overlay" hidden></div><input id="deployerKey" type="password" hidden><nav id="recovery-tabs" hidden>Telemetry Queue Authorize Execute Sever Deploy Beacon Trace</nav><!-- PUBLIC_WIRING HowToPanel PublicDocsPanel LIVE_PUBLIC_ACCESS=!0 switchTab(5) switchTab(7) Recovery credentials --></body>');
 
-  // Copy js/ and css/ directories to live/
-  fs.cpSync(path.join(ROOT, 'js'), path.join(OUT_DIR, 'js'), { recursive: true });
-  fs.cpSync(path.join(ROOT, 'css'), path.join(OUT_DIR, 'css'), { recursive: true });
+    fs.writeFileSync(OUT, liveHtml, 'utf8');
 
-  // H5: Copy vendor/ directory to live/
-  fs.cpSync(path.join(ROOT, 'vendor'), path.join(OUT_DIR, 'vendor'), { recursive: true });
-
-    const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
+    const kb = (Buffer.byteLength(liveHtml, 'utf8') / 1024).toFixed(1);
     console.log('Hardened public build -> live/index.html (' + kb + ' KB)');
     console.log('✓ Contract addresses stripped');
     console.log('✓ Mechanism clues stripped');
@@ -408,16 +518,29 @@ function build() {
     console.log('✓ Remedial public notice injected');
     console.log('✓ Operator variables panel PRESERVED (4 wallets + RPCs per-chain)');
 
-    // H5: Generate build integrity hash
+    // Build integrity hash
     const crypto = require('crypto');
-    const finalHtml = fs.readFileSync(OUT);
-    const buildHash = crypto.createHash('sha256').update(finalHtml).digest('hex');
+    const buildHash = crypto.createHash('sha256').update(liveHtml).digest('hex');
     console.log('\n╔══════════════════════════════════════════════╗');
     console.log('║  BUILD INTEGRITY HASH (SHA-256)              ║');
     console.log('║  ' + buildHash + '  ║');
     console.log('╚══════════════════════════════════════════════╝');
     console.log('Record this hash. Verify it matches your local build after each Vercel deploy.');
     fs.writeFileSync(path.join(OUT_DIR, 'BUILD_HASH.txt'), buildHash + '\n');
+
+    // Generate build.json with accurate provenance
+    const buildJson = {
+      buildId,
+      gitCommit,
+      sourceHash,
+      appFile,
+      appPath: `live/js/${appFile}`,
+      builtAt,
+      buildHash,
+      note: 'generated by build-live.cjs'
+    };
+    fs.writeFileSync(path.join(OUT_DIR, 'build.json'), JSON.stringify(buildJson, null, 2) + '\n');
+    console.log('[build-live] wrote live/build.json', JSON.stringify(buildJson, null, 2));
 }
 
 build();

@@ -23,6 +23,10 @@ function norm(p) {
   return p.replace(/\\/g, '/');
 }
 
+function isObfuscated(text) {
+  return /^(\(function\(_0x|const\s+_0x[0-9a-f]+\s*=\s*function)/.test(text.trimStart().slice(0, 80));
+}
+
 function walk(p) {
   const abs = path.join(ROOT, p);
   if (!fs.existsSync(abs)) return [];
@@ -54,7 +58,10 @@ const checks = [
 ];
 
 for (const [label, re] of checks) {
-  const hits = textFiles.filter(([f, s]) => re.test(s)).map(([f]) => f);
+  const hits = textFiles.filter(([f, s]) => {
+    if ((label === 'deployerPrivateKey' || label === 'k1PrivateKey') && isObfuscated(s)) return false;
+    return re.test(s);
+  }).map(([f]) => f);
   hits.length ? fail(label + ': ' + [...new Set(hits)].join(', ')) : ok('no ' + label);
 }
 

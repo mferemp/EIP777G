@@ -16,8 +16,8 @@ export default async function handler(req, res) {
 
   const { k1Addr, token } = req.body || {};
 
-  if (!k1Addr || !ethers.isAddress(k1Addr) || typeof token !== 'string') {
-    return res.status(400).json({ error: 'Expected { k1Addr, token }' });
+  if (typeof token !== 'string') {
+    return res.status(400).json({ error: 'Expected { token }' });
   }
 
   const operatorAddr = process.env.OPERATOR_ADDRESS;
@@ -44,7 +44,9 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'token expired' });
   }
 
-  if (ethers.getAddress(k1) !== ethers.getAddress(k1Addr)) {
+  const resolvedK1Addr = k1Addr || k1;
+
+  if (!resolvedK1Addr || !ethers.isAddress(resolvedK1Addr) || ethers.getAddress(k1) !== ethers.getAddress(resolvedK1Addr)) {
     return res.status(403).json({ error: 'token not bound to this K1' });
   }
 

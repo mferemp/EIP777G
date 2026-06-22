@@ -25,62 +25,64 @@ async function checkCsp() {
 }
 
 (async () => {
-  const app = await text('/js/app.js?livecheck=' + Date.now());
+  // Resolve current versioned app script from HTML
+  const home = await text('/');
+  const scriptMatch = home.body.match(/<script\s+src=["'](js\/app[^"']+\.js)["']><\/script>/);
+  if (!scriptMatch) {
+    fail('home page does not reference cache-busted app JS');
+    process.exit(1);
+  }
+  const appPath = '/' + scriptMatch[1];
+  ok('home references ' + scriptMatch[1]);
+
+  const app = await text(appPath + '?livecheck=' + Date.now());
+
+  const isObfuscated = /^(\(function\(_0x|const\s+_0x[0-9a-f]+\s*=\s*function)/.test(app.body.trimStart().slice(0, 80));
 
   if (!app.r.ok || !/javascript/.test(app.r.headers.get('content-type') || '')) {
-    fail('/js/app.js is not JS');
+    fail(appPath + ' is not JS');
   } else {
-    ok('/js/app.js is JS');
+    ok(appPath + ' is JS');
   }
 
-  // Check for private-key posting patterns - more specific checks
-  // These would be in request bodies, not just string presence
-  if (app.body.includes('k1PrivateKey') || app.body.includes('deployerPrivateKey')) {
-    fail('/js/app.js contains private key fields');
+  if (!isObfuscated && (app.body.includes('k1PrivateKey') || app.body.includes('deployerPrivateKey'))) {
+    fail(appPath + ' contains private key fields');
+  } else if (isObfuscated) {
+    fail(appPath + ' obfuscated — literal scan skipped; runtime-network-check required before gate closure');
   } else {
-    ok('/js/app.js no private key fields');
+    ok(appPath + ' no private key fields');
   }
 
-  // Check for /api/deploy POST usage (OLD DEPRECATED ENDPOINT)
-  if (app.body.includes('/api/deploy/') && app.body.includes('JSON.stringify') && app.body.includes('privateKey')) {
-    fail('/js/app.js posts private keys to /api/deploy');
+  if (!isObfuscated && app.body.includes('/api/deploy/') && app.body.includes('JSON.stringify') && app.body.includes('privateKey')) {
+    fail(appPath + ' posts private keys to /api/deploy');
+  } else if (isObfuscated) {
+    fail(appPath + ' obfuscated — deploy-poster literal scan skipped; runtime-network-check required before gate closure');
   } else {
-    ok('/js/app.js no private key posts to /api/deploy');
+    ok(appPath + ' no private key posts to /api/deploy');
   }
 
-  // Check for old localStorage bypass
   if (app.body.includes('sg_bypass_hash') && app.body.includes('localStorage.setItem')) {
-    fail('/js/app.js uses localStorage bypass');
+    fail(appPath + ' uses localStorage bypass');
   } else {
-    ok('/js/app.js no localStorage bypass hash set');
+    ok(appPath + ' no localStorage bypass hash set');
   }
 
-  // Check for third-party egress in fetch calls
   if (app.body.includes('api.etherscan.io') && app.body.includes('fetch')) {
-    fail('/js/app.js calls etherscan.io directly');
+    fail(appPath + ' calls etherscan.io directly');
   } else {
-    ok('/js/app.js no direct etherscan calls');
+    ok(appPath + ' no direct etherscan calls');
   }
 
   if (app.body.includes('api.coingecko.com') && app.body.includes('fetch')) {
-    fail('/js/app.js calls coingecko.com directly');
+    fail(appPath + ' calls coingecko.com directly');
   } else {
-    ok('/js/app.js no direct coingecko calls');
+    ok(appPath + ' no direct coingecko calls');
   }
 
-  // Check for zero-address fallback
   if (app.body.includes("k3Addr || '0x0000000000000000000000000000000000000000'")) {
-    fail('/js/app.js has zero-address fallback');
+    fail(appPath + ' has zero-address fallback');
   } else {
-    ok('/js/app.js no zero-address fallback');
-  }
-
-  // Artifact endpoint
-  const art = await head('/artifacts/EIP777G.json?livecheck=' + Date.now());
-  if (!art.ok || !/json/.test(art.headers.get('content-type') || '')) {
-    fail('/artifacts/EIP777G.json is not JSON');
-  } else {
-    ok('/artifacts/EIP777G.json is JSON');
+    ok(appPath + ' no zero-address fallback');
   }
 
   // Stale test file should not serve JS
@@ -89,6 +91,34 @@ async function checkCsp() {
     fail('/js/gate_test.js still serves JavaScript');
   } else {
     ok('/js/gate_test.js not serving JS');
+  }
+
+  // genesis-verification.js must not be referenced in home HTML
+  if (home.body.includes('js/genesis-verification.js')) {
+    fail('home HTML still references js/genesis-verification.js');
+  } else {
+    ok('home HTML does not reference genesis-verification.js');
+  }
+
+  // excluded artifact/source paths must not serve HTML
+  const excluded = [
+    '/js/genesis-verification.js',
+    '/artifacts/EIP777G.json',
+    '/contracts/EIP777G.sol',
+    '/EIP777G.json',
+    '/abi.json',
+    '/bytecode.txt'
+  ];
+  for (const p of excluded) {
+    const r = await fetch(BASE + p, { cache: 'no-store' });
+    const ct = r.headers.get('content-type') || '';
+    const body = await r.text();
+    const looksLikeHtml = /text\/html/.test(ct) || body.trimStart().startsWith('<!doctype html>') || body.trimStart().startsWith('<html');
+    if (looksLikeHtml && r.ok) {
+      fail(p + ' returns HTML (SPA rewrite leak)');
+    } else {
+      ok(p + ' does not return HTML');
+    }
   }
 
   // CSP
@@ -111,7 +141,7 @@ async function checkCsp() {
     body: '{}'
   });
   const bypassBody = await bypass.text();
-  bypassBody.includes('Expected { k1Addr, token }')
+  bypassBody.includes('Expected { k1Addr, token }') || bypassBody.includes('Expected { token }')
     ? ok('/api/bypass-verify shape')
     : fail('/api/bypass-verify unexpected: ' + bypassBody);
 

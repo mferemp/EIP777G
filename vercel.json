@@ -9,65 +9,19 @@
       "maxDuration": 10
     }
   },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/vendor/(.*)",
-      "destination": "/vendor/$1"
-    },
-    {
-      "source": "/js/(.*)",
-      "destination": "/js/$1"
-    },
-    {
-      "source": "/css/(.*)",
-      "destination": "/css/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "no-referrer"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), geolocation=(), microphone=(), payment=(), usb=()"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        },
-        {
-          "key": "CDN-Cache-Control",
-          "value": "no-store"
-        },
-        {
-          "key": "Vercel-CDN-Cache-Control",
-          "value": "no-store"
-        }
-      ]
-    }
+  "routes": [
+    { "src": "^/js/genesis-verification\\.js$",  "status": 404 },
+    { "src": "^/artifacts(/.*)?$",               "status": 404 },
+    { "src": "^/contracts(/.*)?$",               "status": 404 },
+    { "src": "^/private-artifacts(/.*)?$",       "status": 404 },
+    { "src": "^/EIP777G\\.json$",                "status": 404 },
+    { "src": "^/abi\\.json$",                    "status": 404 },
+    { "src": "^/bytecode\\.txt$",                "status": 404 },
+    { "src": "^/api/(.*)",   "dest": "/api/$1"  },
+    { "src": "^/vendor/(.*)", "dest": "/vendor/$1" },
+    { "src": "^/js/(.*)",    "dest": "/js/$1"   },
+    { "src": "^/css/(.*)",   "dest": "/css/$1"  },
+    { "handle": "filesystem" },
+    { "src": "/(.*)",        "dest": "/index.html" }
   ]
 }

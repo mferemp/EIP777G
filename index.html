@@ -143,13 +143,89 @@
   }
   .scan-inner:hover { background: radial-gradient(circle, #002f2a 0%, #000 100%); }
   .scan-inner svg { color: var(--teal); }
-  .scan-inner span { font-size: 8px; font-weight: 700; letter-spacing: 0.15em; color: var(--teal); }
+  .scan-inner span { font-size: 8px; font-weight: 700; letter-spacing: 0.15em; color: var(--gold); }
   .scan-label {
     font-size: 9px; font-weight: 700; letter-spacing: 0.2em;
-    color: var(--teal); text-align: center; text-transform: uppercase;
+    color: var(--gold); text-align: center; text-transform: uppercase;
   }
   .scan-sublabel {
     font-size: 8px; color: var(--muted); text-align: center; line-height: 1.4;
+  }
+
+  /* K1 VERIFY PANEL */
+  .genesis-k1-verify-panel {
+    margin-top: 10px;
+    background: rgba(5,5,5,0.92);
+    border: 1px solid #1a1a1a;
+    border-radius: 6px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .genesis-k1-verify-panel .panel-title {
+    color: var(--gold);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .verify-k1-addr {
+    width: 100%;
+    background: #050505;
+    border: 1px solid #222;
+    border-radius: 4px;
+    color: var(--teal);
+    font-family: monospace;
+    font-size: 10px;
+    padding: 7px 8px;
+  }
+  .verify-k1-addr::placeholder {
+    color: #555;
+  }
+  .verify-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .verify-scan-btn,
+  .verify-qr-btn {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 7px 6px;
+    border-radius: 3px;
+  }
+  .verify-scan-btn {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+  }
+  .verify-qr-btn {
+    background: transparent;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+  }
+  .verify-scan-btn:disabled,
+  .verify-qr-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .verify-status {
+    min-height: 12px;
+    font-size: 8px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .verify-directions {
+    color: var(--muted);
+    font-size: 7.5px;
+    line-height: 1.45;
+    text-align: left;
+  }
+  .verify-directions strong {
+    color: var(--gold);
   }
 
   /* SIDEBAR SECTIONS */
@@ -217,8 +293,80 @@
     transition: opacity 0.6s, visibility 0.6s;
   }
   .lock-overlay.unlocked { opacity: 0; visibility: hidden; pointer-events: none; }
-  .lock-icon-wrap { opacity: 0.12; }
-  .lock-icon-wrap svg { width: 220px; height: 220px; color: var(--grey); }
+
+  /* DISCLAIMER OVERLAY */
+  .lock-warning {
+    position: relative;
+    background: #1a1400;
+    border: 1px solid #3a2a00;
+    border-radius: 8px;
+    padding: 32px 40px;
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 42px rgba(201,162,39,0.18);
+  }
+  .disclaimer-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+  }
+  .disclaimer-frame {
+    max-width: 480px;
+    width: 90%;
+    border: 2px solid #c9a227;
+    border-radius: 8px;
+    background: rgba(12,8,0,0.95);
+    box-shadow: 0 0 30px rgba(201,162,39,0.25);
+    padding: 24px 20px;
+    font-family: monospace;
+    text-align: center;
+  }
+  .disclaimer-text {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #c9a227;
+    line-height: 1.6;
+    font-family: monospace;
+  }
+
+  .lock-warning h2 {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .lock-warning .lock-subtitle {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .lock-warning .warning-body {
+    font-size: 9px;
+    color: var(--muted);
+    line-height: 1.7;
+    text-align: left;
+  }
+  .lock-warning .warning-body strong {
+    color: var(--gold);
+  }
+  .lock-warning .warning-body .teal {
+    color: var(--teal);
+  }
+  .lock-warning .warning-body .mag {
+    color: var(--magenta);
+  }
 
   /* DASHBOARD CONTENT */
   .dashboard {
@@ -420,7 +568,77 @@
   .smoke-pass { color: var(--teal); }
   .smoke-fail { color: var(--magenta); }
 
-  /* STATUSBAR */
+  /* STATUS RIGHT / FOOTER BRANDING */
+  .statusbar {
+    position: relative;
+    z-index: 10;
+  }
+  .status-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    justify-content: center;
+    line-height: 1;
+  }
+  .thank-you-envelope {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--teal);
+    transform: rotate(-7deg);
+    transition: transform 0.2s;
+    padding: 0;
+  }
+  .thank-you-envelope:hover {
+    transform: rotate(-7deg) scale(1.05);
+  }
+  .envelope-icon {
+    stroke: var(--teal);
+    width: 17px;
+    height: 17px;
+    stroke-width: 2;
+    transform: rotate(-14deg);
+  }
+  .thank-you-envelope span {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    color: var(--teal);
+  }
+  .built-by {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transform: rotate(1deg);
+  }
+  .built-by span,
+  .built-by a {
+    color: var(--gold);
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-decoration: none;
+  }
+  .trinity-knot {
+    stroke: var(--magenta);
+    fill: none;
+    stroke-width: 1.5;
+    width: 13px;
+    height: 13px;
+  }
+  .built-by a:hover {
+    text-decoration: none;
+  }
+
+  /* Hidden utility */
+  .hidden { display: none !important; }
+
+  /* SCAN ANIMATION GLOW */
   .statusbar {
     background: #030303;
     border-top: 1px solid #111;
@@ -493,12 +711,28 @@
         </div>
       </div>
       <div class="scan-label">OWNER VERIFICATION</div>
-      <div class="scan-sublabel" id="scan-status">Genesis ownership scan<br>initiates authentication</div>
-    </div>
+        <div class="scan-sublabel" id="scan-status">Genesis ownership scan<br>initiates authentication</div>
+      </div>
 
-    <div class="sidebar-divider"></div>
+      <!-- K1 PUBLIC ADDRESS VERIFICATION PANEL -->
+      <div id="genesis-k1-verify-panel" class="genesis-k1-verify-panel">
+        <div class="panel-title">GENESIS K1 ADDRESS</div>
+        <input type="text" id="verify-k1-addr" class="verify-k1-addr" placeholder="0x... K1 PUBLIC ADDRESS" autocomplete="off" spellcheck="false">
+        <div class="verify-actions">
+          <button id="verify-scan-btn" class="verify-scan-btn" disabled>SCAN</button>
+          <button id="verify-qr-btn" class="verify-qr-btn" disabled>LINK DEVICE</button>
+        </div>
+        <div id="verify-status" class="verify-status"></div>
+        <div class="verify-directions">
+          Enter Genesis K1 public address.<br>
+          Run <strong>SCAN</strong> or <strong>LINK DEVICE</strong>.<br>
+          Keys stay local. Session-bound until SCRUB.
+        </div>
+      </div>
 
-    <!-- AUTH MECHANISM -->
+      <div class="sidebar-divider"></div>
+
+      <!-- AUTH MECHANISM -->
     <div>
       <div class="sidebar-section-title">Authentication Mechanism</div>
       <div class="sidebar-body">
@@ -551,11 +785,33 @@
 
     <!-- LOCK OVERLAY -->
     <div class="lock-overlay" id="lock-overlay">
-      <div class="lock-icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.6">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
+      <div class="lock-warning">
+        <h2>DASHBOARD LOCKED</h2>
+        <p class="lock-subtitle">GENESIS VERIFICATION REQUIRED</p>
+        <div class="warning-body">
+          The SecureGate dashboard requires <strong>Genesis Owner Verification</strong>
+          before recovery controls are accessible.<br><br>
+
+          <strong class="teal">Left sidebar → Enter K1 public address → LINK DEVICE</strong><br><br>
+
+          This verification runs locally in the browser and uses:<br>
+          <strong>①</strong> Device fingerprint match / Canvas-WebGL hardware signal<br>
+          <strong>②</strong> On-chain K1 first-tx confirmation where applicable<br>
+          <strong>③</strong> Historical visit timestamp<br>
+          <strong>④</strong> Return visit confirmation<br><br>
+
+          <span class="mag">3 of 4 artifacts must match.</span>
+          The K1 address becomes <strong>hard-bound</strong> to this session upon verification start
+          and cannot be changed without SCRUB.
+        </div>
+      </div>
+
+      <div class="disclaimer-overlay">
+        <div class="disclaimer-frame">
+          <div class="disclaimer-text">
+            BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE. PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE⚫-'
+          </div>
+        </div>
       </div>
     </div>
 
@@ -702,14 +958,29 @@
     <span class="status-dot dot-secure"></span>
     <span id="status-text">777G v1.0 · SECURE</span>
   </div>
-  <div id="status-right" style="color:var(--faint);">STANDALONE MODE · NO SERVER CONTACT</div>
+  <div class="status-right">
+    <button id="thank-you-btn" class="thank-you-envelope" type="button" aria-label="Leave a thank-you note">
+      <svg class="envelope-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+      <span>THANK YOU</span>
+    </button>
+
+    <div class="built-by">
+      <span>BUILT BY EMP</span>
+      <svg class="trinity-knot" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2.5 Q16 8 18 11.5 Q17 15 15 15 Q13.5 18 12 17.5 Q10.5 18 9 15 Q7 15 6 11.5 Q8 8 12 2.5 Z" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <a href="https://x.com/hope_ology" target="_blank" rel="noopener">@hope_ology</a>
+    </div>
+  </div>
 </div>
 
 <!-- SCRIPTS -->
 <script src="vendor/ethers.min.js"></script>
 <script src="vendor/qrcode.min.js"></script>
-<script src="js/genesis-verification.js"></script>
-<script src="js/app.6231ae838467-20260621193929.js"></script>
+<script src="js/app.2c664e287657-20260622022038.js"></script>
 
 <script>
 // ── BOOTSTRAP ──
