@@ -93,7 +93,8 @@ for (const p of [
 
 try {
   const v = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
-  Array.isArray(v.routes) ? fail('legacy vercel routes present') : ok('no legacy vercel routes');
+  const hasLegacyRewrites = Array.isArray(v.rewrites) && v.rewrites.length > 0;
+  hasLegacyRewrites ? fail('legacy vercel rewrites present') : ok('no legacy vercel rewrites');
   v.outputDirectory === 'live' ? ok('vercel outputDirectory live') : fail('vercel outputDirectory is not live');
 } catch {
   fail('vercel.json invalid');

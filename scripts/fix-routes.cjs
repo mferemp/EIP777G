@@ -26,7 +26,7 @@ if (!data.routes.some(r => r.headers)) {
         'CDN-Cache-Control': 'no-store',
         'Vercel-CDN-Cache-Control': 'no-store'
       },
-      continue: true
+      continue: false
     });
   }
 }

@@ -145,11 +145,11 @@
   .scan-inner svg { color: var(--teal); }
   .scan-inner span { font-size: 8px; font-weight: 700; letter-spacing: 0.15em; color: var(--gold); }
   .scan-label {
-    font-size: 9px; font-weight: 700; letter-spacing: 0.2em;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
     color: var(--gold); text-align: center; text-transform: uppercase;
   }
   .scan-sublabel {
-    font-size: 8px; color: var(--muted); text-align: center; line-height: 1.4;
+    font-size: 10px; color: var(--muted); text-align: center; line-height: 1.4;
   }
 
   /* K1 VERIFY PANEL */
@@ -165,7 +165,7 @@
   }
   .genesis-k1-verify-panel .panel-title {
     color: var(--gold);
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -177,7 +177,7 @@
     border-radius: 4px;
     color: var(--teal);
     font-family: monospace;
-    font-size: 10px;
+    font-size: 11px;
     padding: 7px 8px;
   }
   .verify-k1-addr::placeholder {
@@ -220,7 +220,7 @@
   }
   .verify-directions {
     color: var(--muted);
-    font-size: 7.5px;
+    font-size: 10px;
     line-height: 1.45;
     text-align: left;
   }
@@ -238,7 +238,7 @@
     color: var(--gold); text-transform: uppercase; margin-bottom: 4px;
   }
   .sidebar-body {
-    font-size: 10px; color: var(--muted); line-height: 1.65;
+    font-size: 11.5px; color: var(--muted); line-height: 1.65;
   }
   .sidebar-body strong { color: var(--teal); }
   .sidebar-body .mag { color: var(--magenta); }
@@ -255,16 +255,16 @@
   }
   .standalone-operation-title {
     color: var(--magenta);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin-bottom: 8px;
+    margin-bottom: 7px;
   }
   .standalone-operation-copy {
     color: var(--text);
-    font-size: 10px;
-    line-height: 1.5;
+    font-size: 11.5px;
+    line-height: 1.45;
   }
 
   /* CAUTION BLOCK */
@@ -281,7 +281,7 @@
     color: var(--gold); text-transform: uppercase; margin-bottom: 4px;
   }
   .caution-body {
-    font-size: 8px; color: #886600; line-height: 1.5;
+    font-size: 10px; color: #886600; line-height: 1.5;
   }
   .sig { display: none; }
   .tardis-admin-button {
@@ -627,12 +627,17 @@
     z-index: 10;
   }
   .status-right {
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    max-width: calc(100vw - 28px);
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 3px;
     justify-content: center;
     line-height: 1;
+    z-index: 20;
   }
   .thank-you-envelope {
     display: flex;
@@ -693,6 +698,8 @@
 
   /* SCAN ANIMATION GLOW */
   .statusbar {
+    position: relative;
+    z-index: 10;
     background: #030303;
     border-top: 1px solid #111;
     padding: 3px 14px;
@@ -712,6 +719,24 @@
   .dot-secure { background: var(--teal); box-shadow: 0 0 4px var(--teal); }
   .dot-warn { background: var(--gold); }
   .dot-lock { background: var(--magenta); }
+
+  /* Guard against oversized warning/fav-icon SVGs */
+  body > svg:not([data-allow-fullscreen]),
+  body > svg.warning-icon,
+  body > svg.alert-icon,
+  body > svg.caution-icon,
+  .lock-warning svg,
+  .locked-warning svg {
+    max-width: 42px !important;
+    max-height: 42px !important;
+    width: auto !important;
+    height: auto !important;
+  }
+  .lock-warning .warning-symbol,
+  .caution-icon::before {
+    font-size: 28px !important;
+    line-height: 1 !important;
+  }
 
   /* SCAN ANIMATION GLOW */
   @keyframes scan-pulse {
@@ -827,7 +852,7 @@
 
     <!-- STANDALONE OPERATION -->
     <div class="standalone-operation-box">
-      <div class="standalone-operation-title">Standalone Operation</div>
+      <div class="standalone-operation-title">STANDALONE OPERATION</div>
       <div class="standalone-operation-copy">
         This dashboard executes entirely <strong>client-side</strong>. You are not submitting data to any operator, server, or third party. All cryptographic operations run in your browser. The RPC endpoint you supply is your sole network contact.
       </div>
@@ -864,8 +889,8 @@
       <div class="disclaimer-overlay">
         <div class="disclaimer-frame">
           <div class="disclaimer-text">
-            BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE. PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE⚫-'
-          </div>
+                BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE. PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE.
+              </div>
         </div>
       </div>
     </div>
