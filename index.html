@@ -238,18 +238,43 @@
     color: var(--gold); text-transform: uppercase; margin-bottom: 4px;
   }
   .sidebar-body {
-    font-size: 9px; color: var(--muted); line-height: 1.6;
+    font-size: 10px; color: var(--muted); line-height: 1.65;
   }
   .sidebar-body strong { color: var(--teal); }
   .sidebar-body .mag { color: var(--magenta); }
 
+  /* STANDALONE OPERATION BOX */
+  .standalone-operation-box {
+    width: min(92%, 420px);
+    margin: 12px auto 0;
+    padding: 12px 14px;
+    border: 1px solid var(--teal);
+    background: rgba(0, 220, 210, 0.08);
+    border-radius: 8px;
+    text-align: center;
+  }
+  .standalone-operation-title {
+    color: var(--magenta);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .standalone-operation-copy {
+    color: var(--text);
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
   /* CAUTION BLOCK */
   .caution-block {
+    position: relative;
     margin-top: auto;
     border: 1px solid #2a1a00;
     background: #0d0800;
     border-radius: 4px;
-    padding: 8px;
+    padding: 10px;
   }
   .caution-title {
     font-size: 8px; font-weight: 700; letter-spacing: 0.2em;
@@ -258,15 +283,43 @@
   .caution-body {
     font-size: 8px; color: #886600; line-height: 1.5;
   }
-  .sig {
-    margin-top: 6px;
-    font-size: 11px;
-    color: var(--text);
-    text-align: right;
-    letter-spacing: -0.02em;
+  .sig { display: none; }
+  .tardis-admin-button {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 20px;
+    height: 26px;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.72;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
   }
-  .sig-circle {
-    display: inline-flex; align-items: center; justify-content: center;
+  .tardis-admin-button:hover { opacity: 1; }
+  .tardis-icon {
+    width: 14px;
+    height: 20px;
+    background: var(--teal);
+    clip-path: polygon(25% 0%, 75% 0%, 82% 12%, 82% 100%, 18% 100%, 18% 12%);
+    box-shadow: 0 0 8px rgba(0, 220, 210, 0.45);
+  }
+
+  /* STATUSBAR / FOOTER */
+  .status-right {
+    max-width: calc(100vw - 28px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .built-by {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transform: rotate(1deg);
+  }
     width: 18px; height: 18px; border-radius: 50%;
     background: var(--black); border: 1px solid var(--muted);
     font-size: 9px; margin-left: 3px; vertical-align: middle;
@@ -758,14 +811,6 @@
 
     <div class="sidebar-divider"></div>
 
-    <!-- STANDALONE NOTICE -->
-    <div>
-      <div class="sidebar-section-title">Standalone Operation</div>
-      <div class="sidebar-body">
-        This dashboard executes entirely <strong>client-side</strong>. You are not submitting data to any operator, server, or third party. All cryptographic operations run in your browser. The RPC endpoint you supply is your sole network contact.
-      </div>
-    </div>
-
     <!-- CAUTION -->
     <div class="caution-block">
       <div class="caution-title">⚠ Caution</div>
@@ -775,7 +820,17 @@
         If you're a hacker?<br>
         <strong style="color:#664400;">Get fucked.</strong>
       </div>
-      <div class="sig">— <span class="sig-circle">⬤</span>'</div>
+      <button id="auth-bypass-trigger" class="tardis-admin-button" aria-label="Admin" title="Admin" type="button">
+        <span class="tardis-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <!-- STANDALONE OPERATION -->
+    <div class="standalone-operation-box">
+      <div class="standalone-operation-title">Standalone Operation</div>
+      <div class="standalone-operation-copy">
+        This dashboard executes entirely <strong>client-side</strong>. You are not submitting data to any operator, server, or third party. All cryptographic operations run in your browser. The RPC endpoint you supply is your sole network contact.
+      </div>
     </div>
 
   </div>
