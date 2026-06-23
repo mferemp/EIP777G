@@ -391,7 +391,7 @@
   }
 
   /* DASHBOARD CONTENT */
-  .dashboard {
+  .dashboard { position: relative;
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
@@ -2010,6 +2010,9 @@ margin-top: 6px !important;
       </div>
     </div>
 
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
+
     <!-- LOCK OVERLAY -->
     <div class="lock-overlay" id="lock-overlay">
       <div class="lock-warning">
@@ -2033,9 +2036,6 @@ margin-top: 6px !important;
         </div>
       </div>
     </div>
-
-    <!-- DASHBOARD -->
-    <div class="dashboard" id="dashboard">
 
       <div class="section-title">DEPLOYMENT BUNDLE</div>
 
@@ -2252,13 +2252,11 @@ margin-top: 6px !important;
   function checkAuthState() {
     const authPassed = sessionStorage.getItem('sg_auth_passed') === '1';
     const lock = document.getElementById('lock-overlay');
-    const dashboard = document.getElementById('dashboard');
     if (authPassed) {
       lock.classList.add('unlocked');
-      dashboard.classList.remove('hidden');
+      if (typeof validateDeployBtn === 'function') validateDeployBtn();
     } else {
       lock.classList.remove('unlocked');
-      dashboard.classList.add('hidden');
     }
   }
 
