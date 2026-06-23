@@ -244,29 +244,8 @@
   .sidebar-body strong { color: var(--teal); }
   .sidebar-body .mag { color: var(--magenta); }
 
-  .sidebar .caution-block {
-    order: 998 !important;
-  }
-
-  .sidebar .sidebar-version-badge {
-    order: 999 !important;
-    margin-top: auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    color: var(--faint) !important;
-    font-size: 8px !important;
-    letter-spacing: 0.12em !important;
-    line-height: 1 !important;
-    padding-top: 8px !important;
-    padding-bottom: 4px !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-  }
-
   /* STANDALONE OPERATION BOX */
-  .standalone-operation-box {position: relative; z-index: 10; pointer-events: auto;
+  .standalone-operation-box {
     width: min(92%, 420px);
     margin: 12px auto 0;
     padding: 12px 14px;
@@ -413,14 +392,12 @@
 
   /* DASHBOARD CONTENT */
   .dashboard {
-    position: relative;
-    flex: 1;
-    min-height: 0;
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     overflow-y: auto;
+    flex: 1;
   }
 
   .section-title {
@@ -781,6 +758,7 @@
 
   /* Put standalone teal box directly under gold/caution box */
   .sidebar .standalone-operation-box {
+    order: 4 !important;
     flex: 0 0 auto !important;
     width: min(94%, 420px) !important;
     margin: 7px auto 10px !important;
@@ -1240,7 +1218,7 @@
       line-height: 1.55;
     }
 
-    .securegate-ack-box {position: relative; z-index: 10; pointer-events: auto;
+    .securegate-ack-box {
       border: 1px solid rgba(255, 215, 0, 0.45);
       background: rgba(255, 215, 0, 0.10);
       box-shadow: 0 0 18px rgba(255, 215, 0, 0.12);
@@ -1273,6 +1251,7 @@
     }
 
     .sidebar .standalone-operation-box {
+      order: 4 !important;
     }
 
     .sidebar .caution-block {
@@ -1691,6 +1670,7 @@ margin-top: 6px !important;
 }
 
 .sidebar .standalone-operation-box {
+  order: 4 !important;
 }
 
 .sidebar .caution-block {
@@ -1944,7 +1924,6 @@ margin-top: 6px !important;
           </div>
         </div>
         <div class="scan-label">OWNER VERIFICATION</div>
-      </div>
 
       <!-- AUTHENTICATION MECHANISM MOVED BELOW SCAN BUTTON -->
       <div class="sidebar-section auth-mechanism-block">
@@ -1985,18 +1964,17 @@ margin-top: 6px !important;
             3 of 4 artifacts must match. This gate is device-bound and chain-verified. No credential is stored. No session survives tab close.
           </div>
         </div>
-      </div>
 
-      <div class="session-termination-block">
-        <div class="sidebar-section-title">Session Termination</div>
-        <div class="sidebar-body">
-          The <span class="mag">SCRUB</span> button terminates the authenticated link and <strong>immediately deletes</strong> all verification data from memory.<br><br>
-          On session end — by SCRUB, ESC, idle timeout (5 min), or tab close — <strong>all operator input is purged</strong>. No keys, addresses, or credentials are ever stored, logged, or transmitted to any server.
+        <div class="session-termination-block">
+          <div class="sidebar-section-title">Session Termination</div>
+          <div class="sidebar-body">
+            The <span class="mag">SCRUB</span> button terminates the authenticated link and <strong>immediately deletes</strong> all verification data from memory.<br><br>
+            On session end — by SCRUB, ESC, idle timeout (5 min), or tab close — <strong>all operator input is purged</strong>. No keys, addresses, or credentials are ever stored, logged, or transmitted to any server.
+          </div>
         </div>
-      </div>
 
-      <!-- STANDALONE OPERATION MOVED TO CENTER PANEL -->
-      <!-- GOLD CAUTION BOX LAST -->
+        <!-- STANDALONE OPERATION MOVED TO CENTER PANEL -->
+        <!-- GOLD CAUTION BOX LAST -->
       </div>
 
       <div class="caution-block">
@@ -2014,6 +1992,7 @@ margin-top: 6px !important;
         <span class="status-dot dot-secure"></span>
         <span id="status-text">777G v1.0 · SECURE</span>
       </div>
+
     </div>
 
   <!-- MAIN PANEL -->
@@ -2031,9 +2010,6 @@ margin-top: 6px !important;
         PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE.
       </div>
     </div>
-
-    <!-- DASHBOARD -->
-    <div class="dashboard" id="dashboard">
 
     <!-- LOCK OVERLAY -->
     <div class="lock-overlay" id="lock-overlay">
@@ -2058,6 +2034,9 @@ margin-top: 6px !important;
         </div>
       </div>
     </div>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
 
       <div class="section-title">DEPLOYMENT BUNDLE</div>
 
@@ -2274,11 +2253,13 @@ margin-top: 6px !important;
   function checkAuthState() {
     const authPassed = sessionStorage.getItem('sg_auth_passed') === '1';
     const lock = document.getElementById('lock-overlay');
+    const dashboard = document.getElementById('dashboard');
     if (authPassed) {
       lock.classList.add('unlocked');
-      if (typeof validateDeployBtn === 'function') validateDeployBtn();
+      dashboard.classList.remove('hidden');
     } else {
       lock.classList.remove('unlocked');
+      dashboard.classList.add('hidden');
     }
   }
 
