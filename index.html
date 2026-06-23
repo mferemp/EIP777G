@@ -245,7 +245,7 @@
   .sidebar-body .mag { color: var(--magenta); }
 
   /* STANDALONE OPERATION BOX */
-  .standalone-operation-box {
+  .standalone-operation-box {position: relative; z-index: 10; pointer-events: auto;
     width: min(92%, 420px);
     margin: 12px auto 0;
     padding: 12px 14px;
@@ -1218,7 +1218,7 @@
       line-height: 1.55;
     }
 
-    .securegate-ack-box {
+    .securegate-ack-box {position: relative; z-index: 10; pointer-events: auto;
       border: 1px solid rgba(255, 215, 0, 0.45);
       background: rgba(255, 215, 0, 0.10);
       box-shadow: 0 0 18px rgba(255, 215, 0, 0.12);
@@ -1992,7 +1992,6 @@ margin-top: 6px !important;
         <span class="status-dot dot-secure"></span>
         <span id="status-text">777G v1.0 · SECURE</span>
       </div>
-
     </div>
 
   <!-- MAIN PANEL -->
