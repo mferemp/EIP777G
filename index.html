@@ -1945,7 +1945,7 @@ margin-top: 6px !important;
           <button id="verify-qr-btn" class="verify-qr-btn verify-link-only" disabled>LINK DEVICE</button>
         </div>
 
-        <div class="verify-link-copy">
+        <div class="verify-link-copy scan-sublabel" id="scan-status">
           Genesis ownership scan<br>
           initiates authentication
         </div>
@@ -2018,25 +2018,19 @@ margin-top: 6px !important;
 
       <div class="disclaimer-overlay">
         <div class="disclaimer-frame">
-          <div class="disclaimer-text">
-                BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE. PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE.
-              </div>
+          <div class="center-notice-box standalone-operation-box">
+            <div class="center-notice-title">STANDALONE OPERATION</div>
+            <div class="center-notice-body">
+              This dashboard executes the authentication flow client-side. You are not submitting K1 authentication data to any operator, server, or third party. Cryptographic checks run in your browser. Chain reads use the server-supplied RPC configuration. RPC is not part of the auth gate.
+            </div>
+          </div>
+          <div class="center-notice-box securegate-ack-box">
+            <div class="center-notice-body">
+              BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE.
+              PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE.
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-
-    <!-- CENTER NOTICE BOXES -->
-    <div class="center-notice-box standalone-operation-box">
-      <div class="center-notice-title">STANDALONE OPERATION</div>
-      <div class="center-notice-body">
-        This dashboard executes the authentication flow client-side. You are not submitting K1 authentication data to any operator, server, or third party. Cryptographic checks run in your browser. Chain reads use the server-supplied RPC configuration. RPC is not part of the auth gate.
-      </div>
-    </div>
-
-    <div class="center-notice-box securegate-ack-box">
-      <div class="center-notice-body">
-        BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE.
-        PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE.
       </div>
     </div>
 
