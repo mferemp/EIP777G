@@ -243,6 +243,19 @@
   }
   .sidebar-body strong { color: var(--teal); }
   .sidebar-body .mag { color: var(--magenta); }
+  .sidebar-version-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: var(--faint);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    padding-top: 2px;
+    text-align: center;
+    white-space: nowrap;
+  }
 
   /* STANDALONE OPERATION BOX */
   .standalone-operation-box {position: relative; z-index: 10; pointer-events: auto;
@@ -1924,6 +1937,7 @@ margin-top: 6px !important;
           </div>
         </div>
         <div class="scan-label">OWNER VERIFICATION</div>
+      </div>
 
       <!-- AUTHENTICATION MECHANISM MOVED BELOW SCAN BUTTON -->
       <div class="sidebar-section auth-mechanism-block">
