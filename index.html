@@ -244,23 +244,6 @@
   .sidebar-body strong { color: var(--teal); }
   .sidebar-body .mag { color: var(--magenta); }
 
-  .sidebar .sidebar-version-badge {
-    order: 999 !important;
-    margin-top: auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    color: var(--faint) !important;
-    font-size: 8px !important;
-    letter-spacing: 0.12em !important;
-    line-height: 1 !important;
-    padding-top: 8px !important;
-    padding-bottom: 4px !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-  }
-
   /* STANDALONE OPERATION BOX */
   .standalone-operation-box {
     width: min(92%, 420px);
@@ -409,8 +392,6 @@
 
   /* DASHBOARD CONTENT */
   .dashboard {
-    position: relative;
-    min-height: 0;
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
@@ -777,6 +758,7 @@
 
   /* Put standalone teal box directly under gold/caution box */
   .sidebar .standalone-operation-box {
+    order: 4 !important;
     flex: 0 0 auto !important;
     width: min(94%, 420px) !important;
     margin: 7px auto 10px !important;
@@ -1268,7 +1250,9 @@
       order: 3 !important;
     }
 
-
+    .sidebar .standalone-operation-box {
+      order: 4 !important;
+    }
 
     .sidebar .caution-block {
       order: 5 !important;
@@ -1685,7 +1669,9 @@ margin-top: 6px !important;
   order: 3 !important;
 }
 
-
+.sidebar .standalone-operation-box {
+  order: 4 !important;
+}
 
 .sidebar .caution-block {
   order: 5 !important;
@@ -1897,6 +1883,80 @@ margin-top: 6px !important;
   font-size: 9px !important;
   margin-top: 6px !important;
 }
+
+  /* === SECUREGATE UI REPAIR START === */
+  .sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .sidebar .scan-wrap {
+    order: 1 !important;
+  }
+
+  .sidebar .auth-mechanism-block {
+    order: 2 !important;
+  }
+
+  .sidebar #genesis-k1-verify-panel,
+  .sidebar .genesis-k1-verify-panel {
+    order: 3 !important;
+  }
+
+  .sidebar .session-termination-block {
+    order: 4 !important;
+  }
+
+  .sidebar .caution-block {
+    order: 998 !important;
+  }
+
+  .sidebar .sidebar-version-badge {
+    order: 999 !important;
+    margin-top: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    color: var(--faint) !important;
+    font-size: 8px !important;
+    letter-spacing: 0.12em !important;
+    line-height: 1 !important;
+    padding-top: 8px !important;
+    padding-bottom: 4px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  .dashboard {
+    position: relative !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  .center-notice-box {
+    position: relative !important;
+    z-index: 10 !important;
+    pointer-events: auto !important;
+  }
+
+  .verify-link-copy#scan-status {
+    margin-top: 7px !important;
+    color: var(--teal) !important;
+    font-size: 9.5px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    line-height: 1.35 !important;
+    text-transform: uppercase !important;
+    text-align: center !important;
+  }
+
+  .sidebar .standalone-operation-box {
+    order: unset !important;
+  }
+  /* === SECUREGATE UI REPAIR END === */
+
 </style>
 </head>
 <body>
@@ -1944,7 +2004,7 @@ margin-top: 6px !important;
         <div class="sidebar-section-title">Authentication Mechanism</div>
         <div class="sidebar-body">
           Enter Genesis K1 public address.<br>
-          Run SCAN or LINK DEVICE. Keys stay local. Session-bound until SCRUB.
+          Run <strong>SCAN</strong> or <strong>LINK DEVICE</strong>. Keys stay local. Session-bound until SCRUB.
         </div>
       </div>
 
@@ -1958,11 +2018,13 @@ margin-top: 6px !important;
           <button id="verify-scan-btn" class="verify-scan-btn hidden" disabled hidden>SCAN</button>
           <button id="verify-qr-btn" class="verify-qr-btn verify-link-only" disabled>LINK DEVICE</button>
         </div>
+          <div class="verify-link-copy scan-sublabel" id="scan-status">
+            Genesis ownership scan<br>
+            initiates authentication
+          </div>
 
-        <div class="verify-link-copy scan-sublabel" id="scan-status">
-          Genesis ownership scan<br>
-          initiates authentication
-        </div>
+
+        
 
         <div id="verify-status" class="verify-status"></div>
 
@@ -1978,8 +2040,12 @@ margin-top: 6px !important;
             3 of 4 artifacts must match. This gate is device-bound and chain-verified. No credential is stored. No session survives tab close.
           </div>
         </div>
+        </div>
 
-        <div class="session-termination-block">
+        
+
+      </div>
+<div class="session-termination-block">
           <div class="sidebar-section-title">Session Termination</div>
           <div class="sidebar-body">
             The <span class="mag">SCRUB</span> button terminates the authenticated link and <strong>immediately deletes</strong> all verification data from memory.<br><br>
@@ -1987,9 +2053,6 @@ margin-top: 6px !important;
           </div>
         </div>
 
-        <!-- STANDALONE OPERATION MOVED TO CENTER PANEL -->
-        <!-- GOLD CAUTION BOX LAST -->
-      </div>
 
       <div class="caution-block">
         <div class="caution-title">⚠ Caution</div>
@@ -2002,12 +2065,14 @@ margin-top: 6px !important;
         <button id="auth-bypass-trigger" class="admin-stick-button" aria-label="Admin" title="Admin" type="button">⚫-'</button>
       </div>
 
-      <div class="sidebar-version-badge">
+      
+
+        <div class="sidebar-version-badge">
         <span class="status-dot dot-secure"></span>
         <span id="status-text">777G v1.0 · SECURE</span>
       </div>
+  </div>
 
-    </div>
 
   <!-- MAIN PANEL -->
   <div class="main-panel">
@@ -2018,6 +2083,7 @@ margin-top: 6px !important;
         This dashboard executes the authentication flow client-side. You are not submitting K1 authentication data to any operator, server, or third party. Cryptographic checks run in your browser. Chain reads use the server-supplied RPC configuration. RPC is not part of the auth gate.
       </div>
     </div>
+
     <div class="center-notice-box securegate-ack-box">
       <div class="center-notice-body">
         BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE.
@@ -2025,12 +2091,14 @@ margin-top: 6px !important;
       </div>
     </div>
 
+
+
     <!-- DASHBOARD -->
     <div class="dashboard" id="dashboard">
 
-      <!-- LOCK OVERLAY -->
-      <div class="lock-overlay" id="lock-overlay">
-        <div class="lock-warning">
+    <!-- LOCK OVERLAY -->
+<div class="lock-overlay" id="lock-overlay">
+      <div class="lock-warning">
         <h2>DASHBOARD LOCKED</h2>
         <p class="lock-subtitle">GENESIS VERIFICATION REQUIRED</p>
         <div class="warning-body">
@@ -2050,8 +2118,10 @@ margin-top: 6px !important;
           and cannot be changed without SCRUB.
         </div>
       </div>
+    </div>
 
-    <div class="section-title">DEPLOYMENT BUNDLE</div>
+
+      <div class="section-title">DEPLOYMENT BUNDLE</div>
 
       <!-- KEY INPUTS -->
       <div class="form-grid">
@@ -2183,7 +2253,8 @@ margin-top: 6px !important;
 
   </div><!-- /main-panel -->
 
-</div><!-- /layout -->
+
+      </div><!-- /layout -->
 
 <!-- STATUSBAR -->
 <div class="statusbar">
@@ -2266,6 +2337,7 @@ margin-top: 6px !important;
   function checkAuthState() {
     const authPassed = sessionStorage.getItem('sg_auth_passed') === '1';
     const lock = document.getElementById('lock-overlay');
+    if (!lock) return;
     if (authPassed) {
       lock.classList.add('unlocked');
       if (typeof validateDeployBtn === 'function') validateDeployBtn();

@@ -1,62 +1,136 @@
-# Carryover Prompt — EIP777G / SecureGate
+# EIP777G Carryover Prompt
 
-## How to use this prompt
-Start a new session and paste this entire document verbatim. It contains the full operational context needed to continue work on the EIP777G Vercel deployment without rehashing prior debugging.
+Start here. This is the full handoff context for continuing the EIP777G UI containment work.
 
----
+## Canonical Status as of 2026-06-23
 
-## Current State (as of last session)
-- Canonical live URL: `https://gate777.vercel.app`
-- Last successful build ID: `7bca8c9b944e-20260623040725`
-- Live deployment pre-alias URL: `eip777g-dndgfts73-mferemp-6005s-projects.vercel.app`
-- Alias target for production: `gate777.vercel.app`
-- Footer: finalized and verified; do not touch bottom-right or branding
+- **Repo**: `C:\Users\mfere\EIP777G` on branch `main`
+- **Remote**: https://github.com/mferemp/EIP777G.git
+- **Live URL**: https://gate777.vercel.app (alias set, points to current Vercel deploy)
+- **Stale domain**: https://securegate-777g.vercel.app → must return 404
+- **Last known good UI commit**: `4d4ab90` ("version badge to sidebar bottom, center notices above lock overlay")
+- **Current HEAD**: `5aa8ee7` ("fix: remove duplicate dashboard wrapper") — already pushed
+- **Working tree**: clean (no uncommitted changes)
 
-## Completed Work
-1. Fixed lock-overlay center stack order: `STANDALONE OPERATION` now appears before the gold `BY USING SECUREGATE...` acknowledgement.
-2. Removed duplicate center notice boxes that were rendering outside the lock overlay.
-3. Restored `id="scan-status"` to the verify-link-copy element under LINK DEVICE in the K1 panel.
-4. Confirmed left column order: SCAN → Authentication Mechanism → Genesis K1 address (LINK DEVICE only) → verify-directions → session-termination → caution/admin.
-5. Rebuilt live assets: `node scripts/build-live.cjs && npm run obfuscate`
-6. Redeployed to Vercel and reset alias: `vercel build --target production --yes && vercel deploy --prebuilt --prod --yes && vercel alias set eip777g-dndgfts73-mferemp-6005s-projects.vercel.app gate777.vercel.app`
-7. Verified with `curl` + Python urllib: exactly one `.center-notice-box.standalone-operation-box` and one `.center-notice-box.securegate-ack-box` inside the lock overlay, `id="scan-status"` present, footer intact.
-8. Committed changes locally as `cb12d96` ("Fix center lock overlay order: standalone before ack, restore scan-status").
+## Verified Deploy Chain
 
-## Outstanding Work
-- GitHub push is blocked in this environment because write credentials are not available. Local commit `cb12d96` has not been pushed to remote.
-- If the user later provides GitHub auth, push with: `cd C:\Users\mfere\EIP777G && git push origin main` (or the appropriate branch).
+Use this exact sequence. Do not skip steps or run in parallel.
 
-## Hard Rules (do not violate)
-1. Bottom-right footer is frozen: teal envelope, thank-you popover, `@hope_ology`, `BUILT BY EMP`. Do not edit footer files, footer CSS, thank-you envelope HTML, contracts, relay, routes, or build pipeline.
-2. `STANDALONE OPERATION` must live inside `.main-panel` within the lock overlay, above the gold acknowledgement box. It must NOT be inside `.sidebar` or `scan-wrap`.
-3. The gold SecureGate acknowledgement box must remain in `.main-panel` directly below the STANDALONE OPERATION notice.
-4. The left column must contain only auth/sidebar material, ending with the caution/admin block.
-5. Items in the left column must remain in the corrected order: SCAN → auth mechanism → K1 panel (LINK DEVICE only) → verify-directions → session-termination → caution/admin.
-6. RPC configuration text must read: "Chain reads use the server-supplied RPC configuration. RPC is not part of the auth gate." The old sentence "The RPC endpoint you supply is its sole network contact." must remain at count 0.
+```bash
+git add index.html
+git commit -m "<message>"
+git push
 
-## If You Need to Make Changes
-- Only edit `C:\Users\mfere\EIP777G\index.html` for HTML/CSS layout moves.
-- After any patch: run `node scripts/build-live.cjs && npm run obfuscate`
-- Then rebuild and redeploy:
-  `vercel build --target production --yes && vercel deploy --prebuilt --prod --yes`
-- Update alias if the pre-alias URL changed:
-  `vercel alias set <new-pre-alias-url> gate777.vercel.app`
-- Always verify with curl before declaring success:
-  - `.sidebar` must NOT contain `standalone-operation-box`
-  - `.main-panel` must contain `.center-notice-box.standalone-operation-box`
-  - `.main-panel` must contain `.center-notice-box.securegate-ack-box`
-  - `id="scan-status"` must be present under LINK DEVICE
-  - Footer branding must be intact
+node scripts/build-live.cjs
+npm run obfuscate
+npm run check
 
-## File Paths
-- `C:\Users\mfere\EIP777G\index.html` — main source
-- `C:\Users\mfere\EIP777G\live\index.html` — generated public asset
-- `C:\Users\mfere\EIP777G\live\build.json` — build metadata
-- `C:\Users\mfere\EIP777G\live\BUILD_HASH.txt` — build hash
-- `C:\Users\mfere\EIP777G\CARRYOVER.md` — this file
+vercel build --target production --yes
+vercel deploy --prebuilt --prod --yes
+vercel alias set <NEW_DEPLOYMENT_URL> gate777.vercel.app
 
-## Key Invariants
-- Exactly one `STANDALONE OPERATION` notice in the center panel.
-- Exactly one gold SecureGate acknowledgement below it.
-- Left column ends with caution/admin block; no standalone box in sidebar.
-- Footer remains bottom-right unchanged.
+curl -s https://gate777.vercel.app/build.json
+curl -I -s https://gate777.vercel.app | head -n 1
+curl -I -s https://securegate-777g.vercel.app | head -n 1
+```
+
+## Non-Negotiable Gate: Diff Before Build
+
+Before applying any new patch to `index.html`, you must:
+
+1. Identify the target state (commit or approved diff)
+2. Generate the proposed unified diff on a temporary copy (do NOT modify `index.html` yet)
+3. Show the diff to the user for approval
+4. Only after explicit approval, apply the patch to `index.html`
+
+If the user says "stop" or "revert", do this instead:
+
+```bash
+git restore --source=<GOOD_COMMIT> -- index.html
+git diff -- index.html
+```
+
+Stop. Do not build, deploy, commit, or push until the diff is reviewed.
+
+## Verified Safe Baseline
+
+Commit `4d4ab90` is the approved UI baseline. From it we know:
+
+- `.center-notice-box` blocks are in `.main-panel` above `#dashboard` ✅
+- `#lock-overlay` placement may be before `#dashboard` (needs fixing in upcoming patch)
+- `.sidebar-version-badge` **absent** in 4d4ab90
+- `.dashboard` missing `position: relative;` and `min-height: 0;`
+- `checkAuthState()` contains `dashboard.classList.add/remove('hidden')`
+- `.sidebar .standalone-operation-box` still has `order: 4 !important;` at multiple locations
+
+## Approved Required Fixes (Not Yet All Applied)
+
+These are the only pending UI changes. Apply them as ONE surgical patch after diff approval:
+
+1. `.dashboard` CSS: add `position: relative;` and `min-height: 0;` (keep `flex: 1`)
+2. `#lock-overlay`: move inside `#dashboard` as the first child
+3. `checkAuthState()`: remove all `dashboard` references; keep `lock` toggles; add `validateDeployBtn()` call
+4. `.sidebar .sidebar-version-badge`: add bottom-pin CSS block (order: 999, margin-top: auto, flex alignment, etc.)
+5. Remove `order: 4 !important;` from EVERY `.sidebar .standalone-operation-box` rule in `index.html`
+   - If a rule becomes empty after removal, delete the entire rule
+
+## Strict Scope Boundaries
+
+**ONLY touch `index.html` for UI/layout fixes.**
+
+Do NOT modify:
+- backend/API files (`api/relay.js`, `api/bypass-verify.js`, etc.)
+- contract files
+- build scripts (`scripts/build-live.cjs`, `scripts/obfuscate.js`)
+- `package.json`
+- `vercel.json`
+- `.main-panel` structure (except as noted in the 5 fixes)
+- `.center-notice-box` placement
+- footer, thank-you envelope, branding
+- `routes` or domain config
+- Any RPC/key material
+
+## Live Verification Checklist
+
+After deploy, run these checks on `gate777.vercel.app`:
+
+```bash
+curl -s https://gate777.vercel.app | grep -o 'class="dashboard" id="dashboard"' | wc -l   # expect 1
+curl -s https://gate777.vercel.app | grep -o 'class="lock-overlay" id="lock-overlay"' | wc -l   # expect 1
+curl -s https://gate777.vercel.app | grep -o 'center-notice-box standalone-operation-box' | wc -l   # expect 1
+curl -s https://gate777.vercel.app | grep -o 'center-notice-box securegate-ack-box' | wc -l   # expect 1
+curl -s https://gate777.vercel.app | grep -o 'sidebar-version-badge' | wc -l   # expect 2 (1 CSS + 1 HTML)
+curl -I -s https://gate777.vercel.app | head -n 1   # expect HTTP/2 200
+curl -I -s https://securegate-777g.vercel.app | head -n 1   # expect HTTP/2 404
+```
+
+Structural check (run from Python):
+
+```python
+import urllib.request, re
+html = urllib.request.urlopen('https://gate777.vercel.app').read().decode('utf-8','replace')
+body = re.sub(r'<style[\s\S]*?</style>', '', html)
+main = body.find('<div class="main-panel"')
+standalone = body.find('center-notice-box standalone-operation-box')
+ack = body.find('center-notice-box securegate-ack-box')
+dash = body.find('<div class="dashboard" id="dashboard"')
+lock = body.find('<div class="lock-overlay" id="lock-overlay"')
+assert main < standalone < ack < dash
+assert dash < lock
+assert not (standalone < main)
+```
+
+All must pass before declaring the patch complete.
+
+## Known Pitfalls
+
+- The duplicate `#dashboard` wrapper bug existed in `fd91c46` and `5aa8ee7`. If you regenerate the proposed diff, verify it does not re-introduce this duplicate.
+- `build-live.cjs` copies root→live and writes `live/build.json`. The built `app.*.js` hash changes each build. Do not hard-code JS filenames.
+- `npm run obfuscate` skips already-obfuscated files; it is safe to re-run.
+- `vercel build` and `vercel deploy --prebuilt` must be separate steps in that order.
+- Always set the alias after deploy; stale aliases serve old code.
+- Never claim deployment is complete until the alias points to the new deploy URL AND all verification checks pass.
+
+## Current Blocking State
+
+None. Repo is clean. Approved fixes are queued. Awaiting diff generation and user approval.
