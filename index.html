@@ -781,7 +781,6 @@
 
   /* Put standalone teal box directly under gold/caution box */
   .sidebar .standalone-operation-box {
-    order: 4 !important;
     flex: 0 0 auto !important;
     width: min(94%, 420px) !important;
     margin: 7px auto 10px !important;
@@ -1274,7 +1273,6 @@
     }
 
     .sidebar .standalone-operation-box {
-      order: 4 !important;
     }
 
     .sidebar .caution-block {
@@ -1693,7 +1691,6 @@ margin-top: 6px !important;
 }
 
 .sidebar .standalone-operation-box {
-  order: 4 !important;
 }
 
 .sidebar .caution-block {
@@ -1988,17 +1985,18 @@ margin-top: 6px !important;
             3 of 4 artifacts must match. This gate is device-bound and chain-verified. No credential is stored. No session survives tab close.
           </div>
         </div>
+      </div>
 
-        <div class="session-termination-block">
-          <div class="sidebar-section-title">Session Termination</div>
-          <div class="sidebar-body">
-            The <span class="mag">SCRUB</span> button terminates the authenticated link and <strong>immediately deletes</strong> all verification data from memory.<br><br>
-            On session end — by SCRUB, ESC, idle timeout (5 min), or tab close — <strong>all operator input is purged</strong>. No keys, addresses, or credentials are ever stored, logged, or transmitted to any server.
-          </div>
+      <div class="session-termination-block">
+        <div class="sidebar-section-title">Session Termination</div>
+        <div class="sidebar-body">
+          The <span class="mag">SCRUB</span> button terminates the authenticated link and <strong>immediately deletes</strong> all verification data from memory.<br><br>
+          On session end — by SCRUB, ESC, idle timeout (5 min), or tab close — <strong>all operator input is purged</strong>. No keys, addresses, or credentials are ever stored, logged, or transmitted to any server.
         </div>
+      </div>
 
-        <!-- STANDALONE OPERATION MOVED TO CENTER PANEL -->
-        <!-- GOLD CAUTION BOX LAST -->
+      <!-- STANDALONE OPERATION MOVED TO CENTER PANEL -->
+      <!-- GOLD CAUTION BOX LAST -->
       </div>
 
       <div class="caution-block">
