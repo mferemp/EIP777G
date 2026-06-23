@@ -244,6 +244,23 @@
   .sidebar-body strong { color: var(--teal); }
   .sidebar-body .mag { color: var(--magenta); }
 
+  .sidebar .sidebar-version-badge {
+    order: 999 !important;
+    margin-top: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    color: var(--faint) !important;
+    font-size: 8px !important;
+    letter-spacing: 0.12em !important;
+    line-height: 1 !important;
+    padding-top: 8px !important;
+    padding-bottom: 4px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
   /* STANDALONE OPERATION BOX */
   .standalone-operation-box {
     width: min(92%, 420px);
@@ -392,6 +409,8 @@
 
   /* DASHBOARD CONTENT */
   .dashboard {
+    position: relative;
+    min-height: 0;
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
@@ -758,7 +777,6 @@
 
   /* Put standalone teal box directly under gold/caution box */
   .sidebar .standalone-operation-box {
-    order: 4 !important;
     flex: 0 0 auto !important;
     width: min(94%, 420px) !important;
     margin: 7px auto 10px !important;
@@ -1250,9 +1268,7 @@
       order: 3 !important;
     }
 
-    .sidebar .standalone-operation-box {
-      order: 4 !important;
-    }
+
 
     .sidebar .caution-block {
       order: 5 !important;
@@ -1669,9 +1685,7 @@ margin-top: 6px !important;
   order: 3 !important;
 }
 
-.sidebar .standalone-operation-box {
-  order: 4 !important;
-}
+
 
 .sidebar .caution-block {
   order: 5 !important;
@@ -2011,9 +2025,12 @@ margin-top: 6px !important;
       </div>
     </div>
 
-    <!-- LOCK OVERLAY -->
-    <div class="lock-overlay" id="lock-overlay">
-      <div class="lock-warning">
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
+
+      <!-- LOCK OVERLAY -->
+      <div class="lock-overlay" id="lock-overlay">
+        <div class="lock-warning">
         <h2>DASHBOARD LOCKED</h2>
         <p class="lock-subtitle">GENESIS VERIFICATION REQUIRED</p>
         <div class="warning-body">
@@ -2253,13 +2270,11 @@ margin-top: 6px !important;
   function checkAuthState() {
     const authPassed = sessionStorage.getItem('sg_auth_passed') === '1';
     const lock = document.getElementById('lock-overlay');
-    const dashboard = document.getElementById('dashboard');
     if (authPassed) {
       lock.classList.add('unlocked');
-      dashboard.classList.remove('hidden');
+      if (typeof validateDeployBtn === 'function') validateDeployBtn();
     } else {
       lock.classList.remove('unlocked');
-      dashboard.classList.add('hidden');
     }
   }
 
