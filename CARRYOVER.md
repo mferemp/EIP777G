@@ -7,9 +7,8 @@ Start here. This is the full handoff context for continuing the EIP777G UI conta
 - **Repo**: `C:\Users\mfere\EIP777G` on branch `main`
 - **Remote**: https://github.com/mferemp/EIP777G.git
 - **Live URL**: https://gate777.vercel.app (alias set, points to current Vercel deploy)
-- **Stale domain**: https://securegate-777g.vercel.app → must return 404
 - **Last known good UI commit**: `4d4ab90` ("version badge to sidebar bottom, center notices above lock overlay")
-- **Current HEAD**: `5aa8ee7` ("fix: remove duplicate dashboard wrapper") — already pushed
+- **Current HEAD**: `4f4c406` ("fix(ui): final sidebar order and envelope click repair") — already pushed
 - **Working tree**: clean (no uncommitted changes)
 
 ## Verified Deploy Chain
@@ -28,109 +27,82 @@ npm run check
 vercel build --target production --yes
 vercel deploy --prebuilt --prod --yes
 vercel alias set <NEW_DEPLOYMENT_URL> gate777.vercel.app
-
-curl -s https://gate777.vercel.app/build.json
-curl -I -s https://gate777.vercel.app | head -n 1
-curl -I -s https://securegate-777g.vercel.app | head -n 1
 ```
 
-## Non-Negotiable Gate: Diff Before Build
+## Completed Work
 
-Before applying any new patch to `index.html`, you must:
+1. Created `scripts/fix-sidebar-envelope-final.cjs` — injects CSS + inline `<script>` to:
+   - Force sidebar order: scan → auth → K1 panel → session termination → caution → version badge (sticky bottom)
+   - Hide `.sidebar .standalone-operation-box` (center standalone stays untouched)
+   - Bind envelope click handler with popover toggle
+2. Ran repair script, verified diff only adds the repair block before `</body>` and inside `</style>`
+3. Built live assets: `node scripts/build-live.cjs && npm run obfuscate`
+4. Committed as `4f4c406` and pushed to remote
+5. Redeployed to Vercel and reset alias: `gate777.vercel.app → eip777g-fdxqjxl4u-mferemp-6005s-projects.vercel.app`
+6. Curl verification confirms:
+   - Exactly one `.center-notice-box.standalone-operation-box` and one `.center-notice-box.securegate-ack-box`
+   - `#lock-overlay` present
+   - `#status-text` present
+   - `#scan-status` present
+   - `sidebar-version-badge` present
 
-1. Identify the target state (commit or approved diff)
-2. Generate the proposed unified diff on a temporary copy (do NOT modify `index.html` yet)
-3. Show the diff to the user for approval
-4. Only after explicit approval, apply the patch to `index.html`
+## BLOCKER: Envelope Click Handler Stripped in Production
 
-If the user says "stop" or "revert", do this instead:
+**`build-live.cjs` calls `stripInlineScripts`, which removes inline `<script>` blocks from `live/index.html`.**
 
-```bash
-git restore --source=<GOOD_COMMIT> -- index.html
-git diff -- index.html
-```
+The envelope click/popover logic lives in `<script id="sg-final-sidebar-envelope-fix">`, so it does not survive the build. The sidebar order CSS is live and effective, but the envelope is non-clickable in production because the JS toggle is missing.
 
-Stop. Do not build, deploy, commit, or push until the diff is reviewed.
+**curl confirms:** `sg-final-sidebar-envelope-fix` count = 0 in the deployed HTML.
 
-## Verified Safe Baseline
+## Two Fix Options (pick one)
 
-Commit `4d4ab90` is the approved UI baseline. From it we know:
+**Option A — External JS file (preferred, no build-tool changes):**
+1. Move the envelope/popover logic from inline `<script id="sg-final-sidebar-envelope-fix">` into a new file `js/envelope-fix.js`
+2. Reference it in `index.html` with `<script src="js/envelope-fix.js"></script>`
+3. `build-live.cjs` copies `js/*.js` into `live/js/`; external scripts are not stripped
+4. Remove the inline `<script id="sg-final-sidebar-envelope-fix">` from `index.html`
+5. Keep the CSS block (`/* === SG FINAL SIDEBAR + ENVELOPE FIX START === */`) in `index.html`
 
-- `.center-notice-box` blocks are in `.main-panel` above `#dashboard` ✅
-- `#lock-overlay` placement may be before `#dashboard` (needs fixing in upcoming patch)
-- `.sidebar-version-badge` **absent** in 4d4ab90
-- `.dashboard` missing `position: relative;` and `min-height: 0;`
-- `checkAuthState()` contains `dashboard.classList.add/remove('hidden')`
-- `.sidebar .standalone-operation-box` still has `order: 4 !important;` at multiple locations
+**Option B — Whitelist in build-live.cjs:**
+1. Edit `scripts/build-live.cjs` so `stripInlineScripts` skips `<script id="sg-final-sidebar-envelope-fix">`
+2. Keep inline script as-is
 
-## Approved Required Fixes (Not Yet All Applied)
+## Hard Rules (do not violate)
 
-These are the only pending UI changes. Apply them as ONE surgical patch after diff approval:
+1. Bottom-right footer is frozen: teal envelope, thank-you popover, `@hope_ology`, `BUILT BY EMP`. Do not edit footer files, footer CSS, thank-you envelope HTML, contracts, relay, routes, or build pipeline.
+2. `STANDALONE OPERATION` must live inside `.main-panel` within the lock overlay, above the gold acknowledgement box. It must NOT be inside `.sidebar` or `scan-wrap`.
+3. The gold SecureGate acknowledgement box must remain in `.main-panel` directly below the STANDALONE OPERATION notice.
+4. The left column must contain only auth/sidebar material, ending with the caution/admin block.
+5. Items in the left column must remain in the corrected order: SCAN → auth mechanism → K1 panel (LINK DEVICE only) → verify-directions → session-termination → caution/admin.
+6. RPC configuration text must read: "Chain reads use the server-supplied RPC configuration. RPC is not part of the auth gate." The old sentence "The RPC endpoint you supply is its sole network contact." must remain at count 0.
+7. **Do not modify the bottom-right footer, thank-you envelope, or related branding under any circumstance.**
 
-1. `.dashboard` CSS: add `position: relative;` and `min-height: 0;` (keep `flex: 1`)
-2. `#lock-overlay`: move inside `#dashboard` as the first child
-3. `checkAuthState()`: remove all `dashboard` references; keep `lock` toggles; add `validateDeployBtn()` call
-4. `.sidebar .sidebar-version-badge`: add bottom-pin CSS block (order: 999, margin-top: auto, flex alignment, etc.)
-5. Remove `order: 4 !important;` from EVERY `.sidebar .standalone-operation-box` rule in `index.html`
-   - If a rule becomes empty after removal, delete the entire rule
+## File Paths
 
-## Strict Scope Boundaries
+- `C:\Users\mfere\EIP777G\index.html` — main source
+- `C:\Users\mfere\EIP777G\live\index.html` — generated public asset
+- `C:\Users\mfere\EIP777G\live\build.json` — build metadata
+- `C:\Users\mfere\EIP777G\live\BUILD_HASH.txt` — build hash
+- `C:\Users\mfere\EIP777G\scripts\fix-sidebar-envelope-final.cjs` — repair script (keep for reference)
+- `C:\Users\mfere\EIP777G\scripts\build-live.cjs` — build pipeline (may need patch for Option B)
+- `C:\Users\mfere\EIP777G\CARRYOVER.md` — this file
 
-**ONLY touch `index.html` for UI/layout fixes.**
+## If You Need to Make Changes
 
-Do NOT modify:
-- backend/API files (`api/relay.js`, `api/bypass-verify.js`, etc.)
-- contract files
-- build scripts (`scripts/build-live.cjs`, `scripts/obfuscate.js`)
-- `package.json`
-- `vercel.json`
-- `.main-panel` structure (except as noted in the 5 fixes)
-- `.center-notice-box` placement
-- footer, thank-you envelope, branding
-- `routes` or domain config
-- Any RPC/key material
-
-## Live Verification Checklist
-
-After deploy, run these checks on `gate777.vercel.app`:
-
-```bash
-curl -s https://gate777.vercel.app | grep -o 'class="dashboard" id="dashboard"' | wc -l   # expect 1
-curl -s https://gate777.vercel.app | grep -o 'class="lock-overlay" id="lock-overlay"' | wc -l   # expect 1
-curl -s https://gate777.vercel.app | grep -o 'center-notice-box standalone-operation-box' | wc -l   # expect 1
-curl -s https://gate777.vercel.app | grep -o 'center-notice-box securegate-ack-box' | wc -l   # expect 1
-curl -s https://gate777.vercel.app | grep -o 'sidebar-version-badge' | wc -l   # expect 2 (1 CSS + 1 HTML)
-curl -I -s https://gate777.vercel.app | head -n 1   # expect HTTP/2 200
-curl -I -s https://securegate-777g.vercel.app | head -n 1   # expect HTTP/2 404
-```
-
-Structural check (run from Python):
-
-```python
-import urllib.request, re
-html = urllib.request.urlopen('https://gate777.vercel.app').read().decode('utf-8','replace')
-body = re.sub(r'<style[\s\S]*?</style>', '', html)
-main = body.find('<div class="main-panel"')
-standalone = body.find('center-notice-box standalone-operation-box')
-ack = body.find('center-notice-box securegate-ack-box')
-dash = body.find('<div class="dashboard" id="dashboard"')
-lock = body.find('<div class="lock-overlay" id="lock-overlay"')
-assert main < standalone < ack < dash
-assert dash < lock
-assert not (standalone < main)
-```
-
-All must pass before declaring the patch complete.
-
-## Known Pitfalls
-
-- The duplicate `#dashboard` wrapper bug existed in `fd91c46` and `5aa8ee7`. If you regenerate the proposed diff, verify it does not re-introduce this duplicate.
-- `build-live.cjs` copies root→live and writes `live/build.json`. The built `app.*.js` hash changes each build. Do not hard-code JS filenames.
-- `npm run obfuscate` skips already-obfuscated files; it is safe to re-run.
-- `vercel build` and `vercel deploy --prebuilt` must be separate steps in that order.
-- Always set the alias after deploy; stale aliases serve old code.
-- Never claim deployment is complete until the alias points to the new deploy URL AND all verification checks pass.
-
-## Current Blocking State
-
-None. Repo is clean. Approved fixes are queued. Awaiting diff generation and user approval.
+- Only edit `C:\Users\mfere\EIP777G\index.html` for HTML/CSS layout moves
+- After any patch: run `node scripts/build-live.cjs && npm run obfuscate`
+- Then rebuild and redeploy:
+  ```bash
+  vercel build --target production --yes && vercel deploy --prebuilt --prod --yes
+  ```
+- Update alias if the pre-alias URL changed:
+  ```bash
+  vercel alias set <new-pre-alias-url> gate777.vercel.app
+  ```
+- Always verify with curl before declaring success:
+  - `.sidebar` must NOT contain `standalone-operation-box`
+  - `.main-panel` must contain `.center-notice-box.standalone-operation-box`
+  - `.main-panel` must contain `.center-notice-box.securegate-ack-box`
+  - `id="scan-status"` must be present under LINK DEVICE
+  - Footer branding must be intact
+  - **`js/envelope-fix.js` must be referenced in `<script src="...">` and present in `live/` deploy**
