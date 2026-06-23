@@ -243,18 +243,26 @@
   }
   .sidebar-body strong { color: var(--teal); }
   .sidebar-body .mag { color: var(--magenta); }
-  .sidebar-version-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    color: var(--faint);
-    font-size: 8px;
-    letter-spacing: 0.12em;
-    line-height: 1;
-    padding-top: 2px;
-    text-align: center;
-    white-space: nowrap;
+
+  .sidebar .caution-block {
+    order: 998 !important;
+  }
+
+  .sidebar .sidebar-version-badge {
+    order: 999 !important;
+    margin-top: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    color: var(--faint) !important;
+    font-size: 8px !important;
+    letter-spacing: 0.12em !important;
+    line-height: 1 !important;
+    padding-top: 8px !important;
+    padding-bottom: 4px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
   }
 
   /* STANDALONE OPERATION BOX */
@@ -404,13 +412,15 @@
   }
 
   /* DASHBOARD CONTENT */
-  .dashboard { position: relative;
+  .dashboard {
+    position: relative;
+    flex: 1;
+    min-height: 0;
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     overflow-y: auto;
-    flex: 1;
   }
 
   .section-title {
