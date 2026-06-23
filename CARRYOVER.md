@@ -1,121 +1,51 @@
-# SecureGate 777G — Carryover Prompt for Next Session
+# Carryover Prompt — Next Session
 
-## Session Handoff — Monday, June 22, 2026 (late evening)
+## Current State (as of last session)
+- Canonical live URL: `https://gate777.vercel.app`
+- Last successful build ID: `323d3f4d584b-20260623033522`
+- Live deployment pre-alias URL: `eip777g-4yr4sg2gv-mferemp-6005s-projects.vercel.app`
+- Alias target for production: `gate777.vercel.app`
+- Footer: finalized and verified; do not touch bottom-right or branding
 
-Production site is live at `https://gate777.vercel.app` (200 OK).
-GitHub HEAD is `404bdbe` (clean push, source-of-truth gap closed).
-Custom domain `securegate-777g.vercel.app` returns 401 — Vercel Deployment Protection setting must be disabled manually in the dashboard.
+## Completed Work
+1. Fixed broken CSS brace balance that prevented the bottom-right footer override from applying.
+2. Applied full bottom-right footer override (teal envelope, thank-you popover, @hope_ology).
+3. Reordered left-column sidebar to explicit spec.
+4. Added center-notice CSS and inserted center `.center-notice-box` HTML for STANDALONE OPERATION + SecureGate acknowledgement.
+5. Swapped `verify-directions` and `session-termination` inside the K1 panel so the order is now correct.
+6. Deployed Vercel build and alias confirmed exit 0.
+7. Browser visual confirmed sidebar order as intended after reorder.
 
----
+## Outstanding Work (do not skip)
+- The `.center-notice-box.standalone-operation-box` and `.center-notice-box.securegate-ack-box` injected into `.main-panel` are **not visible** in the live render because the lock overlay is likely covering them.
+- The sidebar still contains a `standalone-operation-box` inside `scan-wrap` (confirmed via `document.querySelector('.standalone-operation-box').parentElement.className === 'scan-wrap'`).
+- User's hard rules:
+  - Bottom-right is frozen. Do not touch.
+  - STANDALONE OPERATION must be in `.main-panel`, not inside `.sidebar`, not inside `scan-wrap`.
+  - The gold SecureGate acknowledgement box must appear in `.main-panel` directly below the STANDALONE OPERATION notice.
+  - The left column must contain only auth/sidebar material, ending with the caution/admin block.
+  - Items 5 and 6 in the left column must remain in the corrected order (verify-directions BEFORE session-termination).
 
-## Verified State at Handoff
+## Exact Next Steps (execute in order)
+1. Inspect `index.html` around `.main-panel` and confirm whether `.center-notice-box` elements exist above the lock overlay.
+2. If `.center-notice-box` markup is already present but hidden, fix visibility/layout so it appears above the auth overlay.
+3. Ensure `.standalone-operation-box` is fully removed from `.sidebar` and `scan-wrap`.
+4. Ensure `.center-notice-box.standalone-operation-box` is placed inside `.main-panel`, before the lock overlay/gold acknowledgement pair.
+5. Run restore-last-known-good check if any patch fails (see prior `vercel`/alias commands).
+6. Rebuild and redeploy: `node scripts/build-live.cjs && npm run obfuscate && vercel build --target production --yes && vercel deploy --prebuilt --prod --yes && vercel alias set eip777g-4yr4sg2gv-mferemp-6005s-projects.vercel.app gate777.vercel.app`
+7. Verify with `curl` cachebust and browser visual/inspect:
+   - `.sidebar` does NOT contain `standalone-operation-box`
+   - `.main-panel` contains `.center-notice-box.standalone-operation-box`
+   - `.main-panel` contains `.center-notice-box.securegate-ack-box`
+   - Left column ends with caution/admin block
+   - Bottom-right footer unchanged
 
-| Item | Value |
-|---|---|
-| GitHub HEAD | `404bdbe` |
-| Production alias (unprotected) | `https://eip777g-mferemp-6005s-projects.vercel.app` |
-| Custom domain (BLOCKED) | `https://securegate-777g.vercel.app` → 401 |
-| Route fix | Committed: `vercel.json` uses `routes` + `status: 404` for all blocked paths |
-| Build meta tag (in `live/index.html`) | `242ff6b1c655-20260622064049` ✅ matches current HEAD |
-| `live/build.json` | reports `gitCommit: 242ff6b1c655` ✅ |
-| CSP header | present on production |
-| Runtime-network-check | **must be re-run** against the canonical unprotected alias |
-| Obfuscated bundle literal scan | advisory-only, pending runtime-network-check pass for clearance |
-| Testnet readiness | not started |
-| Gate 4 / mainnet | **CLOSED** — explicit user authorization required |
+## File Paths to Touch
+- `C:\\Users\\mfere\\EIP777G\\index.html` only for HTML/CSS layout moves.
+- Do not edit footer files, footer CSS, thank-you envelope HTML, contracts, relay, routes, build pipeline.
 
----
-
-## Exact Remaining Work (in order)
-
-### 1. Manual Vercel dashboard action (cannot be done from terminal)
-- Open **Vercel → eip777g project → Settings → Deployment Protection**
-- Ensure `securegate-777g.vercel.app` production alias is set to **unprotected / disabled**
-- Confirm by running:
-  ```
-  curl -sI https://securegate-777g.vercel.app | head -1
-  ```
-  Expected: `HTTP/1.1 200 OK` (not `401 Unauthorized`)
-
-### 2. Re-run verification stack against canonical unprotected alias
-Run these commands **exactly**:
-
-```bash
-cd C:/Users/mfere/EIP777G
-
-# Route blocking
-LIVE_URL=https://eip777g-mferemp-6005s-projects.vercel.app node scripts/live-check.cjs
-
-# Stale/hardcoded values
-LIVE_URL=https://eip777g-mferemp-6005s-projects.vercel.app node scripts/live-stale-check.cjs
-
-# Runtime network leak check
-LIVE_URL=https://eip777g-mferemp-6005s-projects.vercel.app node scripts/runtime-network-check.cjs
-
-# Final consolidated check
-LIVE_URL=https://eip777g-mferemp-6005s-projects.vercel.app node scripts/final-check.cjs
-```
-
-**Stopping rule:** If `live-check.cjs`, `live-stale-check.cjs`, or `final-check.cjs` fails for any reason other than the known obfuscation-literal-scan advisory, stop and report exact output. Do not claim gate closure on partial success.
-
-### 3. Obfuscated bundle clearance
-- If `runtime-network-check.cjs` passes (exit 0), the obfuscated-bundle literal scan advisory (`deployerPrivateKey`, `k1PrivateKey` identifier names in lookup table, not leaked values) is cleared.
-- If `live-stale-check.cjs` still returns exit 1 only for those advisory strings after runtime-network-check pass, document the waiver explicitly: **"runtime-network-check passed, obfuscation literal scan advisory confirmed non-leaking identifiers"**
-- Do not silently waive. Tie waiver to same-build runtime-network-check result.
-
-### 4. Build artifact sync check
-Confirm `live/build.json` and the HTML `<meta name="securegate-build">` on production both show `242ff6b1c655-20260622064049`. If they diverge, re-run:
-```bash
-node scripts/build-live.cjs
-vercel build
-vercel deploy --prebuilt --yes
-vercel alias set <new-preview-url> securegate-777g.vercel.app
-```
-but **do not** do this unless the meta/buildId mismatch actually recurs.
-
----
-
-## Constraints (unchanged)
-
-- Do not push to testnet or claim Gate 4 / mainnet closure without explicit user authorization.
-- Do not expose RPC URLs, Alchemy URLs, private keys, mnemonics, seed phrases, or `OPERATOR_SIGNING_KEY`.
-- RPCs/keys live only in Vercel/server env vars; never expose to client.
-- Vercel blocked paths must use `routes` + `status: 404` only — never `rewrites` + `continue: true` + `/404`.
-- If any check fails (except noted obfuscation advisory), stop and report exact output.
-
----
-
-## What Was Already Done (do not repeat)
-
-- `vercel.json` rewritten from `rewrites` to `routes` with terminating 404 rules — committed and pushed (`242ff6b` → `404bdbe`)
-- `scripts/build-live.cjs` generates fresh `buildId` from `git rev-parse HEAD` + timestamp — **no hardcoding**
-- `scripts/fix-routes.cjs` injects CSP headers before filesystem handler in `.vercel/output/config.json`
-- `index.html` stale `<script src="js/genesis-verification.js">` removed
-- `live-check.cjs`, `live-stale-check.cjs`, `runtime-network-check.cjs`, `final-check.cjs` updated with correct blocked paths and obfuscation-aware logic
-- Source-of-truth gap closed: GitHub HEAD matches deployed build metadata
-
----
-
-## Open Decision Points
-
-1. **Custom domain protection** — user must toggle in Vercel UI. Assistant cannot proceed with public-access verification at `securegate-777g.vercel.app` until this is done.
-2. **Testnet readiness** — pending verification stack green + domain protection fix.
-3. **Gate 4 / mainnet** — remains closed until explicit authorization. No further code changes without scoped auth per chain.
-4. **Repo privacy** — user noted GitHub repo must be set to private manually. Not yet confirmed done.
-
----
-
-## Success Criteria for Next Session
-
-- `curl -sI https://securegate-777g.vercel.app` returns `200 OK`
-- All four check scripts pass (or advisory-only exit 1 with documented waiver)
-- `live/build.json` and production HTML meta tag both show `242ff6b1c655-20260622064049`
-- No hardcoded build SHA remains in any script
-- GitHub HEAD reflects any new commits
-- No secrets, RPC URLs, or credentials exposed in any summary or file
-
----
-
-## Session Entry Command
-
-Start next session by reading this file and continuing from **"Exact Remaining Work, step 2"** once the manual Vercel dashboard action is confirmed done.
+## Important Constraints
+- Keep `id="auth-bypass-trigger"` on the admin button.
+- Preserve all existing CSS styling/classes where possible; use `.center-notice-box` styles already defined in the `<style>` block (CENTER NOTICE BOXES section).
+- Preserve left-column order classes (`.auth-mechanism-block`, `.genesis-k1-verify-panel`, `.caution-block`).
+- Footer override block (`FINAL BOTTOM-RIGHT FOOTER OVERRIDE`) is frozen.

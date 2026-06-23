@@ -121,7 +121,7 @@ const REQUIRED_TOKENS = [
 
 // PUBLIC BUILD INJECTIONS
 const PUBLIC_HEAD_INJECTION = `
-  <!-- SecureGate Public Console — Remedial Interface -->
+  <!-- SecureGate Public Console -->
   <meta name="description" content="SecureGate v1 — Public Recovery Console. Session-only. No persistent storage.">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <script>
@@ -132,23 +132,7 @@ const PUBLIC_HEAD_INJECTION = `
   </script>
 `;
 
-const PUBLIC_BODY_INJECTION = `
-  <div id="public-notice" style="position:fixed; bottom:12px; right:12px; z-index:40; background:rgba(17,17,17,0.92); border:1px solid #262626; border-radius:10px; padding:14px; max-width:320px; font-size:12px; color:#a1a1aa; line-height:1.6;">
-    <div style="display:flex; align-items:center; gap:8px; color:#fbbf24; margin-bottom:8px;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-      </svg>
-      <strong style="font-weight:700; letter-spacing:0.02em;">Public Console — Remedial</strong>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:2px; font-size:10px;">
-      <div>• No contract addresses stored</div>
-      <div>• No mechanism documented</div>
-      <div>• Keys: session-only, memory-only</div>
-      <div>• Device-bound session</div>
-      <div>• Paste wiring each visit</div>
-    </div>
-  </div>
-`;
+const PUBLIC_BODY_INJECTION = '';
 
 // Regex for SG_LIVE_REMOVE sections
 function makeLiveRemoveRegex() {
@@ -261,7 +245,9 @@ function minifyHtml(html) {
 
 function injectPublicMarkers(html) {
     html = html.replace('</head>', PUBLIC_HEAD_INJECTION + '</head>');
-    html = html.replace(/<body[^>]*>/, (match) => match + PUBLIC_BODY_INJECTION);
+    if (PUBLIC_BODY_INJECTION.trim()) {
+      html = html.replace(/<body[^>]*>/, (match) => match + PUBLIC_BODY_INJECTION);
+    }
     return html;
 }
 
