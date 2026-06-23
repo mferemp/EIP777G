@@ -1,51 +1,62 @@
-# Carryover Prompt — Next Session
+# Carryover Prompt — EIP777G / SecureGate
+
+## How to use this prompt
+Start a new session and paste this entire document verbatim. It contains the full operational context needed to continue work on the EIP777G Vercel deployment without rehashing prior debugging.
+
+---
 
 ## Current State (as of last session)
 - Canonical live URL: `https://gate777.vercel.app`
-- Last successful build ID: `323d3f4d584b-20260623033522`
-- Live deployment pre-alias URL: `eip777g-4yr4sg2gv-mferemp-6005s-projects.vercel.app`
+- Last successful build ID: `7bca8c9b944e-20260623040725`
+- Live deployment pre-alias URL: `eip777g-dndgfts73-mferemp-6005s-projects.vercel.app`
 - Alias target for production: `gate777.vercel.app`
 - Footer: finalized and verified; do not touch bottom-right or branding
 
 ## Completed Work
-1. Fixed broken CSS brace balance that prevented the bottom-right footer override from applying.
-2. Applied full bottom-right footer override (teal envelope, thank-you popover, @hope_ology).
-3. Reordered left-column sidebar to explicit spec.
-4. Added center-notice CSS and inserted center `.center-notice-box` HTML for STANDALONE OPERATION + SecureGate acknowledgement.
-5. Swapped `verify-directions` and `session-termination` inside the K1 panel so the order is now correct.
-6. Deployed Vercel build and alias confirmed exit 0.
-7. Browser visual confirmed sidebar order as intended after reorder.
+1. Fixed lock-overlay center stack order: `STANDALONE OPERATION` now appears before the gold `BY USING SECUREGATE...` acknowledgement.
+2. Removed duplicate center notice boxes that were rendering outside the lock overlay.
+3. Restored `id="scan-status"` to the verify-link-copy element under LINK DEVICE in the K1 panel.
+4. Confirmed left column order: SCAN → Authentication Mechanism → Genesis K1 address (LINK DEVICE only) → verify-directions → session-termination → caution/admin.
+5. Rebuilt live assets: `node scripts/build-live.cjs && npm run obfuscate`
+6. Redeployed to Vercel and reset alias: `vercel build --target production --yes && vercel deploy --prebuilt --prod --yes && vercel alias set eip777g-dndgfts73-mferemp-6005s-projects.vercel.app gate777.vercel.app`
+7. Verified with `curl` + Python urllib: exactly one `.center-notice-box.standalone-operation-box` and one `.center-notice-box.securegate-ack-box` inside the lock overlay, `id="scan-status"` present, footer intact.
+8. Committed changes locally as `cb12d96` ("Fix center lock overlay order: standalone before ack, restore scan-status").
 
-## Outstanding Work (do not skip)
-- The `.center-notice-box.standalone-operation-box` and `.center-notice-box.securegate-ack-box` injected into `.main-panel` are **not visible** in the live render because the lock overlay is likely covering them.
-- The sidebar still contains a `standalone-operation-box` inside `scan-wrap` (confirmed via `document.querySelector('.standalone-operation-box').parentElement.className === 'scan-wrap'`).
-- User's hard rules:
-  - Bottom-right is frozen. Do not touch.
-  - STANDALONE OPERATION must be in `.main-panel`, not inside `.sidebar`, not inside `scan-wrap`.
-  - The gold SecureGate acknowledgement box must appear in `.main-panel` directly below the STANDALONE OPERATION notice.
-  - The left column must contain only auth/sidebar material, ending with the caution/admin block.
-  - Items 5 and 6 in the left column must remain in the corrected order (verify-directions BEFORE session-termination).
+## Outstanding Work
+- GitHub push is blocked in this environment because write credentials are not available. Local commit `cb12d96` has not been pushed to remote.
+- If the user later provides GitHub auth, push with: `cd C:\Users\mfere\EIP777G && git push origin main` (or the appropriate branch).
 
-## Exact Next Steps (execute in order)
-1. Inspect `index.html` around `.main-panel` and confirm whether `.center-notice-box` elements exist above the lock overlay.
-2. If `.center-notice-box` markup is already present but hidden, fix visibility/layout so it appears above the auth overlay.
-3. Ensure `.standalone-operation-box` is fully removed from `.sidebar` and `scan-wrap`.
-4. Ensure `.center-notice-box.standalone-operation-box` is placed inside `.main-panel`, before the lock overlay/gold acknowledgement pair.
-5. Run restore-last-known-good check if any patch fails (see prior `vercel`/alias commands).
-6. Rebuild and redeploy: `node scripts/build-live.cjs && npm run obfuscate && vercel build --target production --yes && vercel deploy --prebuilt --prod --yes && vercel alias set eip777g-4yr4sg2gv-mferemp-6005s-projects.vercel.app gate777.vercel.app`
-7. Verify with `curl` cachebust and browser visual/inspect:
-   - `.sidebar` does NOT contain `standalone-operation-box`
-   - `.main-panel` contains `.center-notice-box.standalone-operation-box`
-   - `.main-panel` contains `.center-notice-box.securegate-ack-box`
-   - Left column ends with caution/admin block
-   - Bottom-right footer unchanged
+## Hard Rules (do not violate)
+1. Bottom-right footer is frozen: teal envelope, thank-you popover, `@hope_ology`, `BUILT BY EMP`. Do not edit footer files, footer CSS, thank-you envelope HTML, contracts, relay, routes, or build pipeline.
+2. `STANDALONE OPERATION` must live inside `.main-panel` within the lock overlay, above the gold acknowledgement box. It must NOT be inside `.sidebar` or `scan-wrap`.
+3. The gold SecureGate acknowledgement box must remain in `.main-panel` directly below the STANDALONE OPERATION notice.
+4. The left column must contain only auth/sidebar material, ending with the caution/admin block.
+5. Items in the left column must remain in the corrected order: SCAN → auth mechanism → K1 panel (LINK DEVICE only) → verify-directions → session-termination → caution/admin.
+6. RPC configuration text must read: "Chain reads use the server-supplied RPC configuration. RPC is not part of the auth gate." The old sentence "The RPC endpoint you supply is its sole network contact." must remain at count 0.
 
-## File Paths to Touch
-- `C:\\Users\\mfere\\EIP777G\\index.html` only for HTML/CSS layout moves.
-- Do not edit footer files, footer CSS, thank-you envelope HTML, contracts, relay, routes, build pipeline.
+## If You Need to Make Changes
+- Only edit `C:\Users\mfere\EIP777G\index.html` for HTML/CSS layout moves.
+- After any patch: run `node scripts/build-live.cjs && npm run obfuscate`
+- Then rebuild and redeploy:
+  `vercel build --target production --yes && vercel deploy --prebuilt --prod --yes`
+- Update alias if the pre-alias URL changed:
+  `vercel alias set <new-pre-alias-url> gate777.vercel.app`
+- Always verify with curl before declaring success:
+  - `.sidebar` must NOT contain `standalone-operation-box`
+  - `.main-panel` must contain `.center-notice-box.standalone-operation-box`
+  - `.main-panel` must contain `.center-notice-box.securegate-ack-box`
+  - `id="scan-status"` must be present under LINK DEVICE
+  - Footer branding must be intact
 
-## Important Constraints
-- Keep `id="auth-bypass-trigger"` on the admin button.
-- Preserve all existing CSS styling/classes where possible; use `.center-notice-box` styles already defined in the `<style>` block (CENTER NOTICE BOXES section).
-- Preserve left-column order classes (`.auth-mechanism-block`, `.genesis-k1-verify-panel`, `.caution-block`).
-- Footer override block (`FINAL BOTTOM-RIGHT FOOTER OVERRIDE`) is frozen.
+## File Paths
+- `C:\Users\mfere\EIP777G\index.html` — main source
+- `C:\Users\mfere\EIP777G\live\index.html` — generated public asset
+- `C:\Users\mfere\EIP777G\live\build.json` — build metadata
+- `C:\Users\mfere\EIP777G\live\BUILD_HASH.txt` — build hash
+- `C:\Users\mfere\EIP777G\CARRYOVER.md` — this file
+
+## Key Invariants
+- Exactly one `STANDALONE OPERATION` notice in the center panel.
+- Exactly one gold SecureGate acknowledgement below it.
+- Left column ends with caution/admin block; no standalone box in sidebar.
+- Footer remains bottom-right unchanged.
