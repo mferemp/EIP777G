@@ -55,41 +55,6 @@ This public README does not waive ownership. Full legal terms: [LICENSE](./LICEN
 
 ---
 
-## Author & ownership stipulation
-
-> **Statement.** Empress (@Hope_ology) is the **sole author and owner** of the total
-> 777G Genesis Gate / SecureGate build. This includes complete logic, workflow design,
-> variables, and deliberate departures from industry standards — whether authored
-> directly or **assembled piecemeal across various large-language-model (LLM)
-> sessions**.
->
-> **Stipulation.** No LLM provider, model operator, or third-party assistant acquires
-> authorship, ownership, license, or attribution rights by assisting with code or
-> documentation. All output was directed, selected, edited, and owned by Empress.
-> The total work product is attributed **exclusively to Empress (@Hope_ology)**.
-
-This public README does not waive ownership. Full legal terms: [LICENSE](./LICENSE).
-
----
-
-## What this is (plain English)
-
-777G Genesis Gate is a **secure deployment dashboard** for the **EIP-777G Genesis Lock** — an irrevocable key nullification gate for compromised wallet recovery.
-
-**Core mechanism:**
-- **K1 (compromised key):** Retains call ability, **cannot complete** (requires K2 auth)
-- **K2 (air-gapped authorizer):** Sole authorization gate — only address that can authorize
-- **K3 (drop wallet):** Receives all swept assets, normal wallet behavior
-
-**Deployment flow:**
-1. Enter Deployer key (burner), K1 address, K2 address, K3 address, RPC URL
-2. Calculate funding requirements per chain
-3. Auto-scan revoke targets (ERC20/ERC721/custom delegates)
-4. Flashbots bundle: Revoke All → Deploy Genesis Lock → Verify
-5. Smoke test: Verify deployment, severance status, balances
-
----
-
 ## Quick start (5 minutes)
 
 ### 1. Install
@@ -246,4 +211,4 @@ Proprietary. **All rights reserved.** No open-source grant. Full terms: [LICENSE
 
 ---
 
-*777G Genesis Gate v1 — sole author Empress (@Hope_ology) — total build attributed exclusively to Empress, including LLM-assisted assembly.*# Deploy trigger Mon, Jun 15, 2026  8:31:48 AM
+*777G Genesis Gate v1 — sole author Empress (@Hope_ology) — total build attributed exclusively to Empress, including LLM-assisted assembly.*
