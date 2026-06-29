@@ -2334,7 +2334,7 @@ margin-top: 6px !important;
           <div class="info-box-body">
             <ul class="step-list">
               <li><span class="step-num">1</span>Paste <span class="teal">DEPLOYER KEY</span> — one-time burner funded for execution only. Address auto-derives.</li>
-              <li><span class="step-num">2</span>Paste <span class="teal">K1 KEY</span> — required to repossess assets during gate enforcement. K1 retains EOA call capability, loses completion capability.</li>
+              <li><span class="step-num">2</span>Paste <span class="teal">K1 KEY</span> — the <strong>compromised wallet</strong> you are recovering from. K1 can only queue intents; it cannot move funds autonomously. K2 authorization is mandatory for any execution.</li>
               <li><span class="step-num">3</span>Enter <span class="gold">K2 GATE ADDRESS</span> — all transactions will route through K2. <span class="mag">Never disclose this key.</span></li>
               <li><span class="step-num">4</span>Enter <span class="gold">K3 DROP ADDRESS</span> — egress routing target. <span class="mag">Never disclose this key.</span></li>
               <li><span class="step-num">5</span>Select chain → RPC auto-fills. Override if needed.</li>
@@ -2431,7 +2431,7 @@ margin-top: 6px !important;
 <!-- SCRIPTS -->
 <script src="vendor/ethers.min.js"></script>
 <script src="vendor/qrcode.min.js"></script>
-<script src="js/app.2c664e287657-20260622022038.js"></script>
+<script src="js/app.ecac4d9a7db6-20260623175541.js"></script>
 
 <script>
 // ── BOOTSTRAP ──
@@ -2558,7 +2558,6 @@ margin-top: 6px !important;
   })();
   </script>
 
-<script src="js/envelope-fix.js" defer></script>
 
 </body>
 </html>
