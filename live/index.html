@@ -44,7 +44,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #identity{display:flex;flex-direction:column;gap:1px;line-height:1}
 #sg-name{
   font-size:14px;font-weight:900;letter-spacing:.16em;
-  color:var(--teal);text-transform:uppercase;white-space:nowrap;
+  /* teal → pink gradient on SECUREGATE wordmark */
+  background:linear-gradient(90deg,var(--teal) 0%,var(--mag) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-transform:uppercase;white-space:nowrap;
 }
 #sg-sub{
   font-size:8px;font-weight:700;letter-spacing:.26em;
@@ -59,9 +63,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;
   border-radius:3px;cursor:pointer;transition:border-color .15s,color .15s;
 }
-.ctrl:hover{border-color:var(--mag);color:var(--mag)}
-#scrub-btn{border-color:var(--red);color:var(--red)}
-#scrub-btn:hover{background:rgba(229,62,62,.10)}
+.ctrl:hover{border-color:var(--teal);color:var(--teal)}
+/* SCRUB — solid pink bg, white text */
+#scrub-btn{
+  background:var(--mag);border-color:var(--mag);color:#000;font-weight:900;
+}
+#scrub-btn:hover{background:var(--mag);filter:brightness(1.12)}
+/* Power — gold ring */
+#poweroff-btn{border-color:var(--gold);color:var(--gold)}
+#poweroff-btn:hover{background:var(--gold-d)}
 
 /* ─── SHELL ──────────────────────────────── */
 #shell{
@@ -92,7 +102,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .scan-ring{
   position:absolute;inset:0;border-radius:50%;
   border:2px solid transparent;
-  border-top-color:var(--teal);border-right-color:rgba(0,220,210,.25);
+  border-top-color:var(--mag);border-right-color:rgba(255,79,216,.25);
   animation:spin-slow 3s linear infinite;
 }
 .scan-ring2{
@@ -104,19 +114,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 @keyframes spin-slow{to{transform:rotate(360deg)}}
 @keyframes spin-fast{to{transform:rotate(360deg)}}
 /* active = fast ring */
-.scan-outer.active .scan-ring{animation:spin-fast .45s linear infinite;border-top-color:var(--teal);border-right-color:var(--teal)}
+.scan-outer.active .scan-ring{animation:spin-fast .45s linear infinite;border-top-color:var(--mag);border-right-color:var(--mag)}
 .scan-outer.active .scan-ring2{animation:spin-fast .3s linear infinite reverse;border-bottom-color:var(--gold);border-left-color:var(--gold)}
 .scan-inner{
   position:relative;width:46px;height:46px;border-radius:50%;
-  background:var(--bg);border:1px solid var(--teal);
+  background:#030508;border:1px solid var(--mag);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   z-index:1;
+  box-shadow:inset 0 0 10px rgba(0,0,0,.8);
 }
-.scan-inner svg{color:var(--teal)}
-.scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--teal)}
+.scan-inner svg{color:var(--mag)}
+.scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--mag)}
 .scan-lbl{
   font-size:8.5px;font-weight:700;letter-spacing:.12em;
-  color:var(--teal);text-align:center;text-transform:uppercase;line-height:1.4;
+  color:var(--mag);text-align:center;text-transform:uppercase;line-height:1.4;
 }
 
 /* ── 3.2 Dashboard Locked block ──────────── */
@@ -150,15 +161,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   transition:border-color .15s;
 }
 .k1-input::placeholder{color:var(--faint)}
-.k1-input:focus{border-color:var(--teal)}
+.k1-input:focus{border-color:var(--mag)}
 .k1-input:disabled{opacity:.38;cursor:not-allowed}
 .link-btn{
-  width:100%;background:none;border:1px solid var(--teal);color:var(--teal);
+  width:100%;background:none;border:1px solid var(--mag);color:var(--mag);
   font-family:'Courier New',Courier,monospace;font-size:9.5px;font-weight:900;
   letter-spacing:.14em;text-transform:uppercase;padding:8px;
   border-radius:3px;cursor:pointer;transition:background .15s;
 }
-.link-btn:hover{background:var(--teal-d)}
+.link-btn:hover{background:var(--mag-d)}
 #k1-status{font-size:9px;color:var(--muted);min-height:11px;line-height:1.5}
 
 /* ── 3.4 Short instructions ──────────────── */
@@ -166,7 +177,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   font-size:9px;color:var(--text);line-height:1.7;
   padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
-.instructions .hi{color:var(--teal);font-weight:700}
+.instructions .hi{color:var(--mag);font-weight:700}
 
 /* ── 3.5 AUTH-GATE block ─────────────────── */
 .authgate-block{
@@ -174,15 +185,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 }
 .authgate-hd{
   font-size:9.5px;font-weight:900;letter-spacing:.24em;
-  color:var(--mag);text-transform:uppercase;margin-bottom:10px;
+  color:var(--teal);text-transform:uppercase;margin-bottom:10px;
 }
 .ag-points{display:flex;flex-direction:column;gap:8px}
 .ag-p{font-size:9px;color:var(--text);line-height:1.7}
-.ag-p a{color:var(--teal);text-decoration:none}
+.ag-p a{color:var(--mag);text-decoration:none}
 .ag-p a:hover{text-decoration:underline}
-.ag-p .hm{color:var(--mag);font-weight:700}
+.ag-p .hm{color:var(--teal);font-weight:700}
 .ag-p .hg{color:var(--gold);font-weight:700}
-.ag-p .ht{color:var(--teal);font-weight:700}
+.ag-p .ht{color:var(--mag);font-weight:700}
 
 /* fallback msg */
 #fallback-msg{
@@ -209,10 +220,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   position:absolute;bottom:6px;right:8px;
   background:none;border:none;cursor:pointer;
   font-family:'Courier New',Courier,monospace;
-  font-size:9px;color:var(--faint);letter-spacing:-.05em;
-  transition:color .15s;user-select:none;line-height:1;padding:2px 3px;
+  font-size:11px;color:#1a0e08;letter-spacing:-.05em;
+  transition:color .15s,text-shadow .15s;user-select:none;line-height:1;padding:2px 3px;
+  /* teal shine from top */
+  text-shadow:0 -3px 8px rgba(0,232,221,.55), 0 0 2px rgba(0,232,221,.2);
 }
-#admin-glyph:hover{color:var(--muted)}
+#admin-glyph:hover{
+  color:#0d0704;
+  text-shadow:0 -4px 12px rgba(0,232,221,.8), 0 0 4px rgba(0,232,221,.35);
+}
 /* admin bypass panel */
 #admin-bypass{
   display:none;flex-direction:column;gap:6px;
@@ -298,8 +314,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .ev-flap{fill:#009990}
 .ev-fold{fill:none;stroke:rgba(0,0,0,.2);stroke-width:1}
 .ev-text{
-  font-size:9.5px;font-weight:900;fill:var(--gold);
-  font-family:'Courier New',Courier,monospace;letter-spacing:.06em;
+  font-size:12px;font-weight:900;fill:var(--gold);
+  font-family:'Courier New',Courier,monospace;letter-spacing:.08em;
   dominant-baseline:middle;text-anchor:middle;
 }
 /* Popup — pink-framed transparent */
@@ -324,14 +340,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .pp-note:focus{border-color:var(--mag)}
 .pp-addr{
   font-size:7.5px;font-family:'Courier New',Courier,monospace;
-  color:var(--teal);cursor:pointer;word-break:break-all;
+  color:var(--mag);cursor:pointer;word-break:break-all;
   padding:6px 8px;border:1px solid var(--bdr);border-radius:3px;
-  background:rgba(0,220,210,.04);transition:background .15s,border-color .15s;
+  background:rgba(255,79,216,.04);transition:background .15s,border-color .15s;
   line-height:1.5;
 }
-.pp-addr:hover{background:var(--teal-d);border-color:var(--teal)}
+.pp-addr:hover{background:var(--mag-d);border-color:var(--mag)}
 .pp-hint{font-size:7px;color:var(--muted)}
-#addr-confirm{font-size:7px;color:var(--teal);min-height:10px;transition:opacity .3s}
+#addr-confirm{font-size:7px;color:var(--mag);min-height:10px;transition:opacity .3s}
 .pp-send{
   background:none;border:1px solid var(--mag);color:var(--mag);
   font-family:'Courier New',Courier,monospace;font-size:9px;font-weight:900;
@@ -358,7 +374,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 }
 .sdot{
   width:6px;height:6px;border-radius:50%;
-  background:var(--teal);box-shadow:0 0 5px var(--teal);
+  background:var(--mag);box-shadow:0 0 5px var(--mag);
   transition:background .4s,box-shadow .4s;
 }
 .sdot.auth{background:var(--gold);box-shadow:0 0 5px var(--gold)}
@@ -555,7 +571,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <span id="status-txt">777G v1.0 &middot; SECURE</span>
 </div>
 
-<!-- ═══ INLINE JS — not stripped by any build script ════════════
+<!-- ═══ INLINE JS — not stripped by any build script ═════���══════
      No envelope-fix.js. No dashboard-wiring.js. Self-contained.
 ════════════════════════════════════════════════════════════════ -->
 <script>
