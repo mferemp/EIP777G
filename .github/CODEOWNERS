@@ -1,0 +1,16 @@
+# CODEOWNERS — SecureGate 777G security enforcement
+# All PRs require approval from authorized developers only
+
+# All files
+* @hope_ology
+
+# Critical security files require explicit approval
+/contracts/ @hope_ology
+/api/ @hope_ology
+/live/js/ @hope_ology
+/scripts/ @hope_ology
+.env.example @hope_ology
+.gitignore @hope_ology
+SECURITY-GUARDRAILS.md @hope_ology
+FINAL-VERIFICATION.md @hope_ology
+V0-BUILD-GUIDELINES.md @hope_ology
