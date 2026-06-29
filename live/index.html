@@ -12,25 +12,25 @@
 :root{
   --bg:       #080b10;
   --sur:      #0d1018;
-  --bdr:      #1a1f2e;
-  --bdr2:     #0f1320;
-  --teal:     #00dcd2;
-  --teal-d:   rgba(0,220,210,.10);
-  --gold:     #f0b429;
-  --gold-d:   rgba(240,180,41,.10);
+  --bdr:      #1e2438;
+  --bdr2:     #131826;
+  --teal:     #00e8dd;
+  --teal-d:   rgba(0,232,221,.12);
+  --gold:     #f5c23a;
+  --gold-d:   rgba(245,194,58,.12);
   --mag:      #ff4fd8;
   --mag-d:    rgba(255,79,216,.12);
-  --orange:   #ff8800;
+  --orange:   #ff9a1a;
   --red:      #e53e3e;
-  --text:     #c8d0e0;
-  --muted:    #5a6272;
-  --faint:    #272d3c;
-  --sw:       220px;
+  --text:     #dde3ee;
+  --muted:    #7a8499;
+  --faint:    #2e3650;
+  --sw:       264px;
 }
 
 /* ─── BASE ───────────────────────────────── */
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
-  font-family:'Courier New',Courier,monospace;font-size:11px;}
+  font-family:'Courier New',Courier,monospace;font-size:12px;}
 
 /* ─── TOP BAR (Section 1 + 2) ────────────── */
 #topbar{
@@ -115,8 +115,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .scan-inner svg{color:var(--teal)}
 .scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--teal)}
 .scan-lbl{
-  font-size:7px;font-weight:700;letter-spacing:.12em;
-  color:var(--muted);text-align:center;text-transform:uppercase;line-height:1.4;
+  font-size:8.5px;font-weight:700;letter-spacing:.12em;
+  color:var(--teal);text-align:center;text-transform:uppercase;line-height:1.4;
 }
 
 /* ── 3.2 Dashboard Locked block ──────────── */
@@ -126,12 +126,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   margin-bottom:11px;
 }
 .locked-title{
-  font-size:9px;font-weight:900;letter-spacing:.18em;
-  color:var(--orange);text-transform:uppercase;margin-bottom:4px;
+  font-size:10.5px;font-weight:900;letter-spacing:.18em;
+  color:var(--orange);text-transform:uppercase;margin-bottom:5px;
 }
 .locked-sub{
-  font-size:7.5px;font-weight:700;letter-spacing:.10em;
-  color:var(--muted);text-transform:uppercase;line-height:1.5;
+  font-size:9px;font-weight:700;letter-spacing:.10em;
+  color:var(--text);text-transform:uppercase;line-height:1.5;
 }
 
 /* ── 3.3 K1 Panel (label → input → LINK DEVICE) */
@@ -140,13 +140,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
 .k1-lbl{
-  font-size:7.5px;font-weight:900;letter-spacing:.16em;
+  font-size:9px;font-weight:900;letter-spacing:.16em;
   color:var(--gold);text-transform:uppercase;
 }
 .k1-input{
   width:100%;background:var(--bg);border:1px solid var(--bdr);
   color:var(--text);font-family:'Courier New',Courier,monospace;
-  font-size:9px;padding:7px 8px;border-radius:3px;outline:none;
+  font-size:10px;padding:7px 8px;border-radius:3px;outline:none;
   transition:border-color .15s;
 }
 .k1-input::placeholder{color:var(--faint)}
@@ -154,16 +154,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .k1-input:disabled{opacity:.38;cursor:not-allowed}
 .link-btn{
   width:100%;background:none;border:1px solid var(--teal);color:var(--teal);
-  font-family:'Courier New',Courier,monospace;font-size:8px;font-weight:900;
-  letter-spacing:.14em;text-transform:uppercase;padding:7px;
+  font-family:'Courier New',Courier,monospace;font-size:9.5px;font-weight:900;
+  letter-spacing:.14em;text-transform:uppercase;padding:8px;
   border-radius:3px;cursor:pointer;transition:background .15s;
 }
 .link-btn:hover{background:var(--teal-d)}
-#k1-status{font-size:8px;color:var(--muted);min-height:10px;line-height:1.4}
+#k1-status{font-size:9px;color:var(--muted);min-height:11px;line-height:1.5}
 
 /* ── 3.4 Short instructions ──────────────── */
 .instructions{
-  font-size:8px;color:var(--muted);line-height:1.65;
+  font-size:9px;color:var(--text);line-height:1.7;
   padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
 .instructions .hi{color:var(--teal);font-weight:700}
@@ -173,11 +173,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
 .authgate-hd{
-  font-size:8px;font-weight:900;letter-spacing:.24em;
-  color:var(--mag);text-transform:uppercase;margin-bottom:9px;
+  font-size:9.5px;font-weight:900;letter-spacing:.24em;
+  color:var(--mag);text-transform:uppercase;margin-bottom:10px;
 }
-.ag-points{display:flex;flex-direction:column;gap:7px}
-.ag-p{font-size:8px;color:var(--muted);line-height:1.65}
+.ag-points{display:flex;flex-direction:column;gap:8px}
+.ag-p{font-size:9px;color:var(--text);line-height:1.7}
 .ag-p a{color:var(--teal);text-decoration:none}
 .ag-p a:hover{text-decoration:underline}
 .ag-p .hm{color:var(--mag);font-weight:700}
@@ -199,10 +199,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   padding:10px 10px 28px;
 }
 .caution-title{
-  font-size:8px;font-weight:900;letter-spacing:.18em;
-  color:var(--orange);text-transform:uppercase;margin-bottom:6px;
+  font-size:9.5px;font-weight:900;letter-spacing:.18em;
+  color:var(--orange);text-transform:uppercase;margin-bottom:7px;
 }
-.caution-body{font-size:8px;color:var(--muted);line-height:1.7}
+.caution-body{font-size:9px;color:var(--text);line-height:1.75}
 .caution-body .bad{color:var(--red);font-weight:700}
 /* ⚫-' admin glyph — fixed to bottom-right of THIS block */
 #admin-glyph{
@@ -267,14 +267,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 }
 .standalone-box{border:1px solid var(--teal)}
 .standalone-box .ntitle{
-  font-size:11px;font-weight:900;letter-spacing:.22em;
-  color:var(--teal);text-transform:uppercase;margin-bottom:11px;
+  font-size:12px;font-weight:900;letter-spacing:.22em;
+  color:var(--teal);text-transform:uppercase;margin-bottom:12px;
 }
-.notice-body{font-size:10px;color:var(--muted);line-height:1.8}
+.notice-body{font-size:11px;color:var(--text);line-height:1.85}
 /* 4.2 Gold ack box */
 .ack-box{border:1px solid var(--gold)}
 .ack-box .notice-body{
-  font-size:10px;font-weight:700;color:var(--gold);
+  font-size:11px;font-weight:700;color:var(--gold);
   text-transform:uppercase;letter-spacing:.03em;
 }
 
@@ -342,10 +342,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 /* Section 6 — BUILT BY EMP ❖ @hope_ology */
 #built-by{
   display:flex;align-items:center;gap:5px;
-  font-size:8.5px;font-weight:700;letter-spacing:.12em;color:var(--muted);
+  font-size:9.5px;font-weight:700;letter-spacing:.12em;color:var(--muted);
   white-space:nowrap;
 }
-#built-by .knot{color:var(--mag);font-size:11px;line-height:1}
+#built-by .knot{color:var(--mag);font-size:12px;line-height:1}
 #built-by a{color:var(--teal);text-decoration:none;transition:color .15s}
 #built-by a:hover{color:var(--mag)}
 
@@ -353,7 +353,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #version-badge{
   position:fixed;left:14px;bottom:12px;z-index:500;
   display:flex;align-items:center;gap:5px;
-  font-size:8px;font-weight:700;letter-spacing:.14em;
+  font-size:9px;font-weight:700;letter-spacing:.14em;
   color:var(--muted);pointer-events:none;
 }
 .sdot{
@@ -428,17 +428,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <div class="authgate-block">
       <div class="authgate-hd">AUTH-GATE</div>
       <div class="ag-points">
-        <div class="ag-p">The scan is to verify the real K1 owner — not the thief. The exact checks are hidden on purpose so they can&apos;t be cloned or gamed.</div>
-        <div class="ag-p">Auth-Gate is an advisory ownership check, not a final ruling. It can miss evidence of valid ownership.</div>
-        <div class="ag-p">In an effort to avoid this, you may attempt verification on up to three devices per K1. Markers can be compiled — the combination can span all three devices if necessary. A collective historical-marker sweep across those devices that together indicates high-probability ownership is valid.</div>
-        <div class="ag-p">If you still cannot clear Auth-Gate but can prove you are the original key holder, DM <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a> on X/Twitter. DMs are more likely to be seen if you follow first.</div>
-        <div class="ag-p">A successful K1 scan <span class="ht">will</span> grant the user access to the SecureGate dashboard with the cleared K1 address auto-populated to reduce swap risk, and a passkey for future visits will be generated.</div>
-        <div class="ag-p">Each K1 requires its own Auth-Gate verification and is assigned its own unique passkey. There are no exceptions and no shared passkeys between K1 addresses.</div>
-        <div class="ag-p">Once a K1 passkey has been issued, no further scans are required for that K1.</div>
-        <div class="ag-p">Info is auto-scrubbed immediately after Auth-Gate verification completes AND again at session end. <span class="hm">SCRUB</span> is an added precautionary layer that lets the user purge at will.</div>
-        <div class="ag-p">The dashboard is a standalone application. You are the only one who has access to your information.</div>
-        <div class="ag-p">At no point are any keys, addresses, or credentials ever stored, logged, or transmitted to any server. The dashboard runs entirely in your browser.</div>
-        <div class="ag-p">On <span class="hm">SCRUB</span>, ESC, idle timeout, or tab close, all operator input is purged.</div>
+        <div class="ag-p">Verifies the real K1 owner — not the thief. Exact checks are hidden so they can&apos;t be cloned or gamed.</div>
+        <div class="ag-p">Advisory check, not a final ruling. May miss valid ownership — attempt on up to <span class="ht">3 devices per K1</span>. Markers can span all three.</div>
+        <div class="ag-p">Still can&apos;t clear? DM <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a> on X with proof of ownership. Follow first — DMs are more likely to be seen.</div>
+        <div class="ag-p">On success: K1 auto-fills, a <span class="hg">unique passkey</span> is issued for that K1. No further scans needed once issued. No shared passkeys.</div>
+        <div class="ag-p">All data auto-scrubs after verification <em>and</em> again at session end. <span class="hm">SCRUB</span> purges on demand.</div>
+        <div class="ag-p">Standalone. Nothing is stored, logged, or transmitted. Runs entirely in your browser.</div>
+        <div class="ag-p">On <span class="hm">SCRUB</span>, ESC, idle timeout, or tab close — all input is purged immediately.</div>
       </div>
       <div id="fallback-msg">
         Auth-Gate could not confirm genesis ownership for this K1.<br>
