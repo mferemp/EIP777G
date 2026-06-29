@@ -317,11 +317,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .db-sub{font-size:8.5px;color:var(--muted);font-weight:400;letter-spacing:.04em}
 .db-status{font-size:9px;color:var(--muted);margin-left:auto}
 
-/* 3-col grid for deployment fields */
+/* 4-col top row, 3-col second row */
 .db-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px 14px;
   margin-bottom:14px;
 }
+/* second row: K3 + Network + RPC spans remaining cols */
+.db-field--row2-k3{grid-column:1}
+.db-field--row2-net{grid-column:2}
+.db-field--row2-rpc{grid-column:3 / span 2}
 .db-field{display:flex;flex-direction:column;gap:5px}
 .db-field--rpc{grid-column:span 1}
 .db-lbl{
