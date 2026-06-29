@@ -13,6 +13,7 @@
     "live-stale-check": "node scripts/live-stale-check.cjs"
   },
   "dependencies": {
+    "@vercel/kv": "^3.0.0",
     "cors": "^2.8.6",
     "ethers": "^6.13.0",
     "express": "^5.2.1",
