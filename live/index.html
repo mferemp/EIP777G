@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SecureGate EIP-777G</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
 /* ─── RESET ──────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -30,7 +33,10 @@
 
 /* ─── BASE ───────────────────────────────── */
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
-  font-family:'Courier New',Courier,monospace;font-size:12px;}
+  font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:12px;
+  -webkit-font-smoothing:antialiased;}
+/* monospace only for code/addresses/labels */
+.mono{font-family:'Courier New',Courier,monospace}
 
 /* ─── TOP BAR (Section 1 + 2) ────────────── */
 #topbar{
@@ -59,7 +65,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #topbar-right{display:flex;align-items:center;gap:8px}
 .ctrl{
   background:none;border:1px solid var(--bdr);color:var(--muted);
-  font-family:'Courier New',Courier,monospace;font-size:9px;font-weight:700;
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;
   border-radius:3px;cursor:pointer;transition:border-color .15s,color .15s;
 }
@@ -158,14 +164,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   width:100%;background:var(--bg);border:1px solid var(--bdr);
   color:var(--text);font-family:'Courier New',Courier,monospace;
   font-size:10px;padding:7px 8px;border-radius:3px;outline:none;
-  transition:border-color .15s;
+  transition:border-color .15s;letter-spacing:.04em;
 }
-.k1-input::placeholder{color:var(--faint)}
+.k1-input::placeholder{color:var(--faint);font-family:'Inter',system-ui,sans-serif}
 .k1-input:focus{border-color:var(--mag)}
 .k1-input:disabled{opacity:.38;cursor:not-allowed}
 .link-btn{
   width:100%;background:none;border:1px solid var(--mag);color:var(--mag);
-  font-family:'Courier New',Courier,monospace;font-size:9.5px;font-weight:900;
+  font-family:'Inter',system-ui,sans-serif;font-size:9.5px;font-weight:800;
   letter-spacing:.14em;text-transform:uppercase;padding:8px;
   border-radius:3px;cursor:pointer;transition:background .15s;
 }
@@ -215,20 +221,30 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 }
 .caution-body{font-size:9px;color:var(--text);line-height:1.75}
 .caution-body .bad{color:var(--red);font-weight:700}
-/* ⚫-' admin glyph — fixed to bottom-right of THIS block */
+/* ⚫-' admin glyph — CSS circle (not emoji) + teal top-glow */
 #admin-glyph{
   position:absolute;bottom:6px;right:8px;
-  background:none;border:none;cursor:pointer;
+  background:none;border:none;cursor:pointer;padding:3px 4px;
+  display:inline-flex;align-items:center;gap:1px;
+  user-select:none;line-height:1;
+}
+/* the dark circle — CSS, not emoji */
+#admin-glyph .ag-circle{
+  display:inline-block;width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%, #1a1a22, #04040a);
+  border:1px solid rgba(0,232,221,.55);
+  box-shadow:0 -3px 9px rgba(0,232,221,.5), 0 0 3px rgba(0,232,221,.18), inset 0 0 4px rgba(0,0,0,.9);
+  flex-shrink:0;transition:box-shadow .2s;
+}
+#admin-glyph .ag-dash{
   font-family:'Courier New',Courier,monospace;
-  font-size:11px;color:#1a0e08;letter-spacing:-.05em;
-  transition:color .15s,text-shadow .15s;user-select:none;line-height:1;padding:2px 3px;
-  /* teal shine from top */
-  text-shadow:0 -3px 8px rgba(0,232,221,.55), 0 0 2px rgba(0,232,221,.2);
+  font-size:11px;color:var(--faint);letter-spacing:0;
+  transition:color .15s;
 }
-#admin-glyph:hover{
-  color:#0d0704;
-  text-shadow:0 -4px 12px rgba(0,232,221,.8), 0 0 4px rgba(0,232,221,.35);
+#admin-glyph:hover .ag-circle{
+  box-shadow:0 -5px 14px rgba(0,232,221,.8), 0 0 6px rgba(0,232,221,.35), inset 0 0 4px rgba(0,0,0,.9);
 }
+#admin-glyph:hover .ag-dash{color:var(--muted)}
 /* admin bypass panel */
 #admin-bypass{
   display:none;flex-direction:column;gap:6px;
@@ -245,7 +261,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .bp-input:focus{border-color:var(--mag)}
 .bp-btn{
   background:none;border:1px solid var(--mag);color:var(--mag);
-  font-family:'Courier New',Courier,monospace;font-size:8px;font-weight:900;
+  font-family:'Inter',system-ui,sans-serif;font-size:8px;font-weight:800;
   letter-spacing:.14em;text-transform:uppercase;padding:6px;
   border-radius:3px;cursor:pointer;transition:background .15s;
 }
@@ -314,8 +330,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .ev-flap{fill:#009990}
 .ev-fold{fill:none;stroke:rgba(0,0,0,.2);stroke-width:1}
 .ev-text{
-  font-size:12px;font-weight:900;fill:var(--gold);
-  font-family:'Courier New',Courier,monospace;letter-spacing:.08em;
+  /* SVG units — 14 out of 120-wide viewBox = fills body well */
+  font-size:14;font-weight:900;fill:var(--gold);
+  font-family:'Inter',system-ui,sans-serif;letter-spacing:.06em;
   dominant-baseline:middle;text-anchor:middle;
 }
 /* Popup — pink-framed transparent */
@@ -476,7 +493,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
         <div id="bypass-msg" aria-live="polite"></div>
       </div>
       <!-- ⚫-' functional admin glyph, bottom-right of caution block -->
-      <button id="admin-glyph" type="button" aria-label="Admin" title="Admin">&#9899;-&apos;</button>
+      <button id="admin-glyph" type="button" aria-label="Admin" title="Admin">
+        <span class="ag-circle" aria-hidden="true"></span><span class="ag-dash" aria-hidden="true">-&apos;</span>
+      </button>
     </div>
 
   </aside>
