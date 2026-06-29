@@ -5,6 +5,7 @@
   "description": "SecureGate 777G - EIP-777G Genesis Gate Dashboard",
   "private": true,
   "scripts": {
+    "dev": "node server.js",
     "check": "node --check live/js/app.js && node --check live/js/gate.js && node --check api/relay.js && node --check api/bypass-verify.js",
     "test": "npm run check",
     "obfuscate": "node scripts/obfuscate.js",
