@@ -1,376 +1,955 @@
-<!DOCTYPE html><html lang="en" data-theme="dark"><head>
-<meta name="securegate-build" content="83cf614621ff-20260629080442">
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SECUREGATE — EIP-777G</title><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests"><style>
-:root { --black: #000000; --bg: #080808; --surface: #0f0f0f; --surface2: #141414; --surface3: #1a1a1a; --border: #222222; --teal: #00e5d1; --teal2: #00b8a9; --magenta: #ff2d78; --magenta2: #c4005f; --gold: #ffd700; --gold2: #b89a00; --grey: #444444; --grey2: #2a2a2a; --text: #e8e8e8; --muted: #888888; --faint: #444444; } *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } html { height: 100%; } body { font-family: 'Satoshi', 'Inter', sans-serif; background: var(--black); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; } /* TOPBAR */ .topbar { background: #050505; border-bottom: 1px solid #1a1a1a; padding: 6px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; height: 38px; } .topbar-brand { display: flex; flex-direction: column; line-height: 1; } .brand-main { font-size: 15px; font-weight: 900; letter-spacing: 0.08em; background: linear-gradient(90deg, var(--teal), var(--magenta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; } .brand-sub { font-size: 9px; letter-spacing: 0.2em; color: var(--gold); font-weight: 500; text-transform: uppercase; } .topbar-right { display: flex; gap: 8px; align-items: center; } .scrub-btn { background: var(--magenta); color: #fff; border: none; padding: 5px 18px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; cursor: pointer; clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); transition: background 0.15s, transform 0.1s; } .scrub-btn:hover { background: #ff0066; transform: scale(1.04); } .power-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--gold); background: transparent; color: var(--gold); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; } .power-btn:hover { background: var(--gold); color: #000; } /* MAIN LAYOUT */ .layout { flex: 1; display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 1fr; overflow: hidden; } /* LEFT SIDEBAR */ .sidebar { background: #050505; border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; padding: 14px 12px; overflow-y: auto; gap: 12px; } /* SCAN BUTTON */ .scan-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; } .scan-btn-outer { position: relative; width: 100px; height: 100px; cursor: pointer; } .scan-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; background: conic-gradient(var(--teal), var(--magenta), var(--teal)) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out; mask-composite: exclude; animation: spin-ring 2s linear infinite; } @keyframes spin-ring { to { transform: rotate(360deg); } } .scan-ring2 { position: absolute; inset: 8px; border-radius: 50%; border: 1px solid var(--teal); opacity: 0.3; animation: pulse-ring 1.5s ease-in-out infinite; } @keyframes pulse-ring { 0%,100%{opacity:0.15;transform:scale(0.95)} 50%{opacity:0.6;transform:scale(1.02)} } .scan-inner { position: absolute; inset: 14px; border-radius: 50%; background: radial-gradient(circle, #001a18 0%, #000 100%); border: 1px solid #0a3a35; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: background 0.2s; } .scan-inner:hover { background: radial-gradient(circle, #002f2a 0%, #000 100%); } .scan-inner svg { color: var(--teal); } .scan-inner span { font-size: 8px; font-weight: 700; letter-spacing: 0.15em; color: var(--gold); } .scan-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--gold); text-align: center; text-transform: uppercase; } .scan-sublabel { font-size: 10px; color: var(--muted); text-align: center; line-height: 1.4; } /* K1 VERIFY PANEL */ .genesis-k1-verify-panel { margin-top: 10px; background: rgba(5,5,5,0.92); border: 1px solid #1a1a1a; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; } .genesis-k1-verify-panel .panel-title { color: var(--gold); font-size: 9px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; } .verify-k1-addr { width: 100%; background: #050505; border: 1px solid #222; border-radius: 4px; color: var(--teal); font-family: monospace; font-size: 11px; padding: 7px 8px; } .verify-k1-addr::placeholder { color: #555; } .verify-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .verify-scan-btn, .verify-qr-btn { font-size: 8px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 7px 6px; border-radius: 3px; } .verify-scan-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); } .verify-qr-btn { background: transparent; border: 1px solid var(--teal); color: var(--teal); } .verify-scan-btn:disabled, .verify-qr-btn:disabled { opacity: 0.35; cursor: not-allowed; } .verify-status { min-height: 12px; font-size: 8px; color: var(--teal); text-align: center; } .verify-directions { color: var(--muted); font-size: 10px; line-height: 1.45; text-align: left; } .verify-directions strong { color: var(--gold); } /* SIDEBAR SECTIONS */ .sidebar-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); } .sidebar-section-title { font-size: 8px; font-weight: 700; letter-spacing: 0.25em; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; } .sidebar-body { font-size: 11.5px; color: var(--muted); line-height: 1.65; } .sidebar-body strong { color: var(--teal); } .sidebar-body .mag { color: var(--magenta); } /* STANDALONE OPERATION BOX */ .standalone-operation-box { width: min(92%, 420px); margin: 12px auto 0; padding: 12px 14px; border: 1px solid var(--teal); background: rgba(0, 220, 210, 0.08); border-radius: 8px; text-align: center; } .standalone-operation-title { color: var(--magenta); font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 7px; } .standalone-operation-copy { color: var(--text); font-size: 11.5px; line-height: 1.45; } /* CAUTION BLOCK */ .caution-block { position: relative; margin-top: auto; border: 1px solid #2a1a00; background: #0d0800; border-radius: 4px; padding: 10px; } .caution-title { font-size: 8px; font-weight: 700; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; } .caution-body { font-size: 10px; color: #886600; line-height: 1.5; } .sig { display: none; } /* STATUSBAR / FOOTER */ .built-by { display: inline-flex; align-items: center; gap: 6px; transform: rotate(1deg); } /* MAIN PANEL */ .main-panel { position: relative; background: var(--black); display: flex; flex-direction: column; overflow: hidden; } /* LOCK OVERLAY */ .lock-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.82); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 50; transition: opacity 0.6s, visibility 0.6s; } .lock-overlay.unlocked { opacity: 0; visibility: hidden; pointer-events: none; } /* DISCLAIMER OVERLAY */ .lock-warning { position: relative; background: #1a1400; border: 1px solid #3a2a00; border-radius: 8px; padding: 32px 40px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 0 42px rgba(201,162,39,0.18); } .disclaimer-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 60; background: rgba(0,0,0,0.92); backdrop-filter: blur(4px); border-radius: 8px; } .disclaimer-frame { max-width: 480px; width: 90%; border: 2px solid #c9a227; border-radius: 8px; background: rgba(12,8,0,0.95); box-shadow: 0 0 30px rgba(201,162,39,0.25); padding: 24px 20px; font-family: monospace; text-align: center; } .disclaimer-text { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: #c9a227; line-height: 1.6; font-family: monospace; } .lock-warning h2 { font-size: 13px; font-weight: 900; letter-spacing: 0.08em; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; } .lock-warning .lock-subtitle { font-size: 10px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-bottom: 20px; } .lock-warning .warning-body { font-size: 9px; color: var(--muted); line-height: 1.7; text-align: left; } .lock-warning .warning-body strong { color: var(--gold); } .lock-warning .warning-body .teal { color: var(--teal); } .lock-warning .warning-body .mag { color: var(--magenta); } /* DASHBOARD CONTENT */ .dashboard { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex: 1; } .section-title { font-size: 10px; font-weight: 700; letter-spacing: 0.25em; color: var(--teal); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; } .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); } /* FORM GRID */ .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; } .form-group { display: flex; flex-direction: column; gap: 4px; } .form-group.span2 { grid-column: span 2; } .form-label { font-size: 8px; font-weight: 700; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; } .form-input { background: #0a0a0a; border: 1px solid var(--border); color: var(--text); padding: 7px 10px; font-size: 11px; font-family: 'Satoshi', monospace; border-radius: 3px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%; } .form-input:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(0,229,209,0.08); } .form-input::placeholder { color: var(--faint); } .input-wrap { position: relative; } .input-eye { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: var(--faint); cursor: pointer; background: none; border: none; transition: color 0.15s; } .input-eye:hover { color: var(--teal); } /* RPC ROW */ .rpc-row { display: grid; grid-template-columns: 200px 1fr; gap: 10px; align-items: end; } .chain-select { background: #0a0a0a; border: 1px solid var(--border); color: var(--text); padding: 7px 10px; font-size: 11px; font-family: 'Satoshi', sans-serif; border-radius: 3px; outline: none; cursor: pointer; transition: border-color 0.15s; width: 100%; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23444'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; } .chain-select:focus { border-color: var(--teal); } .chain-select option { background: #0f0f0f; color: var(--text); } optgroup { color: var(--gold); font-size: 10px; } /* ACTION BUTTONS */ .action-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; } .btn { padding: 8px 18px; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; border: none; border-radius: 2px; transition: all 0.15s; clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%); } .btn-teal { background: transparent; border: 1px solid var(--teal); color: var(--teal); } .btn-teal:hover { background: rgba(0,229,209,0.08); box-shadow: 0 0 12px rgba(0,229,209,0.2); } .btn-deploy { background: var(--magenta); color: #fff; margin-left: auto; padding: 9px 28px; font-size: 11px; } .btn-deploy:hover { background: #ff0066; box-shadow: 0 0 20px rgba(255,45,120,0.3); } .btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; } /* PROGRESS BAR */ .progress-wrap { display: flex; flex-direction: column; gap: 4px; } .progress-label { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; } .progress-track { height: 6px; background: #111; border-radius: 3px; overflow: hidden; border: 1px solid #1a1a1a; } .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--teal), #a855f7, var(--magenta)); background-size: 200% 100%; border-radius: 3px; animation: progress-shimmer 2s linear infinite; transition: width 0.4s ease; } @keyframes progress-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } } .progress-steps { display: flex; gap: 4px; margin-top: 2px; } .progress-step { flex: 1; height: 3px; background: var(--border); border-radius: 2px; transition: background 0.3s; } .progress-step.active { background: var(--teal); } .progress-step.done { background: var(--magenta); } /* BOTTOM ROW */ .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .info-box { background: #050505; border: 1px solid #1a1a1a; border-radius: 4px; padding: 12px; } .info-box-title { font-size: 8px; font-weight: 700; letter-spacing: 0.2em; color: var(--teal); text-transform: uppercase; margin-bottom: 8px; } .info-box-body { font-size: 9px; color: var(--muted); line-height: 1.7; } .info-box-body strong { color: var(--text); } .info-box-body .teal { color: var(--teal); } .info-box-body .mag { color: var(--magenta); } .info-box-body .gold { color: var(--gold); } .step-list { list-style: none; display: flex; flex-direction: column; gap: 4px; } .step-list li { display: flex; gap: 6px; align-items: baseline; } .step-num { min-width: 14px; height: 14px; background: var(--surface3); border: 1px solid var(--border); border-radius: 2px; font-size: 8px; font-weight: 700; color: var(--teal); display: flex; align-items: center; justify-content: center; } /* SMOKE / STATUS BOX */ .smoke-box { background: #050505; border: 1px solid #1a1a1a; border-radius: 4px; padding: 10px 12px; min-height: 60px; font-size: 9px; color: var(--muted); font-family: 'Courier New', monospace; line-height: 1.8; } .smoke-pass { color: var(--teal); } .smoke-fail { color: var(--magenta); } /* STATUS RIGHT / FOOTER BRANDING */ .statusbar { position: relative; z-index: 10; } .status-right { position: relative; right: auto; bottom: auto; z-index: 1; max-width: calc(100vw - 32px); display: flex; flex-direction: row; align-items: center; gap: 10px; pointer-events: auto; } .thank-you-envelope { display: flex; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; color: var(--teal); transform: rotate(-7deg); transition: transform 0.2s; padding: 0; } .thank-you-envelope:hover { transform: rotate(-7deg) scale(1.05); } .envelope-icon { stroke: var(--teal); width: 17px; height: 17px; stroke-width: 2; transform: rotate(-14deg); } .thank-you-envelope span { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; white-space: nowrap; color: var(--teal); } .built-by { display: inline-flex; align-items: center; gap: 6px; transform: rotate(1deg); } .built-by span, .built-by a { color: var(--gold); font-size: 8.5px; font-weight: 700; letter-spacing: 0.07em; text-decoration: none; } .trinity-knot { stroke: var(--magenta); fill: none; stroke-width: 1.5; width: 13px; height: 13px; } .built-by a:hover { text-decoration: none; } /* Hidden utility */ .hidden { display: none !important; } /* SCAN ANIMATION GLOW */ .statusbar { position: relative; z-index: 10; background: #030303; border-top: 1px solid #111; padding: 2px 14px; display: flex; align-items: center; justify-content: space-between; font-size: 8px; color: var(--faint); letter-spacing: 0.12em; flex-shrink: 0; height: 18px; overflow: visible; } .status-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; margin-right: 5px; } .dot-secure { background: var(--teal); box-shadow: 0 0 4px var(--teal); } .dot-warn { background: var(--gold); } .dot-lock { background: var(--magenta); } /* Guard against oversized warning/fav-icon SVGs */ body > svg:not([data-allow-fullscreen]), body > svg.warning-icon, body > svg.alert-icon, body > svg.caution-icon, .lock-warning svg, .locked-warning svg { max-width: 42px !important; max-height: 42px !important; width: auto !important; height: auto !important; } .lock-warning .warning-symbol, .caution-icon::before { font-size: 28px !important; line-height: 1 !important; } /* SCAN ANIMATION GLOW */ @keyframes scan-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(0,229,209,0); } 50% { box-shadow: 0 0 18px 4px rgba(0,229,209,0.25); } } .scan-btn-outer:hover .scan-inner { animation: scan-pulse 1s ease-in-out infinite; } .scanning .scan-ring { animation: spin-ring 0.5s linear infinite; } .scanning .scan-inner { background: radial-gradient(circle, #003d38 0%, #000 100%) !important; } /* ========================================================= SIDEBAR FIRST-SCREEN VISIBILITY PATCH Goal: caution + standalone box visible pre-auth without being pushed below the fold. ========================================================= */ /* Sidebar must remain visible pre-auth and scroll only if lower text overflows */ .sidebar { display: flex !important; flex-direction: column !important; overflow-y: auto !important; overflow-x: hidden !important; gap: 9px !important; padding-bottom: 96px !important; /* keeps footer from covering bottom content */ } /* Force priority order in the left column */ .sidebar .scan-wrap { order: 1 !important; flex: 0 0 auto !important; } .sidebar #genesis-k1-verify-panel, .sidebar .genesis-k1-verify-panel { order: 2 !important; flex: 0 0 auto !important; } /* Put the gold/caution box immediately after K1 panel */ .sidebar .caution-block { order: 3 !important; flex: 0 0 auto !important; margin-top: 8px !important; /* IMPORTANT: kills margin-top:auto pushdown */ margin-bottom: 0 !important; padding: 9px 38px 9px 10px !important; min-height: unset !important; } /* Put standalone teal box directly under gold/caution box */ .sidebar .standalone-operation-box { order: 4 !important; flex: 0 0 auto !important; width: min(94%, 420px) !important; margin: 7px auto 10px !important; padding: 9px 11px !important; } /* Make standalone box compact enough to fit first screen */ .sidebar .standalone-operation-title { font-size: 11px !important; line-height: 1.2 !important; margin-bottom: 5px !important; color: var(--magenta) !important; text-transform: uppercase !important; } .sidebar .standalone-operation-copy { font-size: 10.5px !important; line-height: 1.38 !important; } /* Push verbose explanatory sections below the critical controls */ .sidebar .sidebar-divider, .sidebar .sidebar-section-title, .sidebar .sidebar-body, .sidebar .verify-directions { order: 10 !important; } /* Also push the wrapper divs that contain the text sections */ .sidebar > div:has(.sidebar-section-title), .sidebar > div:has(.sidebar-body) { order: 10 !important; flex: 0 0 auto !important; } /* Compact the verbose sections so they do not dominate the sidebar */ .sidebar .sidebar-divider { margin: 4px 0 !important; flex: 0 0 auto !important; } .sidebar .sidebar-section-title { font-size: 8px !important; margin-bottom: 2px !important; flex: 0 0 auto !important; } .sidebar .sidebar-body, .sidebar .verify-directions, .sidebar .scan-sublabel { font-size: 10.5px !important; line-height: 1.42 !important; } /* Compact K1 panel slightly */ .sidebar .genesis-k1-verify-panel { margin-top: 8px !important; padding: 8px !important; gap: 6px !important; } .sidebar .verify-k1-addr { font-size: 10.5px !important; padding: 6px 7px !important; } .sidebar .verify-scan-btn, .sidebar .verify-qr-btn { font-size: 7.5px !important; padding: 6px 5px !important; } /* Do not let old glyphs reappear */ .sidebar .sig, .sidebar .signature, .sidebar .signature-glyph, .sidebar .admin-glyph, .sidebar .bypass-symbol { display: none !important; visibility: hidden !important; opacity: 0 !important; } /* On short screens, make it even tighter */ @media (max-height: 820px) { .sidebar { gap: 7px !important; } .sidebar .scan-wrap { transform: scale(0.92) !important; transform-origin: top center !important; margin-bottom: -8px !important; } .sidebar .caution-block { padding-top: 8px !important; padding-bottom: 8px !important; } .sidebar .caution-body { font-size: 10px !important; line-height: 1.32 !important; } .sidebar .standalone-operation-box { padding: 8px 10px !important; } .sidebar .standalone-operation-copy { font-size: 10px !important; line-height: 1.32 !important; } } /* ========================================================= FINAL BRANDING / ADMIN / LINK PATCH UI ONLY — DO NOT TOUCH CONTRACTS, RELAY, ROUTES, AUTH LOGIC ========================================================= */ :root { --sg-teal: var(--teal, #00dcd2); --sg-pink: var(--magenta, #ff4fd8); --sg-gold: var(--gold, #c9a227); --sg-text: var(--text, #e8e0ff);
-} /* Remove legacy admin visuals completely */
-.legacy-admin-trigger,
-.legacy-admin-icon { display: none !important; visibility: hidden !important; opacity: 0 !important;
-} /* Exact admin button requested: ⚫-' */
-.admin-stick-button { position: absolute !important; right: 8px !important; bottom: 7px !important; width: auto !important; min-width: 28px !important; height: 18px !important; border: 0 !important; background: transparent !important; color: var(--sg-teal) !important; font-family: monospace !important; font-size: 14px !important; font-weight: 900 !important; line-height: 1 !important; padding: 0 !important; margin: 0 !important; cursor: pointer !important; opacity: 0.92 !important; z-index: 6 !important; text-shadow: 0 0 8px rgba(0, 220, 210, 0.7) !important;
-} .admin-stick-button:hover { opacity: 1 !important; color: var(--sg-pink) !important; text-shadow: 0 0 9px rgba(255, 79, 216, 0.75) !important;
-} /* Hide old glyph fragments if any remain */
-.sig,
-.signature,
-.signature-glyph,
-.admin-glyph,
-.bypass-symbol,
-.caution-block .sig,
-.caution-block .signature,
-.caution-block .glyph { display: none !important; visibility: hidden !important; opacity: 0 !important;
-} /* K1 panel: SCAN (gold) + LINK DEVICE (teal) — both visible */
-.verify-actions { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px !important;
-} .verify-scan-btn { border: 1px solid var(--sg-gold) !important; color: var(--sg-gold) !important; background: transparent !important; font-size: 8px !important; font-weight: 900 !important; letter-spacing: 0.14em !important; text-transform: uppercase !important; padding: 7px 5px !important; border-radius: 4px !important; text-align: center !important; cursor: pointer !important;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECUREGATE — EIP-777G</title>
+<meta name="securegate-build" content="clean-20260629">
+<style>
+/* ── VARIABLES ──────────────────────────────────────────────────── */
+:root {
+  --bg:     #080808;
+  --sur:    #0f0f0f;
+  --bdr:    #1e1e1e;
+  --teal:   #00e5d1;
+  --mag:    #ff2d78;
+  --gold:   #ffd700;
+  --gold2:  #c9a227;
+  --text:   #e8e8e8;
+  --muted:  #888;
+  --faint:  #444;
+  --warn:   #ff8800;
 }
-.verify-scan-btn:hover { background: rgba(255, 215, 0, 0.08) !important;
-} .verify-qr-btn { border: 1px solid var(--sg-teal) !important; color: var(--sg-teal) !important; background: transparent !important; font-size: 8px !important; font-weight: 900 !important; letter-spacing: 0.14em !important; text-transform: uppercase !important; padding: 7px 5px !important; border-radius: 4px !important; text-align: center !important; cursor: pointer !important;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Satoshi','Inter',ui-sans-serif,sans-serif;
+  background:var(--bg);color:var(--text);
+  font-size:13px;display:flex;flex-direction:column;height:100vh;
 }
-.verify-qr-btn:hover { background: rgba(0, 220, 210, 0.08) !important;
-} /* scanning state — lock both buttons, ring speeds up */
-.scanning .verify-scan-btn,
-.scanning .verify-qr-btn { opacity: 0.38 !important; pointer-events: none !important; cursor: not-allowed !important;
-} /* Bottom-right branding: envelope above straight-line BUILT BY row */
-.securegate-footer-branding,
-.status-right { position: fixed !important; right: max(16px, env(safe-area-inset-right)) !important; bottom: max(14px, env(safe-area-inset-bottom)) !important; z-index: 90 !important; display: flex !important; flex-direction: column !important; align-items: flex-end !important; justify-content: flex-end !important; gap: 5px !important; max-width: calc(100vw - 32px) !important; overflow: visible !important; transform: none !important; pointer-events: auto !important;
-} /* Larger teal envelope angled to the RIGHT */
-.thank-you-envelope { position: relative !important; width: 112px !important; height: 70px !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 0 !important; background: transparent !important; padding: 0 !important; margin: 0 0 0 auto !important; cursor: pointer !important; color: var(--sg-teal) !important; transform: rotate(7deg) !important; filter: drop-shadow(0 0 10px rgba(0, 220, 210, 0.42)) !important;
-} .thank-you-envelope:hover { transform: rotate(7deg) scale(1.04) !important;
-} .envelope-icon { position: absolute !important; inset: 0 !important; width: 112px !important; height: 70px !important; stroke: var(--sg-teal) !important; fill: rgba(0, 220, 210, 0.07) !important; stroke-width: 4 !important; overflow: visible !important;
-} .envelope-body,
-.envelope-flap,
-.envelope-fold-left,
-.envelope-fold-right { vector-effect: non-scaling-stroke !important;
-} .thank-you-on-envelope { position: relative !important; z-index: 2 !important; color: var(--sg-teal) !important; font-size: 12px !important; font-weight: 950 !important; letter-spacing: 0.12em !important; text-transform: uppercase !important; text-shadow: 0 0 8px rgba(0, 220, 210, 0.8) !important; pointer-events: none !important; transform: translateY(2px) !important; white-space: nowrap !important;
-} /* Straight line under envelope */
-.built-by-line { display: inline-flex !important; flex-direction: row !important; align-items: center !important; justify-content: flex-end !important; gap: 7px !important; color: var(--sg-gold) !important; font-size: 9px !important; font-weight: 850 !important; letter-spacing: 0.07em !important; white-space: nowrap !important; line-height: 1 !important; transform: none !important;
-} .built-by-line span,
-.built-by-line a { color: var(--sg-gold) !important; text-decoration: none !important;
-} .built-by-line a:hover { color: var(--sg-pink) !important; text-shadow: 0 0 7px rgba(255, 79, 216, 0.65) !important;
-} .trinity-knot { width: 14px !important; height: 14px !important; stroke: var(--sg-pink) !important; fill: none !important; stroke-width: 1.7 !important; flex: 0 0 auto !important; filter: drop-shadow(0 0 5px rgba(255, 79, 216, 0.6)) !important;
-} /* Transparent pink note popup */
-.thank-you-popover { position: absolute !important; right: 0 !important; bottom: 88px !important; width: min(320px, calc(100vw - 32px)) !important; border: 1px solid var(--sg-pink) !important; background: rgba(10, 0, 14, 0.62) !important; backdrop-filter: blur(7px) !important; box-shadow: 0 0 22px rgba(255, 79, 216, 0.28) !important; border-radius: 10px !important; padding: 12px !important; color: var(--sg-pink) !important; font-family: monospace !important; text-align: left !important;
-} .thank-you-popover[hidden] { display: none !important;
-} .thank-you-popover-title { color: var(--sg-pink) !important; font-size: 12px !important; font-weight: 950 !important; letter-spacing: 0.13em !important; text-transform: uppercase !important; margin-bottom: 9px !important;
-} .thank-you-note { width: 100% !important; resize: vertical !important; min-height: 66px !important; background: rgba(255, 79, 216, 0.035) !important; border: 1px solid rgba(255, 79, 216, 0.62) !important; color: var(--sg-pink) !important; border-radius: 6px !important; padding: 8px 9px !important; font-family: monospace !important; font-size: 11px !important; line-height: 1.35 !important; outline: none !important;
-} .thank-you-note::placeholder { color: rgba(255, 79, 216, 0.58) !important;
-} .thank-you-note:focus { border-color: var(--sg-pink) !important; box-shadow: 0 0 10px rgba(255, 79, 216, 0.3) !important;
-} /* Full 0x...b5 address at bottom, click-to-copy */
-.thank-you-address { width: 100% !important; display: block !important; margin-top: 9px !important; background: rgba(255, 79, 216, 0.055) !important; border: 1px solid rgba(255, 79, 216, 0.62) !important; color: var(--sg-pink) !important; border-radius: 6px !important; padding: 7px 8px !important; font-family: monospace !important; font-size: 10px !important; line-height: 1.35 !important; word-break: break-all !important; cursor: pointer !important; text-align: left !important;
-} .thank-you-address:hover { background: rgba(255, 79, 216, 0.13) !important;
-} .thank-you-popover-hint { color: rgba(255, 79, 216, 0.76) !important; font-size: 9px !important; margin-top: 6px !important;
-} @media (max-width: 760px), (max-height: 760px) { .securegate-footer-branding, .status-right { right: 14px !important; bottom: 14px !important; width: 220px !important; transform: scale(0.86) !important; transform-origin: bottom right !important; } .securegate-footer-branding .thank-you-popover,
-#thank-you-popover { bottom: 108px !important; }
-} .session-termination-block { margin-top: 10px !important; } /* ========================================================= CENTER NOTICE BOXES ========================================================= */ .center-notice-box { position: relative; z-index: 60; width: 100%; max-width: 760px; margin: 0 auto 14px auto; padding: 12px 16px; border-radius: 10px; text-align: center; box-sizing: border-box; } .standalone-operation-box { border: 1px solid rgba(0, 220, 210, 0.45); background: rgba(0, 220, 210, 0.08); box-shadow: 0 0 18px rgba(0, 220, 210, 0.12); } .standalone-operation-box .center-notice-title { color: var(--magenta); font-size: 11px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; } .standalone-operation-box .center-notice-body { color: var(--text); font-size: 11px; line-height: 1.55; } .securegate-ack-box { border: 1px solid rgba(255, 215, 0, 0.45); background: rgba(255, 215, 0, 0.10); box-shadow: 0 0 18px rgba(255, 215, 0, 0.12); } .securegate-ack-box .center-notice-body { color: var(--gold); font-size: 11px; font-weight: 800; line-height: 1.55; letter-spacing: 0.04em; text-transform: uppercase; } /* ========================================================= LEFT COLUMN ORDER ONLY — DO NOT TOUCH BOTTOM-RIGHT ========================================================= */ /* Sidebar order: SCAN(1) → AUTH-GATE(2) → K1 panel(3) → CAUTION(4) */ .sidebar .scan-wrap { order: 1 !important; } .sidebar .auth-mechanism-block { order: 2 !important; } .sidebar #genesis-k1-verify-panel, .sidebar .genesis-k1-verify-panel { order: 3 !important; } .sidebar #auth-bypass-panel { order: 4 !important; } .sidebar .caution-block { order: 5 !important; } /* K1 panel: only LINK DEVICE visible under K1 address */ .verify-actions-link-only .verify-scan-btn, .verify-scan-btn.hidden { display: none !important; visibility: hidden !important; opacity: 0 !important; } .verify-link-copy { margin-top: 7px !important; color: var(--teal) !important; font-size: 9.5px !important; font-weight: 800 !important; letter-spacing: 0.08em !important; line-height: 1.35 !important; text-transform: uppercase !important; text-align: center !important; } .artifact-sweep-list { margin-top: 7px !important; margin-bottom: 7px !important; color: var(--text) !important; font-size: 10.5px !important; line-height: 1.55 !important; } .verify-directions-copy { color: var(--muted) !important; font-size: 10.5px !important; line-height: 1.45 !important; } .session-termination-block { margin-top: 10px !important; } /* ========================================================= FINAL BOTTOM-RIGHT FOOTER OVERRIDE Fixes envelope visibility, size, angle, and footer line. UI ONLY. DO NOT TOUCH BOTTOM-RIGHT. OVERRIDE ONLY. /* SEND button in popover */
-.thank-you-send-btn { display: block !important; width: 100% !important; margin-top: 9px !important; padding: 8px 10px !important; background: rgba(255, 79, 216, 0.12) !important; border: 1px solid var(--sg-pink) !important; color: var(--sg-pink) !important; font-family: monospace !important; font-size: 11px !important; font-weight: 900 !important; letter-spacing: 0.16em !important; text-transform: uppercase !important; border-radius: 6px !important; cursor: pointer !important; transition: background 0.15s !important;
+
+/* ── TOPBAR ─────────────────────────────────────────────────────── */
+.topbar{
+  flex-shrink:0;height:38px;background:#050505;
+  border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
 }
-.thank-you-send-btn:hover { background: rgba(255, 79, 216, 0.22) !important;
-} /* The actual bottom-right branding group */
-.status-right.securegate-footer-branding,
-.securegate-footer-branding {
-position: fixed !important;
-right: 28px !important;
-bottom: 26px !important;
-width: 250px !important;
-max-width: calc(100vw - 56px) !important;
-height: auto !important;
-min-height: 116px !important;
-z-index: 9999 !important; display: flex !important;
-flex-direction: column !important;
-align-items: flex-end !important;
-justify-content: flex-end !important;
-gap: 8px !important; overflow: visible !important;
-pointer-events: auto !important;
-transform: none !important;
-opacity: 1 !important;
-visibility: visible !important;
-} /* BIG teal envelope angled to the RIGHT */
-.securegate-footer-branding .thank-you-envelope,
-#thank-you-envelope.thank-you-envelope {
-position: relative !important;
-display: block !important; width: 142px !important;
-height: 92px !important;
-min-width: 142px !important;
-min-height: 92px !important; margin: 0 0 2px auto !important;
-padding: 0 !important;
-border: 0 !important;
-background: transparent !important; color: var(--teal) !important;
-cursor: pointer !important; transform: rotate(8deg) !important;
-transform-origin: center center !important; opacity: 1 !important;
-visibility: visible !important;
-overflow: visible !important;
-z-index: 10000 !important; filter: drop-shadow(0 0 12px rgba(0, 220, 210, 0.55)) !important;
-} .securegate-footer-branding .thank-you-envelope:hover,
-#thank-you-envelope.thank-you-envelope:hover {
-transform: rotate(8deg) scale(1.04) !important;
-} /* Envelope drawing */
-.securegate-footer-branding .envelope-icon,
-#thank-you-envelope .envelope-icon {
-position: absolute !important;
-inset: 0 !important; width: 142px !important;
-height: 92px !important;
-max-width: none !important;
-max-height: none !important; display: block !important;
-overflow: visible !important; stroke: var(--teal) !important;
-fill: rgba(0, 220, 210, 0.10) !important;
-stroke-width: 4 !important; opacity: 1 !important;
-visibility: visible !important;
-z-index: 1 !important;
-} .securegate-footer-branding .envelope-icon path,
-#thank-you-envelope .envelope-icon path {
-stroke: var(--teal) !important;
-fill: rgba(0, 220, 210, 0.10) !important;
-vector-effect: non-scaling-stroke !important;
-} /* THANK YOU written ON the envelope */
-.securegate-footer-branding .thank-you-on-envelope,
-#thank-you-envelope .thank-you-on-envelope {
-position: absolute !important;
-left: 50% !important;
-top: 52% !important;
-transform: translate(-50%, -50%) !important; z-index: 2 !important;
-display: block !important; color: var(--teal) !important;
-font-size: 13px !important;
-font-weight: 950 !important;
-letter-spacing: 0.12em !important;
-text-transform: uppercase !important;
-white-space: nowrap !important;
-line-height: 1 !important;
-text-align: center !important; text-shadow: 0 0 9px rgba(0, 220, 210, 0.9) !important;
-pointer-events: none !important;
-opacity: 1 !important;
-visibility: visible !important;
-} /* Straight line BELOW envelope */
-.securegate-footer-branding .built-by-line {
-display: flex !important;
-flex-direction: row !important;
-align-items: center !important;
-justify-content: flex-end !important; gap: 7px !important;
-width: auto !important;
-max-width: 250px !important; white-space: nowrap !important;
-line-height: 1 !important; color: var(--gold) !important;
-font-size: 9px !important;
-font-weight: 850 !important;
-letter-spacing: 0.07em !important; opacity: 1 !important;
-visibility: visible !important;
-transform: none !important;
-overflow: visible !important;
-} /* Kill old .built-by layout if it conflicts */
-.securegate-footer-branding .built-by,
-.status-right .built-by {
-display: none !important;
-} .securegate-footer-branding .built-by-line span,
-.securegate-footer-branding .built-by-line a {
-color: var(--gold) !important;
-text-decoration: none !important;
-white-space: nowrap !important;
-} .securegate-footer-branding .built-by-line a:hover {
-color: var(--magenta) !important;
-text-shadow: 0 0 8px rgba(255, 79, 216, 0.7) !important;
-} /* Tiny pink Celtic trinity knot */
-.securegate-footer-branding .trinity-knot {
-display: block !important;
-width: 14px !important;
-height: 14px !important;
-min-width: 14px !important;
-min-height: 14px !important; stroke: var(--magenta) !important;
-fill: none !important;
-stroke-width: 1.7 !important; opacity: 1 !important;
-visibility: visible !important;
-filter: drop-shadow(0 0 5px rgba(255, 79, 216, 0.65)) !important;
-} .securegate-footer-branding .trinity-knot path {
-stroke: var(--magenta) !important;
-fill: none !important;
-} /* Pink transparent note popup */
-.securegate-footer-branding .thank-you-popover,
-#thank-you-popover {
-position: absolute !important;
-right: 0 !important;
-bottom: 114px !important; width: min(330px, calc(100vw - 44px)) !important;
-min-height: 150px !important; border: 1px solid var(--magenta) !important;
-background: rgba(10, 0, 14, 0.66) !important;
-backdrop-filter: blur(7px) !important;
-box-shadow: 0 0 24px rgba(255, 79, 216, 0.32) !important;
-border-radius: 10px !important; padding: 12px !important;
-color: var(--magenta) !important;
-font-family: monospace !important;
-text-align: left !important; z-index: 10001 !important;
-overflow: visible !important;
-} #thank-you-popover[hidden],
-.thank-you-popover[hidden] {
-display: none !important;
-} .thank-you-popover-title {
-color: var(--magenta) !important;
-font-size: 12px !important;
-font-weight: 950 !important;
-letter-spacing: 0.13em !important;
-text-transform: uppercase !important;
-margin-bottom: 9px !important;
-} .thank-you-note {
-width: 100% !important;
-min-height: 66px !important;
-resize: vertical !important; background: rgba(255, 79, 216, 0.04) !important;
-border: 1px solid rgba(255, 79, 216, 0.65) !important;
-color: var(--magenta) !important; border-radius: 6px !important;
-padding: 8px 9px !important;
-font-family: monospace !important;
-font-size: 11px !important;
-line-height: 1.35 !important;
-outline: none !important;
-} .thank-you-note::placeholder {
-color: rgba(255, 79, 216, 0.6) !important;
-} .thank-you-address {
-width: 100% !important;
-display: block !important;
-margin-top: 9px !important; background: rgba(255, 79, 216, 0.06) !important;
-border: 1px solid rgba(255, 79, 216, 0.65) !important;
-color: var(--magenta) !important; border-radius: 6px !important;
-padding: 7px 8px !important;
-font-family: monospace !important;
-font-size: 10px !important;
-line-height: 1.35 !important;
-word-break: break-all !important;
-cursor: pointer !important;
-text-align: left !important;
-} .thank-you-address:hover {
-background: rgba(255, 79, 216, 0.14) !important;
-} .thank-you-popover-hint {
-color: rgba(255, 79, 216, 0.76) !important;
-font-size: 9px !important;
-margin-top: 6px !important;
-} /* Small viewport: keep everything in frame */
-@media (max-width: 900px), (max-height: 800px) {
-.status-right.securegate-footer-branding,
-.securegate-footer-branding { right: 14px !important; bottom: 14px !important; width: 220px !important; transform: scale(0.86) !important; transform-origin: bottom right !important;
-} .securegate-footer-branding .thank-you-popover,
-#thank-you-popover { bottom: 108px !important;
+.brand{display:flex;flex-direction:column;line-height:1.1}
+.brand-main{
+  font-size:15px;font-weight:900;letter-spacing:.08em;
+  background:linear-gradient(90deg,var(--teal),var(--mag));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
-} /* ========================================================= CENTER NOTICE BOXES ========================================================= */ .center-notice-box { position: relative; z-index: 60; width: 100%; max-width: 760px; margin: 0 auto 14px auto; padding: 12px 16px; border-radius: 10px; text-align: center; box-sizing: border-box;
-} .standalone-operation-box { border: 1px solid rgba(0, 220, 210, 0.45); background: rgba(0, 220, 210, 0.08); box-shadow: 0 0 18px rgba(0, 220, 210, 0.12);
-} .standalone-operation-box .center-notice-title { color: var(--magenta); font-size: 11px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px;
-} .standalone-operation-box .center-notice-body { color: var(--text); font-size: 11px; line-height: 1.55;
-} .securegate-ack-box { border: 1px solid rgba(255, 215, 0, 0.45); background: rgba(255, 215, 0, 0.10); box-shadow: 0 0 18px rgba(255, 215, 0, 0.12);
-} .securegate-ack-box .center-notice-body { color: var(--gold); font-size: 11px; font-weight: 800; line-height: 1.55; letter-spacing: 0.04em; text-transform: uppercase;
-} /* ========================================================= LEFT COLUMN ORDER ONLY — DO NOT TOUCH BOTTOM-RIGHT ========================================================= */ .sidebar .scan-wrap { order: 1 !important;
-} .sidebar .auth-mechanism-block { order: 2 !important;
-} .sidebar #genesis-k1-verify-panel,
-.sidebar .genesis-k1-verify-panel { order: 3 !important;
-} .sidebar .standalone-operation-box { order: 4 !important;
-} .sidebar .caution-block { order: 5 !important;
-} /* K1 panel: only LINK DEVICE visible under K1 address */
-.verify-actions-link-only .verify-scan-btn,
-.verify-scan-btn.hidden { display: none !important; visibility: hidden !important; opacity: 0 !important;
-} .verify-link-copy { margin-top: 7px !important; color: var(--teal) !important; font-size: 9.5px !important; font-weight: 800 !important; letter-spacing: 0.08em !important; line-height: 1.35 !important; text-transform: uppercase !important; text-align: center !important;
-} .artifact-sweep-list { margin-top: 7px !important; margin-bottom: 7px !important; color: var(--text) !important; font-size: 10.5px !important; line-height: 1.55 !important;
-} .verify-directions-copy { color: var(--muted) !important; font-size: 10.5px !important; line-height: 1.45 !important;
-} .session-termination-block { margin-top: 10px !important;
-} /* ========================================================= FINAL BOTTOM-RIGHT FOOTER OVERRIDE Fixes envelope visibility, size, angle, and footer line. UI ONLY. DO NOT TOUCH BOTTOM-RIGHT. OVERRIDE ONLY. ========================================================= */ /* Stop the old statusbar from clipping the bottom-right branding */
-.statusbar { position: static !important; height: 0 !important; min-height: 0 !important; max-height: 0 !important; overflow: visible !important; z-index: auto !important; pointer-events: none !important;
-} /* The actual bottom-right branding group */
-.status-right.securegate-footer-branding,
-.securegate-footer-branding { position: fixed !important; right: 28px !important; bottom: 26px !important; width: 250px !important; max-width: calc(100vw - 56px) !important; height: auto !important; min-height: 116px !important; z-index: 9999 !important; display: flex !important; flex-direction: column !important; align-items: flex-end !important; justify-content: flex-end !important; gap: 8px !important; overflow: visible !important; pointer-events: auto !important; transform: none !important; opacity: 1 !important; visibility: visible !important;
-} /* BIG teal envelope angled to the RIGHT */
-.securegate-footer-branding .thank-you-envelope,
-#thank-you-envelope.thank-you-envelope { position: relative !important; display: block !important; width: 142px !important; height: 92px !important; min-width: 142px !important; min-height: 92px !important; margin: 0 0 2px auto !important; padding: 0 !important; border: 0 !important; background: transparent !important; color: var(--teal) !important; cursor: pointer !important; transform: rotate(8deg) !important; transform-origin: center center !important; opacity: 1 !important; visibility: visible !important; overflow: visible !important; z-index: 10000 !important; filter: drop-shadow(0 0 12px rgba(0, 220, 210, 0.55)) !important;
-} .securegate-footer-branding .thank-you-envelope:hover,
-#thank-you-envelope.thank-you-envelope:hover { transform: rotate(8deg) scale(1.04) !important;
-} /* Envelope drawing */
-.securegate-footer-branding .envelope-icon,
-#thank-you-envelope .envelope-icon { position: absolute !important; inset: 0 !important; width: 142px !important; height: 92px !important; max-width: none !important; max-height: none !important; display: block !important; overflow: visible !important; stroke: var(--teal) !important; fill: rgba(0, 220, 210, 0.10) !important; stroke-width: 4 !important;
-} /* Envelope flap lines */
-.securegate-footer-branding .envelope-flap,
-#thank-you-envelope .envelope-flap { stroke: var(--teal) !important; stroke-width: 2.5 !important; fill: none !important; opacity: 0.5 !important;
-} /* Envelope highlight */
-.securegate-footer-branding .envelope-highlight,
-#thank-you-envelope .envelope-highlight { stroke: var(--teal) !important; stroke-width: 1.5 !important; fill: none !important; opacity: 0.25 !important;
-} /* ========================================================= THANK-YOU POPOVER ========================================================= */ .thank-you-popover { position: absolute !important; right: 0 !important; bottom: 110px !important; width: 260px !important; background: rgba(255, 79, 216, 0.92) !important; border: 1px solid rgba(255, 79, 216, 0.9) !important; border-radius: 6px !important; padding: 10px 12px !important; box-shadow: 0 0 18px rgba(255, 79, 216, 0.25) !important; z-index: 99999 !important; text-align: center !important;
-} .thank-you-popover::before { content: '' !important; position: absolute !important; bottom: -6px !important; right: 20px !important; width: 0 !important; height: 0 !important; border-left: 6px solid transparent !important; border-right: 6px solid transparent !important; border-top: 6px solid rgba(255, 79, 216, 0.92) !important;
-} .thank-you-address { display: block !important; word-break: break-all !important; color: var(--magenta) !important; font-family: monospace !important; font-size: 10px !important; line-height: 1.35 !important; padding: 4px 6px !important; margin-bottom: 6px !important; background: rgba(0, 0, 0, 0.4) !important; border-radius: 4px !important; cursor: pointer !important; text-align: left !important;
-} .thank-you-address:hover { background: rgba(255, 79, 216, 0.14) !important;
-} .thank-you-popover-hint { color: rgba(255, 79, 216, 0.76) !important; font-size: 9px !important; margin-top: 6px !important;
-} /* === SECUREGATE UI REPAIR START === */ .sidebar { display: flex !important; flex-direction: column !important; } .sidebar .scan-wrap { order: 1 !important; } .sidebar .auth-mechanism-block { order: 2 !important; } .sidebar #genesis-k1-verify-panel, .sidebar .genesis-k1-verify-panel { order: 3 !important; } /* session-termination-block removed from DOM — no longer a standalone section */ .sidebar .caution-block { order: 5 !important; } /* sidebar-version-badge is now #version-badge fixed bottom-LEFT — nulled here */ .sidebar .sidebar-version-badge { display: none !important; padding: 4px 10px !important; pointer-events: none !important; } .dashboard { position: relative !important; flex: 1 1 auto !important; min-height: 0 !important; overflow-y: auto !important; } .center-notice-box { position: relative !important; z-index: 10 !important; pointer-events: auto !important; } .verify-link-copy#scan-status { margin-top: 7px !important; color: var(--teal) !important; font-size: 9.5px !important; font-weight: 800 !important; letter-spacing: 0.08em !important; line-height: 1.35 !important; text-transform: uppercase !important; text-align: center !important; } .sidebar .standalone-operation-box { order: unset !important; } /* === SECUREGATE UI REPAIR END === */ /* === SG FINAL SIDEBAR + ENVELOPE FIX START === */ /* Sidebar must remain a vertical ordered column */ .sidebar { position: relative !important; display: flex !important; flex-direction: column !important; overflow-y: auto !important; overflow-x: hidden !important; height: calc(100vh - 48px) !important; max-height: calc(100vh - 48px) !important; padding-bottom: 42px !important; } .sidebar .scan-wrap { order: 1 !important; flex: 0 0 auto !important; } .sidebar .auth-mechanism-block { order: 2 !important; flex: 0 0 auto !important; } .sidebar #genesis-k1-verify-panel, .sidebar .genesis-k1-verify-panel { order: 3 !important; flex: 0 0 auto !important; } .sidebar .session-termination-block { order: 4 !important; flex: 0 0 auto !important; } .sidebar .standalone-operation-box { display: none !important; } .sidebar .caution-block { order: 998 !important; flex: 0 0 auto !important; } .sidebar .sidebar-version-badge { order: 999 !important; position: sticky !important; bottom: 0 !important; margin-top: 10px !important; padding: 8px 0 5px !important; background: linear-gradient(to top, #000 70%, rgba(0,0,0,0)) !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 5px !important; color: var(--faint) !important; font-size: 8px !important; letter-spacing: 0.12em !important; line-height: 1 !important; text-align: center !important; white-space: nowrap !important; z-index: 999 !important; } #scan-status.verify-link-copy { display: block !important; margin-top: 9px !important; color: var(--teal) !important; font-size: 9.5px !important; font-weight: 800 !important; letter-spacing: 0.08em !important; line-height: 1.35 !important; text-transform: uppercase !important; text-align: center !important; } /* Envelope click repair */ .sg-envelope-root { position: fixed !important; right: 18px !important; bottom: 14px !important; z-index: 2147483647 !important; pointer-events: auto !important; cursor: pointer !important; } .sg-envelope-root, .sg-envelope-root * { pointer-events: auto !important; } .sg-envelope-root .thank-you-popover { position: absolute !important; right: 0 !important; bottom: calc(100% + 12px) !important; min-width: 220px !important; max-width: 280px !important; padding: 12px 14px !important; border: 1px solid var(--teal) !important; background: rgba(0, 0, 0, 0.94) !important; color: var(--text) !important; font-size: 11px !important; line-height: 1.45 !important; text-align: center !important; box-shadow: 0 0 24px rgba(0, 229, 209, 0.35) !important; opacity: 0 !important; visibility: hidden !important; transform: translateY(8px) !important; transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease !important; } .sg-envelope-root.sg-envelope-open .thank-you-popover { opacity: 1 !important; visibility: visible !important; transform: translateY(0) !important; } /* === SG FINAL SIDEBAR + ENVELOPE FIX END === */ /* .sidebar-version-badge nulled — replaced by #version-badge fixed bottom-LEFT */
-.sidebar-version-badge { display: none !important; } /* SIDEBAR FOOTER LINKS */ .sidebar-footer-links { display: flex; flex-direction: column; gap: 5px; padding: 8px 0 4px; border-top: 1px solid #1a1a1a; margin-top: auto; } .hope-link { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: var(--teal); text-decoration: none; transition: color 0.15s; } .hope-link:hover { color: var(--magenta); } .thank-you-note { font-size: 9px; color: var(--muted); display: flex; align-items: center; gap: 6px; line-height: 1.4; } .copy-addr-btn { background: none; border: none; color: var(--faint); cursor: pointer; padding: 2px; display: flex; align-items: center; transition: color 0.15s; } .copy-addr-btn:hover { color: var(--teal); }
+.brand-sub{font-size:8px;font-weight:600;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
+.topbar-right{display:flex;gap:8px;align-items:center}
+#scrub-btn{
+  background:var(--mag);color:#fff;border:none;
+  padding:5px 18px;font-size:11px;font-weight:700;letter-spacing:.12em;
+  cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+  transition:background .15s;
+}
+#scrub-btn:hover{background:#ff0066}
+#purge-btn{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid var(--gold);background:transparent;color:var(--gold);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all .15s;
+}
+#purge-btn:hover{background:var(--gold);color:#000}
+
+/* ── LAYOUT ─────────────────────────────────────────────────────── */
+.layout{flex:1;display:grid;grid-template-columns:220px 1fr;overflow:hidden}
+
+/* ── LEFT SIDEBAR ────────────────────────────────────────────────── */
+.sidebar{
+  background:#050505;border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;gap:12px;
+  padding:14px 12px 56px;overflow-y:auto;
+}
+
+/* 1. SCAN */
+.scan-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+.scan-btn-outer{position:relative;width:100px;height:100px;cursor:pointer}
+.scan-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:2px solid transparent;
+  background:conic-gradient(var(--teal),var(--mag),var(--teal)) border-box;
+  -webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:destination-out;mask-composite:exclude;
+  animation:spin 2s linear infinite;
+}
+.scan-ring.fast{animation-duration:.4s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-ring2{
+  position:absolute;inset:8px;border-radius:50%;
+  border:1px solid var(--teal);opacity:.28;
+  animation:pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:.12;transform:scale(.95)}50%{opacity:.55;transform:scale(1.03)}}
+.scan-inner{
+  position:absolute;inset:14px;border-radius:50%;
+  background:radial-gradient(circle,#001a18 0%,#000 100%);
+  border:1px solid #0a3a35;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;transition:background .2s;
+}
+.scan-inner:hover{background:radial-gradient(circle,#002f2a 0%,#000 100%)}
+.scan-inner svg{color:var(--teal)}
+.scan-inner .scan-word{font-size:8px;font-weight:800;letter-spacing:.15em;color:var(--gold)}
+#scan-label{
+  font-size:9px;font-weight:700;letter-spacing:.15em;
+  color:var(--gold);text-align:center;text-transform:uppercase;line-height:1.35;
+}
+
+/* 2. LOCKED BLOCK */
+.locked-block{
+  background:rgba(255,45,120,.06);border:1px solid rgba(255,45,120,.25);
+  border-radius:5px;padding:9px 10px;
+}
+.locked-block-title{
+  font-size:8px;font-weight:700;letter-spacing:.22em;
+  color:var(--mag);text-transform:uppercase;margin-bottom:5px;
+}
+.locked-block-body{font-size:10px;color:var(--muted);line-height:1.5}
+.locked-block-body .ht{color:var(--teal);font-weight:600}
+.locked-block-body .hg{color:var(--gold);font-weight:600}
+
+/* 3. K1 PANEL */
+.k1-panel{
+  background:rgba(5,5,5,.92);border:1px solid #1e1e1e;border-radius:6px;
+  padding:10px;display:flex;flex-direction:column;gap:8px;
+}
+.k1-panel-title{font-size:8px;font-weight:800;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
+#verify-k1-addr{
+  width:100%;background:#050505;border:1px solid #222;border-radius:4px;
+  color:var(--teal);font-family:monospace;font-size:11px;padding:7px 8px;
+  transition:border-color .15s;
+}
+#verify-k1-addr::placeholder{color:#555}
+#verify-k1-addr:focus{outline:none;border-color:var(--teal)}
+#verify-k1-addr:disabled{opacity:.45;cursor:not-allowed}
+.verify-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#verify-scan-btn,#verify-qr-btn{
+  font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  padding:7px 5px;border-radius:3px;cursor:pointer;background:transparent;transition:background .15s;
+}
+#verify-scan-btn{border:1px solid var(--gold);color:var(--gold)}
+#verify-scan-btn:hover{background:rgba(255,215,0,.08)}
+#verify-qr-btn{border:1px solid var(--teal);color:var(--teal)}
+#verify-qr-btn:hover{background:rgba(0,229,209,.08)}
+#verify-scan-btn:disabled,#verify-qr-btn:disabled{opacity:.35;cursor:not-allowed}
+#scan-status{font-size:9px;color:var(--muted);text-align:center;line-height:1.4;min-height:12px}
+#verify-status{font-size:8px;color:var(--teal);text-align:center;min-height:10px}
+
+/* 4. SHORT INSTRUCTIONS */
+.verify-directions{font-size:10px;color:var(--muted);line-height:1.5}
+.verify-directions strong{color:var(--gold)}
+
+/* 5. AUTH-GATE BLOCK */
+.auth-gate-block{border-top:1px solid var(--bdr);padding-top:10px}
+.sidebar-section-title{
+  font-size:8px;font-weight:700;letter-spacing:.25em;
+  color:var(--gold);text-transform:uppercase;margin-bottom:6px;
+}
+.sidebar-body{font-size:10.5px;color:var(--muted);line-height:1.65}
+.sidebar-body .st{color:var(--teal);font-weight:600}
+.sidebar-body .sm{color:var(--mag);font-weight:600}
+.sidebar-body strong{color:var(--teal)}
+
+/* 6. CAUTION BLOCK */
+.caution-block{
+  margin-top:auto;position:relative;
+  border:1px solid #2a1a00;background:#0d0800;border-radius:4px;padding:10px;
+}
+.caution-title{font-size:8px;font-weight:700;letter-spacing:.2em;color:var(--warn);text-transform:uppercase;margin-bottom:4px}
+.caution-body{font-size:10px;color:#886600;line-height:1.5}
+.admin-stick-button{
+  position:absolute;bottom:6px;right:8px;background:none;border:none;
+  cursor:pointer;font-size:11px;color:var(--faint);opacity:.55;
+  transition:opacity .2s,color .2s;line-height:1;padding:2px 3px;
+}
+.admin-stick-button:hover{opacity:1;color:var(--mag)}
+
+/* ADMIN BYPASS PANEL */
+.auth-bypass-panel{
+  background:rgba(5,5,5,.95);border:1px solid #2a1a2a;border-radius:5px;
+  padding:10px;display:flex;flex-direction:column;gap:6px;
+}
+.bypass-panel-title{font-size:8px;font-weight:700;letter-spacing:.22em;color:var(--mag);text-transform:uppercase}
+#bypass-key-input{
+  background:#050505;border:1px solid #333;border-radius:3px;
+  color:var(--text);font-family:monospace;font-size:11px;
+  padding:7px 8px;width:100%;outline:none;transition:border-color .15s;
+}
+#bypass-key-input:focus{border-color:var(--mag)}
+.bypass-verify-btn{
+  width:100%;padding:7px;background:transparent;
+  border:1px solid var(--teal);color:var(--teal);
+  font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer;border-radius:3px;transition:background .15s;
+}
+.bypass-verify-btn:hover{background:rgba(0,229,209,.08)}
+#bypass-status{font-size:8px;color:var(--muted);min-height:10px}
+
+/* ── MAIN PANEL ──────────────────────────────────────────────────── */
+.main-panel{position:relative;background:#000;display:flex;flex-direction:column;overflow:hidden}
+
+/* LOCK OVERLAY — semi-transparent, NOT a blackout */
+#lock-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.82);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:50;transition:opacity .5s,visibility .5s;
+}
+#lock-overlay.unlocked{opacity:0;visibility:hidden;pointer-events:none}
+.lock-card{
+  position:relative;background:#0d0800;border:1px solid #3a2a00;
+  border-radius:8px;padding:28px 36px;max-width:480px;width:92%;
+  text-align:center;box-shadow:0 0 42px rgba(201,162,39,.15);
+}
+#disclaimer-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:10;background:rgba(0,0,0,.92);backdrop-filter:blur(4px);border-radius:8px;
+}
+.disclaimer-frame{
+  max-width:400px;width:90%;border:2px solid var(--gold2);border-radius:8px;
+  background:rgba(12,8,0,.95);box-shadow:0 0 28px rgba(201,162,39,.2);
+  padding:22px 18px;text-align:center;
+}
+.disclaimer-text{font-family:monospace;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--gold2);line-height:1.65}
+.disclaimer-btn{
+  margin-top:14px;padding:8px 24px;background:transparent;
+  border:1px solid var(--gold2);color:var(--gold2);
+  font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  cursor:pointer;border-radius:3px;transition:background .15s;
+}
+.disclaimer-btn:hover{background:rgba(201,162,39,.1)}
+.lock-card h2{font-size:13px;font-weight:900;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.lock-subtitle{font-size:9px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:16px}
+.lock-body{font-size:9px;color:var(--muted);line-height:1.7;text-align:left}
+.lock-body .lt{color:var(--teal);font-weight:600}
+.lock-body .lm{color:var(--mag);font-weight:600}
+.lock-body .lg{color:var(--gold);font-weight:600}
+
+/* DASHBOARD */
+#dashboard{padding:14px 16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1}
+
+/* STANDALONE OPERATION BOX */
+.standalone-box{
+  width:min(92%,440px);margin:0 auto;padding:14px 16px;
+  border:1px solid var(--teal);background:rgba(0,229,209,.07);border-radius:8px;text-align:center;
+}
+.standalone-title{font-size:11px;font-weight:900;letter-spacing:.16em;color:var(--mag);text-transform:uppercase;margin-bottom:8px}
+.standalone-copy{font-size:11px;color:var(--text);line-height:1.5}
+
+/* GOLD ACK BOX */
+.ack-box{
+  width:min(92%,440px);margin:0 auto;padding:14px 16px;
+  border:1px solid var(--gold2);background:rgba(201,162,39,.07);border-radius:8px;text-align:center;
+}
+.ack-title{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.ack-copy{font-size:11px;color:var(--text);line-height:1.55}
+
+/* SECTION TITLE */
+.section-title{
+  font-size:9px;font-weight:700;letter-spacing:.25em;color:var(--teal);text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--bdr),transparent)}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.span2{grid-column:span 2}
+.form-label{font-size:8px;font-weight:700;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
+.form-input{
+  background:#0a0a0a;border:1px solid var(--bdr);color:var(--text);
+  padding:7px 10px;font-size:11px;font-family:monospace;border-radius:3px;
+  outline:none;transition:border-color .15s;width:100%;
+}
+.form-input:focus{border-color:var(--teal)}
+.form-input::placeholder{color:var(--faint)}
+.input-wrap{position:relative}
+.input-eye{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  color:var(--faint);cursor:pointer;background:none;border:none;transition:color .15s;
+}
+.input-eye:hover{color:var(--teal)}
+.rpc-row{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:end}
+.chain-select{
+  background:#0a0a0a;border:1px solid var(--bdr);color:var(--text);
+  padding:7px 10px;font-size:11px;border-radius:3px;outline:none;cursor:pointer;width:100%;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23444'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+.chain-select:focus{border-color:var(--teal)}
+.chain-select option{background:#0f0f0f}
+.action-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{
+  padding:8px 18px;font-size:10px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;cursor:pointer;border-radius:2px;border:none;transition:all .15s;
+  clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);
+}
+.btn-teal{background:transparent;border:1px solid var(--teal);color:var(--teal)}
+.btn-teal:hover{background:rgba(0,229,209,.08)}
+.btn-deploy{background:var(--mag);color:#fff;margin-left:auto;padding:9px 28px}
+.btn-deploy:hover{background:#ff0066}
+.btn-deploy:disabled{background:#2a2a2a;color:var(--faint);cursor:not-allowed}
+
+/* PROGRESS MODAL */
+#progress-modal{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;
+}
+#progress-modal.active{display:flex}
+.progress-card{background:#0a0a0a;border:1px solid var(--bdr);border-radius:8px;padding:24px 28px;width:360px;text-align:center}
+.progress-title{font-size:10px;font-weight:700;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+.progress-bar-track{background:#1a1a1a;border-radius:4px;height:8px;overflow:hidden;margin-bottom:8px}
+#progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--mag));transition:width .4s;border-radius:4px}
+#progress-pct{font-size:11px;color:var(--teal);font-weight:700;margin-bottom:4px}
+#progress-label-text{font-size:9px;color:var(--muted)}
+.progress-steps{margin-top:14px;display:flex;flex-direction:column;gap:4px;text-align:left}
+.step{font-size:9px;color:var(--faint);display:flex;align-items:center;gap:6px}
+.step.active{color:var(--teal)}.step.done{color:var(--gold)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* REVOKE TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:10px}
+th{text-align:left;font-size:8px;font-weight:700;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--bdr);padding:6px 10px}
+td{padding:7px 10px;border-bottom:1px solid #111;color:var(--text)}
+tr:hover td{background:#0a0a0a}
+#revoke-status{font-size:10px;color:var(--muted);margin-top:4px}
+#smoke-results{font-size:10px;color:var(--teal);margin-top:4px;white-space:pre-wrap;font-family:monospace}
+
+/* ── FOOTER BRANDING — fixed bottom-RIGHT ────────────────────────── */
+#sg-footer-branding{
+  position:fixed;right:14px;bottom:10px;z-index:100;
+  display:flex;flex-direction:column;align-items:flex-end;gap:6px;
+}
+
+/* ENVELOPE — angled, above built-by line */
+#thank-you-envelope{
+  position:relative;background:none;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  transform:rotate(7deg);transform-origin:bottom right;transition:transform .2s;
+  filter:drop-shadow(0 0 10px rgba(0,229,209,.4));
+}
+#thank-you-envelope:hover{transform:rotate(4deg) scale(1.05)}
+.envelope-icon{width:110px;height:70px;overflow:visible;display:block}
+.env-body{fill:rgba(0,229,209,.1);stroke:var(--teal);stroke-width:3;stroke-linejoin:round}
+.env-flap{fill:none;stroke:var(--teal);stroke-width:2.5;stroke-linejoin:round}
+.env-fold{fill:none;stroke:var(--teal);stroke-width:1.5;opacity:.5}
+.envelope-label{
+  font-size:11px;font-weight:900;letter-spacing:.14em;
+  color:var(--gold);text-transform:uppercase;white-space:nowrap;
+  text-shadow:0 0 8px rgba(255,215,0,.6);
+}
+
+/* POPOVER — pink-framed transparent */
+#thank-you-popover{
+  position:absolute;bottom:calc(100% + 8px);right:0;width:280px;
+  background:rgba(8,5,10,.9);border:1.5px solid var(--mag);border-radius:8px;
+  padding:14px;backdrop-filter:blur(8px);
+  box-shadow:0 0 24px rgba(255,45,120,.22);
+  display:flex;flex-direction:column;gap:9px;
+}
+#thank-you-popover[hidden]{display:none}
+.popover-title{font-size:8px;font-weight:700;letter-spacing:.22em;color:var(--mag);text-transform:uppercase}
+#thank-you-note-input{
+  width:100%;background:rgba(255,255,255,.04);border:1px solid #333;border-radius:4px;
+  color:var(--text);font-family:monospace;font-size:11px;
+  padding:8px;resize:vertical;min-height:64px;outline:none;transition:border-color .15s;
+}
+#thank-you-note-input:focus{border-color:var(--mag)}
+#thank-you-note-input::placeholder{color:rgba(255,45,120,.5)}
+#thank-you-address{
+  width:100%;background:rgba(255,45,120,.05);border:1px solid rgba(255,45,120,.4);
+  border-radius:4px;color:var(--mag);font-family:monospace;font-size:9px;
+  padding:6px 8px;cursor:pointer;text-align:left;word-break:break-all;
+  transition:border-color .15s,background .15s;
+}
+#thank-you-address:hover{background:rgba(255,45,120,.12);border-color:var(--mag)}
+.popover-hint{font-size:8px;color:var(--faint)}
+#thank-you-send-btn{
+  width:100%;padding:8px;background:transparent;
+  border:1px solid var(--mag);color:var(--mag);
+  font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;
+  cursor:pointer;border-radius:4px;transition:background .15s;
+}
+#thank-you-send-btn:hover{background:rgba(255,45,120,.12)}
+
+/* BUILT BY EMP line */
+.built-by-line{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--muted);white-space:nowrap;
+}
+.trinity-knot{width:14px;height:14px;flex-shrink:0}
+.trinity-path{fill:none;stroke:var(--mag);stroke-width:1.6;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(255,45,120,.6))}
+.built-by-line a{color:var(--teal);text-decoration:none;transition:color .15s}
+.built-by-line a:hover{color:var(--mag)}
+
+/* ── VERSION BADGE — fixed bottom-LEFT, single instance ─────────── */
+#version-badge{
+  position:fixed;left:14px;bottom:12px;z-index:100;
+  display:flex;align-items:center;gap:5px;
+  font-size:8px;font-weight:700;letter-spacing:.14em;color:var(--muted);pointer-events:none;
+}
+.status-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--teal);box-shadow:0 0 6px var(--teal);flex-shrink:0;
+}
+.status-dot.auth{background:var(--gold);box-shadow:0 0 6px var(--gold)}
 </style>
-  <!-- SecureGate Public Console -->
-  <meta name="description" content="SecureGate v1 — Public Recovery Console. Session-only. No persistent storage.">
-  <meta name="robots" content="noindex, nofollow, noarchive">
-  <script>
-    window.PUBLIC_CONSOLE = true;
-    window.SESSION_KEYS_ONLY = true;
-    window.NO_PERSISTENT_STORAGE = true;
-    window.DEVICE_BOUND = true;
-  </script>
+</head>
+<body>
 
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-main">SECUREGATE</span>
+    <span class="brand-sub">EIP-777G</span>
+  </div>
+  <div class="topbar-right">
+    <button id="scrub-btn" onclick="scrub()">SCRUB</button>
+    <button id="purge-btn" onclick="scrub()" aria-label="Power off">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- 1. SCAN -->
+    <div class="scan-wrap">
+      <div class="scan-btn-outer" id="scan-btn-outer" onclick="startScan()">
+        <div class="scan-ring" id="scan-ring"></div>
+        <div class="scan-ring2"></div>
+        <div class="scan-inner" id="scan-inner">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
+            <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+          <span class="scan-word">SCAN</span>
+        </div>
+      </div>
+      <div id="scan-label">GENESIS OWNER AUTHENTICATION<br>VERIFY OWNERSHIP</div>
+    </div>
+
+    <!-- 2. LOCKED BLOCK -->
+    <div class="locked-block">
+      <div class="locked-block-title">Dashboard Locked</div>
+      <div class="locked-block-body">
+        Enter your <span class="ht">K1 genesis address</span> below and click
+        <span class="hg">SCAN</span> to verify ownership.<br><br>
+        All recovery controls are held behind this gate — no exceptions.
+      </div>
+    </div>
+
+    <!-- 3. K1 PANEL -->
+    <div class="k1-panel" id="genesis-k1-verify-panel">
+      <div class="k1-panel-title">GENESIS K1 ADDRESS</div>
+      <input id="verify-k1-addr" type="text" placeholder="0x... K1 PUBLIC ADDRESS" autocomplete="off" spellcheck="false">
+      <div class="verify-actions">
+        <button id="verify-scan-btn" onclick="startScan()">SCAN</button>
+        <button id="verify-qr-btn"   onclick="linkDevice()">LINK DEVICE</button>
+      </div>
+      <div id="scan-status">Verifies the real K1 owner &#8212; not the thief.</div>
+      <div id="verify-status"></div>
+    </div>
+
+    <!-- 4. SHORT INSTRUCTIONS -->
+    <div class="verify-directions">
+      <strong>SCAN</strong> &#8212; same-device sweep.<br>
+      <strong>LINK DEVICE</strong> &#8212; USB-connected separate device.
+    </div>
+
+    <!-- 5. AUTH-GATE BLOCK -->
+    <div class="auth-gate-block">
+      <div class="sidebar-section-title">AUTH-GATE</div>
+      <div class="sidebar-body">
+        Genesis scan looks for proof you&rsquo;re the original K1 owner on this
+        device, not whoever is holding the key now. The exact 4&#8209;artifact
+        set is hidden so attackers cannot mimic the expected pattern.<br><br>
+
+        Auth&#8209;Gate is an advisory ownership check, not a final ruling. It
+        can miss evidence of valid ownership, so you may attempt verification on
+        up to three devices per K1.<br><br>
+
+        If you still cannot clear Auth&#8209;Gate but can prove you are the
+        original key holder, DM <strong>@hope_ology</strong> on X/Twitter. DMs
+        are more likely to be seen if you follow first.<br><br>
+
+        Once a K1 passes, it auto&#8209;fills where required and is bound to a
+        proof&#8209;of&#8209;ownership passkey. Each K1 requires its own
+        verification and unique passkey &#8212; no exceptions.
+        <span class="sm">SCRUB</span> kills the session immediately, purging all
+        data. On SCRUB, ESC, idle timeout, or tab close, all operator input is
+        purged &#8212; nothing is ever stored, logged, or transmitted.
+      </div>
+    </div>
+
+    <!-- 6. CAUTION BLOCK -->
+    <div class="caution-block">
+      <div class="caution-title">&#9888; Caution</div>
+      <div class="caution-body">
+        Use at your own risk.<br>
+        Hope for the best.<br>
+        If you&rsquo;re a hacker?<br>
+        <strong style="color:#664400">Get fucked.</strong>
+      </div>
+      <button id="auth-bypass-trigger" class="admin-stick-button" onclick="toggleBypass()" aria-label="Admin">&#9899;-&apos;</button>
+    </div>
+
+    <!-- ADMIN BYPASS PANEL (hidden) -->
+    <div id="auth-bypass-panel" class="auth-bypass-panel" style="display:none">
+      <div class="bypass-panel-title">ADMIN BYPASS</div>
+      <input id="bypass-key-input" type="password" placeholder="Admin key for this K1&#8230;" autocomplete="off" spellcheck="false">
+      <button class="bypass-verify-btn" onclick="attemptBypass()">VERIFY</button>
+      <div id="bypass-status"></div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <main class="main-panel">
+
+    <!-- LOCK OVERLAY -->
+    <div id="lock-overlay">
+      <!-- DISCLAIMER (first visit) -->
+      <div id="disclaimer-overlay">
+        <div class="disclaimer-frame">
+          <div class="disclaimer-text">
+            This tool is for authorized use only.<br>
+            Unauthorized access attempts are logged and prosecuted.<br>
+            By proceeding you confirm you are the genesis owner<br>
+            of the K1 address you intend to verify.
+          </div>
+          <button class="disclaimer-btn" onclick="dismissDisclaimer()">I UNDERSTAND &#8212; PROCEED</button>
+        </div>
+      </div>
+      <!-- LOCK CARD -->
+      <div class="lock-card">
+        <h2>Dashboard Locked</h2>
+        <div class="lock-subtitle">Genesis Owner Verification Required</div>
+        <div class="lock-body">
+          The SecureGate dashboard requires <span class="lg">Genesis Owner Verification</span>
+          before recovery controls are accessible.<br><br>
+          <span class="lt">Left sidebar &rarr; Enter K1 public address &rarr; SCAN</span><br><br>
+          Verification runs locally on your device. The exact marker set is
+          intentionally undisclosed.<br><br>
+          If enough expected signals are found, the dashboard unlocks and scan
+          data is immediately wiped. The K1 address becomes
+          <span class="lg">hard-bound</span> to this session and cannot be
+          changed without <span class="lm">SCRUB</span>.
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD (post-auth) -->
+    <div id="dashboard">
+
+      <div class="standalone-box">
+        <div class="standalone-title">Standalone Operation</div>
+        <div class="standalone-copy">
+          SecureGate runs entirely in your browser. No data leaves this device.
+          No keys, addresses, or credentials are ever stored, logged, or
+          transmitted to any server. Close this tab at any time to terminate
+          the session completely.
+        </div>
+      </div>
+
+      <div class="ack-box">
+        <div class="ack-title">Acknowledgement</div>
+        <div class="ack-copy">
+          By using SecureGate you acknowledge that genesis ownership verification
+          is advisory and that you bear full responsibility for all transactions
+          executed through this interface.
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Operator Credentials</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="deployer-key">Deployer Key</label>
+            <div class="input-wrap">
+              <input class="form-input" id="deployer-key" type="password" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
+              <button class="input-eye" onclick="toggleEye('deployer-key')" aria-label="Toggle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="k1-key">K1 Key</label>
+            <div class="input-wrap">
+              <input class="form-input" id="k1-key" type="password" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
+              <button class="input-eye" onclick="toggleEye('k1-key')" aria-label="Toggle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="k1-addr">K1 Address</label>
+            <input class="form-input" id="k1-addr" type="text" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="k2-addr">K2 Address</label>
+            <input class="form-input" id="k2-addr" type="text" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="k3-addr">K3 Address</label>
+            <input class="form-input" id="k3-addr" type="text" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Network</div>
+        <div class="rpc-row">
+          <select class="chain-select" id="network-select">
+            <optgroup label="Mainnets">
+              <option value="ethereum">Ethereum Mainnet</option>
+              <option value="polygon">Polygon</option>
+              <option value="arbitrum">Arbitrum One</option>
+              <option value="optimism">Optimism</option>
+              <option value="base">Base</option>
+              <option value="bsc">BNB Smart Chain</option>
+              <option value="avalanche">Avalanche C-Chain</option>
+            </optgroup>
+            <optgroup label="Testnets">
+              <option value="sepolia">Sepolia</option>
+              <option value="mumbai">Mumbai</option>
+            </optgroup>
+          </select>
+          <input class="form-input" id="rpc-url" type="text" placeholder="Custom RPC URL (optional)" autocomplete="off">
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Funding</div>
+        <div class="action-row">
+          <button class="btn btn-teal" id="calc-funding" onclick="if(typeof calcFunding==='function')calcFunding()">CALC FUNDING</button>
+          <span id="funding-display" style="font-size:10px;color:var(--muted)"></span>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Token Approvals</div>
+        <div class="action-row" style="margin-bottom:8px">
+          <button class="btn btn-teal" id="scan-revokes" onclick="if(typeof scanRevokes==='function')scanRevokes()">SCAN APPROVALS</button>
+          <button class="btn btn-teal" id="revoke-all"   onclick="if(typeof revokeAll==='function')revokeAll()">REVOKE ALL</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Token</th><th>Spender</th><th>Allowance</th><th>Action</th></tr></thead>
+            <tbody id="revoke-tbody">
+              <tr><td colspan="4" style="color:var(--faint);text-align:center">Run scan to populate</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="revoke-status"></div>
+      </div>
+
+      <div id="revoke-section">
+        <div class="section-title">Deploy</div>
+        <div class="action-row">
+          <button class="btn btn-deploy" id="deploy-btn" onclick="if(typeof deployBundle==='function')deployBundle()" disabled>DEPLOY BUNDLE</button>
+        </div>
+        <div id="smoke-results"></div>
+      </div>
+
+    </div><!-- /#dashboard -->
+  </main>
+</div><!-- /.layout -->
+
+<!-- PROGRESS MODAL -->
+<div id="progress-modal">
+  <div class="progress-card">
+    <div class="progress-title">Deploying Bundle</div>
+    <div class="progress-bar-track"><div id="progress-fill"></div></div>
+    <div id="progress-pct">0%</div>
+    <div id="progress-label-text">Initializing&#8230;</div>
+    <div class="progress-steps">
+      <div class="step" id="step1"><span class="step-dot"></span>Compile contracts</div>
+      <div class="step" id="step2"><span class="step-dot"></span>Deploy EIP-777G</div>
+      <div class="step" id="step3"><span class="step-dot"></span>Configure gates</div>
+      <div class="step" id="step4"><span class="step-dot"></span>Verify on-chain</div>
+      <div class="step" id="step5"><span class="step-dot"></span>Finalize</div>
+    </div>
+  </div>
+</div>
+
+<!-- VERSION BADGE — bottom-LEFT, single instance -->
+<div id="version-badge">
+  <span class="status-dot" id="status-dot"></span>
+  <span id="status-text">777G v1.0 &middot; SECURE</span>
+</div>
+
+<!-- FOOTER BRANDING — bottom-RIGHT -->
+<div id="sg-footer-branding">
+
+  <!-- POPOVER (above envelope) -->
+  <div id="thank-you-popover" hidden>
+    <div class="popover-title">Thank You Note</div>
+    <textarea id="thank-you-note-input" placeholder="Write a thank you&#8230;"></textarea>
+    <button id="thank-you-address"
+      onclick="copyAddress(this)"
+      data-address="0xA0eb06a5fab172860837C4D68e75F339896500b5"
+      title="Click to copy">
+      0xA0eb06a5fab172860837C4D68e75F339896500b5
+    </button>
+    <div class="popover-hint">Click address to copy &bull; SEND routes to @hope_ology DMs</div>
+    <button id="thank-you-send-btn" onclick="sendNote()">SEND</button>
+  </div>
+
+  <!-- ENVELOPE — angled, teal body, gold THANK YOU label -->
+  <button id="thank-you-envelope" onclick="togglePopover()" aria-label="Send a thank you" aria-expanded="false">
+    <svg class="envelope-icon" viewBox="0 0 120 78" aria-hidden="true">
+      <path class="env-body" d="M6 8H114V70H6Z"/>
+      <path class="env-flap" d="M8 10L60 45L112 10"/>
+      <path class="env-fold" d="M8 70L46 39"/>
+      <path class="env-fold" d="M112 70L74 39"/>
+    </svg>
+    <span class="envelope-label">THANK YOU</span>
+  </button>
+
+  <!-- BUILT BY EMP line -->
+  <div class="built-by-line">
+    <span>BUILT BY EMP</span>
+    <svg class="trinity-knot" viewBox="0 0 24 24" aria-hidden="true">
+      <path class="trinity-path" d="M12 2.5 Q16 8 18 11.5 Q17 15 15 15 Q13.5 18 12 17.5 Q10.5 18 9 15 Q7 15 6 11.5 Q8 8 12 2.5 Z"/>
+      <path class="trinity-path" d="M6 11.5 Q12 9 18 11.5"/>
+      <path class="trinity-path" d="M9 15 Q12 8.5 15 15"/>
+    </svg>
+    <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a>
+  </div>
+
+</div><!-- /#sg-footer-branding -->
+
+<!-- gate.js + app.js only — no envelope-fix.js, no dashboard-wiring.js -->
+<script src="js/gate.js"></script>
+<script src="js/app.2bac52647e4c-20260629080222.js"></script>
 <script>
-// SECUREGATE PUBLIC CONSOLE — MINIMAL RUNTIME
-window.PUBLIC_CONSOLE = true;
-window.SESSION_KEYS_ONLY = true;
-window.NO_PERSISTENT_STORAGE = true;
-window.DEVICE_BOUND = true;
+(function(){
+'use strict';
 
-// DEVICE FINGERPRINTING
-const DeviceFingerprint = {
-    async collect() {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 200; canvas.height = 50;
-        ctx.textBaseline = 'top';
-        ctx.font = '14px system-ui';
-        ctx.fillText('SecureGate Fingerprint ' + Date.now(), 2, 2);
-        const canvasFp = canvas.toDataURL();
-        const nav = navigator;
-        const screen = window.screen;
-        const components = [
-            nav.userAgent, nav.language, nav.languages?.join(','), nav.hardwareConcurrency,
-            nav.deviceMemory, nav.platform, nav.vendor,
-            screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
-            screen.availWidth + 'x' + screen.availHeight,
-            new Date().getTimezoneOffset(),
-            Intl.DateTimeFormat().resolvedOptions().timeZone,
-            canvasFp.slice(0, 100),
-            (() => { try { const gl = canvas.getContext('webgl'); return gl ? gl.getParameter(gl.RENDERER) + '|' + gl.getParameter(gl.VENDOR) : 'no-webgl'; } catch { return 'webgl-error'; } })(),
-            (() => { try { const actx = new (window.AudioContext || window.webkitAudioContext)(); const osc = actx.createOscillator(); const ana = actx.createAnalyser(); osc.connect(ana); osc.start(0); osc.stop(0.01); return ana.frequencyBinCount; } catch { return 'audio-error'; } })()
-        ];
-        const raw = components.join('###');
-        const msg = new TextEncoder().encode(raw);
-        const hash = await crypto.subtle.digest('SHA-256', msg);
-        const fp = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-        const salt = crypto.getRandomValues(new Uint8Array(16));
-        const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2,'0')).join('');
-        const keccak = (data) => { if (window.ethers && window.ethers.keccak256) return window.ethers.keccak256(data).slice(2); return '0'.repeat(64); };
-        this.sessionFingerprint = '0x' + keccak(fp + saltHex);
-        this.rawFingerprint = fp;
-        this.salt = saltHex;
-        return this.sessionFingerprint;
-    },
-    async getIpCommitment() { return '0x' + '0'.repeat(64); },
-    async bindSession(privilegeLevel) {
-        if (!this.sessionFingerprint) await this.collect();
-        const ipCommitment = await this.getIpCommitment();
-        const binding = { deviceFingerprint: this.sessionFingerprint, ipCommitment: ipCommitment, privilegeLevel: privilegeLevel, timestamp: Date.now(), nonce: Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2,'0')).join('') };
-        this.currentBinding = binding; return binding;
-    }
+var _auth     = false;
+var _scanning = false;
+var _k1Locked = null;
+var _idle;
+var IDLE_MS   = 5 * 60 * 1000;
+
+var $overlay    = document.getElementById('lock-overlay');
+var $disclaimer = document.getElementById('disclaimer-overlay');
+var $scanRing   = document.getElementById('scan-ring');
+var $scanLabel  = document.getElementById('scan-label');
+var $scanStatus = document.getElementById('scan-status');
+var $verifySt   = document.getElementById('verify-status');
+var $k1Input    = document.getElementById('verify-k1-addr');
+var $scanBtn    = document.getElementById('verify-scan-btn');
+var $qrBtn      = document.getElementById('verify-qr-btn');
+var $statusText = document.getElementById('status-text');
+var $statusDot  = document.getElementById('status-dot');
+var $bypassPnl  = document.getElementById('auth-bypass-panel');
+var $bypassIn   = document.getElementById('bypass-key-input');
+var $bypassSt   = document.getElementById('bypass-status');
+var $deployBtn  = document.getElementById('deploy-btn');
+
+/* DISCLAIMER */
+window.dismissDisclaimer = function(){
+  if($disclaimer) $disclaimer.style.display = 'none';
 };
 
-// IP COMMITMENT HELPER
-const IpBinding = {
-    async fetchPublicIp() { try { const res = await fetch('https://api.ipify.org?format=json'); const data = await res.json(); return data.ip; } catch { return null; } },
-    generateCommitment(ip, salt) { const keccak = (data) => { if (window.ethers && window.ethers.keccak256) return window.ethers.keccak256(data).slice(2); return '0'.repeat(64); }; return '0x' + keccak(ip + '|' + salt); },
-    async promptAndCommit() { const saved = sessionStorage.getItem('sg_ip_commitment'); if (saved) return JSON.parse(saved); const ip = await this.fetchPublicIp(); const manual = ip || prompt('Enter your public IP for session binding:'); if (!manual) return null; const salt = crypto.getRandomValues(new Uint8Array(16)); const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2,'0')).join(''); const commitment = this.generateCommitment(manual, saltHex); sessionStorage.setItem('sg_ip_commitment', JSON.stringify({ commitment, salt: saltHex })); return commitment; }
+/* PURGE ALL */
+function purgeAll(){
+  _auth = false; _scanning = false; _k1Locked = null;
+  clearTimeout(_idle);
+  document.querySelectorAll('input,textarea').forEach(function(el){
+    el.value = ''; el.disabled = false; el.readOnly = false;
+  });
+  if($overlay){ $overlay.classList.remove('unlocked'); }
+  if($disclaimer) $disclaimer.style.display = 'flex';
+  if($scanRing)  $scanRing.classList.remove('fast');
+  if($scanLabel) $scanLabel.innerHTML = 'GENESIS OWNER AUTHENTICATION<br>VERIFY OWNERSHIP';
+  if($scanStatus){ $scanStatus.textContent = 'Verifies the real K1 owner \u2014 not the thief.'; $scanStatus.style.color = ''; }
+  if($verifySt)  { $verifySt.textContent = ''; $verifySt.style.color = ''; }
+  if($statusText)  $statusText.textContent = '777G v1.0 \u00B7 SECURE';
+  if($statusDot)   $statusDot.className = 'status-dot';
+  if($scanBtn)     $scanBtn.disabled = false;
+  if($qrBtn)       $qrBtn.disabled   = false;
+  if($deployBtn)   $deployBtn.disabled = true;
+  sessionStorage.removeItem('sg_auth_passed');
+  sessionStorage.removeItem('sg_k1');
+}
+window.scrub = purgeAll;
+
+/* IDLE */
+function resetIdle(){ clearTimeout(_idle); _idle = setTimeout(purgeAll, IDLE_MS); }
+['mousemove','keydown','click','scroll','touchstart'].forEach(function(e){
+  document.addEventListener(e, resetIdle, {passive:true});
+});
+resetIdle();
+
+/* ESC */
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') purgeAll(); });
+
+/* TAB CLOSE / HIDE */
+window.addEventListener('pagehide', purgeAll);
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState==='hidden') purgeAll();
+});
+
+/* RESTORE SESSION */
+if(sessionStorage.getItem('sg_auth_passed')==='1'){
+  authSuccess(sessionStorage.getItem('sg_k1')||'', true);
+}
+
+/* SCAN */
+window.startScan = function(){
+  if(_scanning||_auth) return;
+  var addr = $k1Input ? $k1Input.value.trim() : '';
+  if(!addr||!/^0x[0-9a-fA-F]{40}$/.test(addr)){
+    if($scanStatus) $scanStatus.textContent = 'Enter a valid 0x K1 address first.';
+    return;
+  }
+  _scanning = true; _k1Locked = addr;
+  if($k1Input) $k1Input.disabled = true;
+  if($scanBtn) $scanBtn.disabled = true;
+  if($qrBtn)   $qrBtn.disabled   = true;
+  if($scanRing) $scanRing.classList.add('fast');
+  if($scanLabel) $scanLabel.textContent = 'SCANNING\u2026';
+  if($scanStatus) $scanStatus.textContent = 'Sweeping genesis artifacts\u2026';
+  var fn = (typeof window.runGateSweep==='function') ? window.runGateSweep : function(a,cb){ setTimeout(function(){cb(false);},2200); };
+  fn(addr, function(passed){
+    _scanning = false;
+    if(passed){ authSuccess(addr, false); } else { sweepFailed(); }
+  });
 };
 
-// SESSION WIRING
-const SessionWiring = { gate: '', k1: '', k2: '', k3: '', rpc: '', validate() { const addrRegex = /^0x[a-fA-F0-9]{40}$/; return { gate: addrRegex.test(this.gate) ? this.gate : '', k1: addrRegex.test(this.k1) ? this.k1 : '', k2: addrRegex.test(this.k2) ? this.k2 : '', k3: addrRegex.test(this.k3) ? this.k3 : '', rpc: this.rpc.startsWith('http') ? this.rpc : '' }; }, clear() { this.gate=this.k1=this.k2=this.k3=this.rpc=''; } };
+/* LINK DEVICE */
+window.linkDevice = function(){
+  if(_scanning||_auth) return;
+  var addr = $k1Input ? $k1Input.value.trim() : '';
+  if(!addr||!/^0x[0-9a-fA-F]{40}$/.test(addr)){
+    if($scanStatus) $scanStatus.textContent = 'Enter a valid 0x K1 address first.';
+    return;
+  }
+  if($k1Input) $k1Input.disabled = true;
+  if($qrBtn)   $qrBtn.textContent = 'LINKING\u2026';
+  if($scanRing) $scanRing.classList.add('fast');
+  if(typeof window.initDeviceLink==='function') window.initDeviceLink(addr);
+};
 
-// MINIMAL VAULT
-const SessionVault = { store: {}, idleTimer: null, idleMs: 300000, set(key, value) { this.store[key] = value; this.resetIdle(); }, get(key) { this.resetIdle(); return this.store[key] || ''; }, has(key) { return !!this.store[key]; }, wipe() { this.store = {}; this.clearIdle(); console.log('[Vault] Purged'); }, resetIdle() { this.clearIdle(); this.idleTimer = setTimeout(() => this.wipe(), this.idleMs); }, clearIdle() { if (this.idleTimer) clearTimeout(this.idleTimer); } };
+/* AUTH SUCCESS */
+function authSuccess(addr, restore){
+  _auth = true; _k1Locked = addr;
+  if($scanRing)  $scanRing.classList.remove('fast');
+  if($scanLabel) $scanLabel.textContent = 'VERIFIED';
+  if($scanStatus){ $scanStatus.textContent = 'Genesis ownership confirmed.'; $scanStatus.style.color = 'var(--teal)'; }
+  var k1f = document.getElementById('k1-addr');
+  if(k1f && addr){ k1f.value = addr; k1f.readOnly = true; }
+  if($overlay) $overlay.classList.add('unlocked');
+  if($statusText) $statusText.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
+  if($statusDot)  $statusDot.classList.add('auth');
+  if($deployBtn)  $deployBtn.disabled = false;
+  sessionStorage.setItem('sg_auth_passed','1');
+  sessionStorage.setItem('sg_k1', addr);
+  if(!restore) setTimeout(function(){ if($verifySt) $verifySt.textContent = 'Scan data purged.'; }, 800);
+}
 
-// RPC MANAGER
-const RpcManager = { endpoints: {}, mode: 'per-chain', set(chain, url) { this.endpoints[chain] = url; }, get(chain) { return this.endpoints[chain] || ''; }, getAll() { return { ...this.endpoints }; }, setMode(m) { this.mode = m; }, applyBulk(text) { const lines = text.split('
-').map(l => l.trim()).filter(l => l && !l.startsWith('#')); for (const line of lines) { const eq = line.indexOf('='); if (eq > 0) { const k = line.slice(0, eq).trim().toLowerCase(); const v = line.slice(eq + 1).trim(); if (v.startsWith('http')) this.endpoints[k] = v; } } } };
+/* SWEEP FAILED */
+function sweepFailed(){
+  if($scanRing) $scanRing.classList.remove('fast');
+  if($k1Input)  $k1Input.disabled = false;
+  if($scanBtn)  $scanBtn.disabled = false;
+  if($qrBtn)    { $qrBtn.disabled = false; $qrBtn.textContent = 'LINK DEVICE'; }
+  if($scanLabel) $scanLabel.innerHTML = 'GENESIS OWNER AUTHENTICATION<br>VERIFY OWNERSHIP';
+  if($verifySt){
+    $verifySt.style.color = 'var(--mag)';
+    $verifySt.textContent = 'Auth-Gate could not confirm genesis ownership for this K1. If you are the original K1 creator, contact @hope_ology on X/Twitter with your K1 address and proof of ownership.';
+  }
+}
 
-// PUBLIC TABS
-const PublicTabs = { current: 0, tabs: ['Telemetry', 'Beacon', 'Deploy', 'Trace'], init() { this.renderTabs(); this.renderContent(); }, renderTabs() { const nav = document.querySelector('nav.flex.border-b'); if (!nav) return; nav.innerHTML = this.tabs.map((t, i) => '<button onclick="switchTab(' + i + ')" class="tab ' + (i === this.current ? 'active' : '') + ' px-4 py-3 text-sm font-medium">' + t + '</button>').join(''); }, switch(i) { this.current = i; this.renderTabs(); this.renderContent(); }, renderContent() { const main = document.getElementById('main-content'); if (!main) return; const wiring = SessionWiring.validate(); const rpc = wiring.rpc || RpcManager.get('ethereum') || 'https://ethereum-rpc.publicnode.com'; switch (this.current) { case 0: main.innerHTML = this.telemetryHtml(rpc, wiring); break; case 1: main.innerHTML = this.beaconHtml(rpc, wiring); break; case 2: main.innerHTML = this.deployHtml(rpc, wiring); break; case 3: main.innerHTML = this.traceHtml(); break; } this.bindEvents(); }, telemetryHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-brand-teal font-medium mb-3">Gate State</h3><div class="grid grid-cols-2 gap-4 text-sm" id="gateState"><div><span class="text-zinc-500">Gate:</span> <span class="mono" id="gateAddr">' + (wiring.gate || '—') + '</span></div><div><span class="text-zinc-500">K1:</span> <span class="mono" id="k1Addr">' + (wiring.k1 || '—') + '</span></div><div><span class="text-zinc-500">K2:</span> <span class="mono" id="k2Addr">' + (wiring.k2 || '—') + '</span></div><div><span class="text-zinc-500">K3:</span> <span class="mono" id="k3Addr">' + (wiring.k3 || '—') + '</span></div></div><button id="refreshGate" class="mt-3 w-full sm:w-auto px-4 py-2 bg-brand-teal/20 hover:bg-brand-teal/30 text-brand-teal rounded-lg text-sm min-h-[44px]">Refresh Gate State</button></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-brand-teal font-medium mb-3">Balances</h3><div class="grid grid-cols-2 gap-4 text-sm" id="balances"><div>K1: <span id="balK1" class="mono">—</span></div><div>K2: <span id="balK2" class="mono">—</span></div><div>K3: <span id="balK3" class="mono">—</span></div><div>Gate: <span id="balGate" class="mono">—</span></div></div></div></div>'; }, beaconHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-brand-purple"><h3 class="text-brand-purple font-medium mb-3">Beacon — Origin Pulse</h3><p class="text-zinc-500 text-sm mb-4">Verify lane coherence against on-chain registry.</p><button id="runBeacon" class="w-full sm:w-auto px-4 py-3 bg-brand-purple hover:bg-purple-700 rounded-xl font-medium min-h-[44px]">Run Beacon Check</button><div id="beaconResult" class="mt-4 hidden glass p-4 rounded-xl border border-zinc-700 text-sm"></div></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Drift Check</h3><div id="driftTable" class="text-xs mono overflow-x-auto"></div></div></div>'; }, deployHtml(rpc, wiring) { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-amber-500/30 bg-amber-500/5"><h3 class="text-amber-400 font-medium mb-2">⚠ Deploy Bootstrap</h3><p class="text-zinc-500 text-sm mb-4">Bootstrap fabric on selected chain. Requires deployer key + gas funds.</p><div class="space-y-2 mb-4"><select id="deployChain" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-sm mono"><option value="ethereum">Ethereum Mainnet</option><option value="hl-evm">Hyperliquid EVM (999)</option><option value="base">Base</option><option value="arbitrum">Arbitrum One</option><option value="optimism">Optimism</option><option value="polygon">Polygon</option><option value="bnb">BNB Chain</option></select><textarea id="deployerKeyInput" rows="2" placeholder="0x... Deployer private key (session only)" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-sm mono resize-y"></textarea></div><button id="bootstrapFabric" class="w-full sm:w-auto px-4 py-3 bg-amber-500 hover:bg-amber-600 text-zinc-950 rounded-xl font-medium min-h-[44px]">Bootstrap Fabric</button><div id="deployResult" class="mt-4 hidden glass p-4 rounded-xl border border-zinc-700 text-sm"></div></div><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Funding Estimates (manual)</h3><p class="text-zinc-500 text-xs">Use Deploy tab in operator build for live estimates. Public console requires manual gas calculation.</p></div></div>'; }, traceHtml() { return '<div class="space-y-4"><div class="glass p-4 rounded-xl border border-zinc-700"><h3 class="text-zinc-500 font-medium mb-3">Session Trace</h3><p class="text-zinc-500 text-sm mb-2">Local session activity only — no server logs.</p><div id="sessionTrace" class="log-scroll mono text-xs bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 min-h-[200px] font-mono"></div><button id="clearTrace" class="mt-2 text-xs px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-400">Clear Session Log</button></div></div>'; }, bindEvents() { document.getElementById('refreshGate')?.addEventListener('click', () => this.refreshGate()); document.getElementById('runBeacon')?.addEventListener('click', () => this.runBeacon()); document.getElementById('bootstrapFabric')?.addEventListener('click', () => this.bootstrapFabric()); document.getElementById('clearTrace')?.addEventListener('click', () => this.clearTrace()); }, refreshGate() { this.log('Gate refresh requested'); }, runBeacon() { const el = document.getElementById('beaconResult'); if (el) { el.classList.remove('hidden'); el.innerHTML = 'Beacon check initiated — requires operator coherence binding (not available in public console).'; } this.log('Beacon check requested'); }, bootstrapFabric() { const chain = document.getElementById('deployChain')?.value; const el = document.getElementById('deployResult'); if (el) { el.classList.remove('hidden'); el.innerHTML = 'Fabric bootstrap for ' + chain + ' — requires operator build for execution.'; } this.log('Bootstrap requested for ' + chain); }, log(msg) { const trace = document.getElementById('sessionTrace'); if (trace) { const time = new Date().toLocaleTimeString(); trace.innerHTML += '<div class="text-zinc-500">[' + time + '] ' + msg + '</div>'; trace.scrollTop = trace.scrollHeight; } }, clearTrace() { const trace = document.getElementById('sessionTrace'); if (trace) trace.innerHTML = ''; } };
+/* ADMIN BYPASS */
+window.toggleBypass = function(){
+  if(!$bypassPnl) return;
+  var open = $bypassPnl.style.display !== 'none';
+  $bypassPnl.style.display = open ? 'none' : 'flex';
+  if(!open && $bypassIn) $bypassIn.focus();
+};
+window.attemptBypass = function(){
+  var k1  = $k1Input  ? $k1Input.value.trim()  : '';
+  var key = $bypassIn ? $bypassIn.value.trim() : '';
+  if(!k1)  { if($bypassSt) $bypassSt.textContent = 'Enter K1 address first.'; return; }
+  if(!key) { if($bypassSt) $bypassSt.textContent = 'Enter admin key.'; return; }
+  if(typeof window.verifyAdminKey==='function'){
+    window.verifyAdminKey(k1, key, function(ok){
+      if(ok){ $bypassPnl.style.display='none'; authSuccess(k1,false); }
+      else  { if($bypassSt) $bypassSt.textContent = 'Invalid or mismatched admin key for this K1.'; }
+    });
+  } else {
+    if($bypassSt) $bypassSt.textContent = 'Admin verification unavailable.';
+  }
+};
 
-function switchTab(i) { PublicTabs.switch(i); }
+/* TOGGLE EYE */
+window.toggleEye = function(id){
+  var el = document.getElementById(id);
+  if(el) el.type = el.type==='password' ? 'text' : 'password';
+};
 
-document.addEventListener('DOMContentLoaded', () => { DeviceFingerprint.collect().then(fp => { console.log('[SecureGate] Device fingerprint:', fp); }); IpBinding.promptAndCommit().then(c => { if (c) console.log('[SecureGate] IP commitment:', c.commitment); }); PublicTabs.init(); document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { SessionVault.wipe(); console.log('[SecureGate] Session purged via ESC'); } }); document.addEventListener('visibilitychange', () => { if (document.hidden) SessionVault.wipe(); }); const purgeBtn = document.querySelector('button[onclick*="wipe"]'); if (purgeBtn) purgeBtn.addEventListener('click', () => SessionVault.wipe()); console.log('[SecureGate] Public console initialized — session only, no persistent storage'); });
+/* ENVELOPE / POPOVER */
+var $popover  = document.getElementById('thank-you-popover');
+var $envelope = document.getElementById('thank-you-envelope');
+window.togglePopover = function(){
+  if(!$popover) return;
+  var open = !$popover.hidden;
+  $popover.hidden = open;
+  if($envelope) $envelope.setAttribute('aria-expanded', String(!open));
+};
+document.addEventListener('click', function(e){
+  if(!$popover||$popover.hidden) return;
+  if(!$popover.contains(e.target)&&!$envelope.contains(e.target)){
+    $popover.hidden = true;
+    if($envelope) $envelope.setAttribute('aria-expanded','false');
+  }
+});
+
+/* COPY ADDRESS */
+window.copyAddress = function(btn){
+  var addr = btn.dataset.address;
+  if(!addr) return;
+  navigator.clipboard.writeText(addr).then(function(){
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = orig; }, 1400);
+  }).catch(function(){ btn.textContent = 'Copy failed'; });
+};
+
+/* SEND NOTE */
+window.sendNote = function(){
+  var note = document.getElementById('thank-you-note-input');
+  var msg  = note ? note.value.trim() : '';
+  var url  = 'https://twitter.com/messages/compose?recipient_id=hope_ology' + (msg ? '&text='+encodeURIComponent(msg) : '');
+  window.open(url,'_blank','noopener,noreferrer');
+};
+
+/* STUBS — app.js overrides */
+window.calcFunding  = window.calcFunding  || function(){};
+window.scanRevokes  = window.scanRevokes  || function(){};
+window.revokeAll    = window.revokeAll    || function(){};
+window.deployBundle = window.deployBundle || function(){};
+
+})();
 </script>
-</head><body><div class="topbar"><div class="topbar-brand"><span class="brand-main">SECUREGATE</span><span class="brand-sub">EIP-777G</span></div><div class="topbar-right"><button class="scrub-btn" id="scrub-btn" onclick="wipeSession()">SCRUB</button><button class="power-btn" id="purge-btn" onclick="wipeSession()" aria-label="Power off session"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/><line x1="12" y1="2" x2="12" y2="12"/></svg></button></div></div><div class="layout"><div class="sidebar"><div class="scan-wrap"><div class="scan-btn-outer" id="scan-btn-outer" onclick="startScan()"><div class="scan-ring" id="scan-ring"></div><div class="scan-ring2"></div><div class="scan-inner" id="scan-inner"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg><span>SCAN</span></div></div><div class="scan-label" id="scan-label">GENESIS OWNER AUTHENTICATION — VERIFY OWNERSHIP</div></div><div class="sidebar-section auth-mechanism-block"><div class="sidebar-section-title">AUTH-GATE</div><div class="sidebar-body"> Genesis scan looks for proof you&apos;re the original K1 owner on this device, not whoever is holding the key now. The exact 4&#8209;artifact set is hidden so attackers cannot mimic the expected pattern.<br><br>Auth-Gate is an advisory ownership check, not a final ruling. It can miss evidence of valid ownership, so you may attempt verification on up to three devices per K1.<br><br>If you still cannot clear Auth-Gate but can prove you are the original key holder, DM <strong>@hope_ology</strong> on X/Twitter. DMs are more likely to be seen if you follow first.<br><br>Once a K1 passes, it auto-fills where required and is bound to a proof&#8209;of&#8209;ownership passkey to avoid K1 swapping risk. You may use SecureGate to recover as many K1s as needed across supported chains, but each K1 requires its own verification and unique passkey — no exceptions. <span class="mag">SCRUB</span> kills the session immediately, purging all verification data. On SCRUB, ESC, idle timeout, or tab close, all operator input is purged — nothing is ever stored, logged, or transmitted. </div></div><div id="genesis-k1-verify-panel" class="genesis-k1-verify-panel"><div class="panel-title">GENESIS K1 ADDRESS</div><input type="text" id="verify-k1-addr" class="verify-k1-addr" placeholder="0x... K1 PUBLIC ADDRESS" autocomplete="off" spellcheck="false"><div class="verify-actions"><button id="verify-scan-btn" class="verify-scan-btn" onclick="startScan()">SCAN</button><button id="verify-qr-btn" class="verify-qr-btn" onclick="linkDevice()">LINK DEVICE</button></div><div class="verify-link-copy scan-sublabel" id="scan-status"> Verifies the real K1 owner — not the thief. </div><div id="verify-status" class="verify-status"></div></div><div id="auth-bypass-panel" class="auth-bypass-panel" style="display:none;"><div class="bypass-panel-title">ADMIN BYPASS</div><input type="password" id="bypass-key-input" class="form-input" placeholder="Bypass key…" autocomplete="off" spellcheck="false"><button class="btn btn-teal" style="width:100%;margin-top:6px;font-size:9px;" onclick="attemptBypass()">VERIFY</button><div id="bypass-status" style="font-size:9px;color:var(--muted);margin-top:4px;min-height:12px;"></div></div><div class="caution-block"><div class="caution-title">&#9888; Caution</div><div class="caution-body"> Use at your own risk.<br> Hope for the best.<br> If you&apos;re a hacker?<br><strong style="color:#664400;">Get fucked.</strong></div><button id="auth-bypass-trigger" class="admin-stick-button" aria-label="Admin" title="Admin" type="button">&#9899;-&apos;</button></div></div><div class="main-panel"><div class="center-notice-box standalone-operation-box"><div class="center-notice-title">STANDALONE OPERATION</div><div class="center-notice-body"> This dashboard executes the authentication flow client-side. You are not submitting K1 authentication data to any operator, server, or third party. Cryptographic checks run in your browser. Chain reads use the server-supplied RPC configuration. RPC is not part of the auth gate. </div></div><div class="center-notice-box securegate-ack-box"><div class="center-notice-body"> BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE. PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE. </div></div><div class="dashboard" id="dashboard"><div class="lock-overlay" id="lock-overlay"><div class="lock-warning"><h2>DASHBOARD LOCKED</h2><p class="lock-subtitle">GENESIS VERIFICATION REQUIRED</p><div class="warning-body"> The SecureGate dashboard requires <strong>Genesis Owner Verification</strong> before recovery controls are accessible.<br><br><strong class="teal">Left sidebar &rarr; Enter K1 public address &rarr; SCAN</strong><br><br> Verification runs locally on your device against a narrow set of historical signals. The exact marker set is intentionally undisclosed.<br><br> If enough expected signals are found, the dashboard unlocks and all scan data is immediately wiped. The K1 address becomes <strong>hard-bound</strong> to this session upon verification start and cannot be changed without <span class="mag">SCRUB</span>. </div></div></div><div class="section-title">DEPLOYMENT BUNDLE</div><div class="form-grid"><div class="form-group"><label class="form-label">Deployer Key</label><div class="input-wrap"><input class="form-input" type="password" id="deployer-key" placeholder="0x..." autocomplete="off"><button class="input-eye" onclick="toggleVis('deployer-key',this)" tabindex="-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div id="deployer-addr" style="font-size:8px;color:var(--teal);margin-top:2px;font-family:monospace;word-break:break-all;min-height:12px;"></div></div><div class="form-group"><label class="form-label">K1 Key <span style="color:var(--muted);font-weight:400">(will be nullified)</span></label><div class="input-wrap"><input class="form-input" type="password" id="k1-key" placeholder="0x..." autocomplete="off"><button class="input-eye" onclick="toggleVis('k1-key',this)" tabindex="-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div id="k1-addr" style="font-size:8px;color:var(--teal);margin-top:2px;font-family:monospace;word-break:break-all;min-height:12px;"></div></div><div class="form-group"><label class="form-label">K1 Call Address <span style="color:var(--muted);font-weight:400">(auto-derived)</span></label><input class="form-input" type="text" id="k1-call-addr" placeholder="0x..." readonly style="color:var(--teal);"></div><div class="form-group"><label class="form-label">K2 Gate Address <span style="color:var(--magenta);font-weight:400">⚠ NEVER DISCLOSE</span></label><input class="form-input" type="text" id="k2-addr" placeholder="0x..." autocomplete="off"></div><div class="form-group"><label class="form-label">K3 Drop Address <span style="color:var(--magenta);font-weight:400">⚠ NEVER DISCLOSE</span></label><input class="form-input" type="text" id="k3-addr" placeholder="0x..." autocomplete="off"></div><div class="form-group"><label class="form-label">Network / RPC</label><div style="display:flex;gap:6px;align-items:stretch;"><select class="chain-select" id="network-select" onchange="onNetworkChange()" style="width:auto;flex:0 0 140px;"><optgroup label="─── EVM CHAINS ───"><option value="ethereum">Ethereum</option><option value="hl-evm" selected>Hyperliquid EVM</option><option value="base">Base</option><option value="arbitrum">Arbitrum</option><option value="optimism">Optimism</option><option value="polygon">Polygon</option><option value="bnb">BNB Chain</option><option value="avax">Avalanche C</option></optgroup><optgroup label="─── CORE ───"><option value="hl-core">Hyperliquid Core</option></optgroup></select><input class="form-input" type="text" id="rpc-url" placeholder="https://..." style="flex:1;"></div></div></div><div class="progress-wrap" id="progress-modal" style="display:none;"><div class="progress-label"><span id="progress-label-text">INITIALIZING…</span><span id="progress-pct">0%</span></div><div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div><div class="progress-steps"><div class="progress-step" id="step1" title="Funding calc"></div><div class="progress-step" id="step2" title="Revoke scan"></div><div class="progress-step" id="step3" title="Deploy tx"></div><div class="progress-step" id="step4" title="Store address"></div><div class="progress-step" id="step5" title="Smoke test"></div></div></div><div class="revoke-section" id="revoke-section" style="display:none;"><div class="section-label" style="font-size:9px;letter-spacing:0.12em;color:var(--muted);margin-bottom:6px;"> REVOKE TARGETS &mdash; <span id="revoke-status">0 approvals found</span></div><div style="overflow-x:auto;"><table class="revoke-table" style="width:100%;border-collapse:collapse;font-size:9px;"><thead><tr style="color:var(--muted);border-bottom:1px solid var(--border);"><th style="text-align:left;padding:3px 6px;font-weight:600;">TOKEN</th><th style="text-align:left;padding:3px 6px;font-weight:600;">SPENDER</th><th style="text-align:left;padding:3px 6px;font-weight:600;">TYPE</th></tr></thead><tbody id="revoke-tbody"></tbody></table></div><button class="btn btn-deploy" id="revoke-all" style="margin-top:8px;width:100%;font-size:9px;" onclick="revokeAll()" disabled>REVOKE ALL (FLASHBOTS)</button></div><div class="action-row"><button class="btn btn-teal" id="calc-funding" onclick="calcFunding()">CALCULATE FUNDING</button><button class="btn btn-teal" id="scan-revokes" onclick="scanRevokes()">SCAN REVOKE TARGETS</button><button class="btn btn-deploy" id="deploy-btn" disabled onclick="deployBundle()">DEPLOY BUNDLE</button></div><div class="bottom-row"><div class="info-box"><div class="info-box-title">How to Deploy</div><div class="info-box-body"><ul class="step-list"><li><span class="step-num">1</span>Paste <span class="teal">DEPLOYER KEY</span> — one-time burner funded for execution only. Address auto-derives.</li><li><span class="step-num">2</span>Paste <span class="teal">K1 KEY</span> — the <strong>compromised wallet</strong> you are recovering from. K1 can only queue intents; it cannot move funds autonomously. K2 authorization is mandatory for any execution.</li><li><span class="step-num">3</span>Enter <span class="gold">K2 GATE ADDRESS</span> — all transactions will route through K2. <span class="mag">Never disclose this key.</span></li><li><span class="step-num">4</span>Enter <span class="gold">K3 DROP ADDRESS</span> — egress routing target. <span class="mag">Never disclose this key.</span></li><li><span class="step-num">5</span>Select chain → RPC auto-fills. Override if needed.</li><li><span class="step-num">6</span>Click <span class="teal">CALCULATE FUNDING</span> to determine deployer funding amount.</li><li><span class="step-num">7</span>Fund deployer address shown. Click <span class="teal">SCAN REVOKE TARGETS</span>.</li><li><span class="step-num">8</span>Click <span class="mag">DEPLOY BUNDLE</span> → 5-step Flashbots execution. Backend required for revoke + deploy. Static mode shows explicit errors — never silent failures.</li></ul><br><span style="color:var(--muted);">⚠ SCRUB clears all session data including keys. This dashboard submits nothing to any server. You are the sole custodian of credentials entered.</span></div></div><div class="info-box"><div class="info-box-title" style="display:flex;justify-content:space-between;align-items:center;"><span>STATUS / SMOKE TEST</span><button class="btn btn-teal" style="padding:3px 10px;font-size:8px;" onclick="runSmokeTest()">RUN TEST</button></div><div class="smoke-box" id="smoke-results"><span style="color:var(--faint);">// Awaiting deployment…<br>// Contract address will populate here after DEPLOY BUNDLE completes.<br>// Smoke test verifies: bytecode</span></div><div id="funding-display" style="margin-top:8px;font-size:9px;color:var(--muted);min-height:14px;"></div></div></div></div></div></div><div id="version-badge" style="position:fixed;left:14px;bottom:12px;z-index:9999;display:flex;align-items:center;gap:5px;font-size:8px;font-weight:700;letter-spacing:0.14em;color:var(--muted);pointer-events:none;"><span class="status-dot dot-secure"></span><span id="status-text">777G v1.0 · SECURE</span></div><div class="securegate-footer-branding" id="sg-footer-branding"><button id="thank-you-envelope" class="thank-you-envelope" type="button" aria-label="Send a thank you" title="SEND A THANK YOU" ><svg class="envelope-icon" viewBox="0 0 120 78" aria-hidden="true"><path class="envelope-body" d="M6 8H114V70H6Z"></path><path class="envelope-flap" d="M8 10L60 45L112 10"></path><path class="envelope-fold-left" d="M8 70L46 39"></path><path class="envelope-fold-right" d="M112 70L74 39"></path></svg><span class="thank-you-on-envelope">THANK YOU</span></button><div id="thank-you-popover" class="thank-you-popover" hidden><div class="thank-you-popover-title">THANK YOU NOTE</div><textarea id="thank-you-note-input" class="thank-you-note" rows="4" placeholder="Type a thank you note..." ></textarea><button id="thank-you-address" class="thank-you-address" type="button" title="Click to copy address" data-address="0xA0eb06a5fab172860837C4D68e75F339896500b5" > 0xA0eb06a5fab172860837C4D68e75F339896500b5 </button><div class="thank-you-popover-hint">Click address to copy &bull; SEND routes to @hope_ology DMs</div><button id="thank-you-send-btn" class="thank-you-send-btn" type="button" >SEND</button></div><div class="built-by-line"><span>BUILT BY EMP</span><svg class="trinity-knot" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 Q16 8 18 11.5 Q17 15 15 15 Q13.5 18 12 17.5 Q10.5 18 9 15 Q7 15 6 11.5 Q8 8 12 2.5 Z"></path><path d="M6 11.5 Q12 9 18 11.5"></path><path d="M9 15 Q12 8.5 15 15"></path></svg><a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer" >@hope_ology</a></div></div><script src="vendor/ethers.min.js"></script><script src="vendor/qrcode.min.js"></script><script src="js/app.83cf614621ff-20260629080442.js"></script><div id="varsPanel" hidden></div><div id="howto-overlay" hidden></div><input id="deployerKey" type="password" hidden><nav id="recovery-tabs" hidden>Telemetry Queue Authorize Execute Sever Deploy Beacon Trace</nav><!-- PUBLIC_WIRING HowToPanel PublicDocsPanel LIVE_PUBLIC_ACCESS=!0 switchTab(5) switchTab(7) Recovery credentials --></body></html>
+</body>
+</html>
