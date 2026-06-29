@@ -527,18 +527,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 /* ─── SECTION 5 — FOOTER CLUSTER (fixed bottom-right) ─────── */
 #footer-cluster{
   position:fixed;bottom:14px;right:16px;z-index:500;
-  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+  display:flex;flex-direction:column;align-items:flex-end;gap:4px;
 }
 /* Envelope wrapper — provides popup anchor */
-#env-wrap{position:relative}
+#env-wrap{position:relative;margin-bottom:8px}
 /* Envelope button — teal body, pink THANK YOU, angled out */
 #env-btn{
   background:none;border:none;cursor:pointer;padding:0;
-  transform:rotate(-8deg);transform-origin:bottom right;
+  transform:rotate(-5deg);transform-origin:bottom right;
   transition:transform .2s;
   filter:drop-shadow(0 2px 8px rgba(0,220,210,.3));
 }
-#env-btn:hover{transform:rotate(-4deg) scale(1.07)}
+#env-btn:hover{transform:rotate(-2deg) scale(1.07)}
 .env-svg{width:72px;display:block}
 .ev-body{fill:var(--teal)}
 .ev-flap{fill:#009990}
