@@ -2086,7 +2086,46 @@ margin-top: 6px !important;
 
   /* === SG FINAL SIDEBAR + ENVELOPE FIX END === */
 
-.sidebar-version-badge { position: fixed !important; right: 18px !important; bottom: 18px !important; z-index: 9999 !important; display: flex !important; align-items: center !important; gap: 8px !important; pointer-events: none !important; background: rgba(5,5,5,0.85) !important; padding: 4px 10px !important; border-radius: 4px !important; border: 1px solid #1a1a1a !important; } </style>
+.sidebar-version-badge { position: fixed !important; right: 18px !important; bottom: 18px !important; z-index: 9999 !important; display: flex !important; align-items: center !important; gap: 8px !important; pointer-events: none !important; background: rgba(5,5,5,0.85) !important; padding: 4px 10px !important; border-radius: 4px !important; border: 1px solid #1a1a1a !important; }
+
+  /* SIDEBAR FOOTER LINKS */
+  .sidebar-footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px 0 4px;
+    border-top: 1px solid #1a1a1a;
+    margin-top: auto;
+  }
+  .hope-link {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--teal);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .hope-link:hover { color: var(--magenta); }
+  .thank-you-note {
+    font-size: 9px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.4;
+  }
+  .copy-addr-btn {
+    background: none;
+    border: none;
+    color: var(--faint);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+  }
+  .copy-addr-btn:hover { color: var(--teal); }
+</style>
 </head>
 <body>
 
@@ -2126,11 +2165,11 @@ margin-top: 6px !important;
             <span>SCAN</span>
           </div>
         </div>
-        <div class="scan-label">Dashboard Locked</div>
+        <div class="scan-label" id="scan-label">GENESIS OWNER AUTHENTICATION — VERIFY OWNERSHIP</div>
 
       <!-- AUTHENTICATION MECHANISM MOVED BELOW SCAN BUTTON -->
       <div class="sidebar-section auth-mechanism-block">
-        <div class="sidebar-section-title">Authentication Mechanism</div>
+        <div class="sidebar-section-title">AUTH-GATE</div>
         <div class="sidebar-body">
           Genesis scan looks for proof you&apos;re the original K1 owner on this device, not whoever is holding the key now. The exact 4&#8209;artifact set is hidden so attackers cannot mimic the expected pattern.<br><br>Auth-Gate is an advisory ownership check, not a final ruling. It can miss evidence of valid ownership, so you may attempt verification on up to three devices per K1.<br><br>If you still cannot clear Auth-Gate but can prove you are the original key holder, DM <strong>@hope_ology</strong> on X/Twitter. DMs are more likely to be seen if you follow first.<br><br>Once a K1 passes, it auto-fills where required and is bound to a proof&#8209;of&#8209;ownership passkey to avoid K1 swapping risk. You may use SecureGate to recover as many K1s as needed across supported chains, but each K1 requires its own Auth&#8209;Gate passkey. Once a K1 passkey has been issued, no further scans are required for that K1.
         </div>
@@ -2138,7 +2177,7 @@ margin-top: 6px !important;
 
       <!-- K1 Compromised Wallet Address PANEL -->
       <div id="genesis-k1-verify-panel" class="genesis-k1-verify-panel">
-        <div class="panel-title">K1 Compromised Wallet Address</div>
+        <div class="panel-title">GENESIS K1 ADDRESS</div>
         <input type="text" id="verify-k1-addr" class="verify-k1-addr" placeholder="0x... K1 PUBLIC ADDRESS" autocomplete="off" spellcheck="false">
 
         <!-- ONLY LINK DEVICE SHOULD BE VISIBLE HERE -->
@@ -2147,8 +2186,7 @@ margin-top: 6px !important;
           <button id="verify-qr-btn" class="verify-qr-btn verify-link-only" disabled>LINK DEVICE</button>
         </div>
           <div class="verify-link-copy scan-sublabel" id="scan-status">
-            Enter K1 compromised wallet address<br>
-        
+            Verifies the real K1 owner — not the thief.
           </div>
 
 
@@ -2159,7 +2197,7 @@ margin-top: 6px !important;
 
       </div>
 <div class="session-termination-block">
-          <div class="sidebar-section-title">Session Termination</div>
+          <div class="sidebar-section-title">SESSION TERMINATION</div>
           <div class="sidebar-body">
             <span class="mag">SCRUB</span> kills the session and immediately deletes all verification data and input from memory.<br><br>On SCRUB, ESC, idle timeout, or tab close, all operator input is purged. No keys, addresses, or credentials are ever stored, logged, or transmitted to any server; the dashboard runs entirely in your browser.
           </div>
@@ -2186,6 +2224,17 @@ margin-top: 6px !important;
       </div>
 
       
+
+      <!-- HOPE_OLOGY LINK + THANK YOU -->
+      <div class="sidebar-footer-links">
+        <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer" class="hope-link" aria-label="@hope_ology on X/Twitter">@hope_ology</a>
+        <div class="thank-you-note">
+          Thank you for using SecureGate.
+          <button class="copy-addr-btn" id="copy-addr-btn" onclick="copyDeployAddress()" title="Copy deployment address">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+      </div>
 
         <div class="sidebar-version-badge">
         <span class="status-dot dot-secure"></span>
@@ -2225,17 +2274,14 @@ margin-top: 6px !important;
           The SecureGate dashboard requires <strong>Genesis Owner Verification</strong>
           before recovery controls are accessible.<br><br>
 
-          <strong class="teal">Left sidebar → Enter K1 public address → LINK DEVICE</strong><br><br>
+          <strong class="teal">Left sidebar &rarr; Enter K1 public address &rarr; SCAN</strong><br><br>
 
-          This verification runs locally in the browser and uses:<br>
-          <strong>①</strong> Device fingerprint match / Canvas-WebGL hardware signal<br>
-          <strong>②</strong> On-chain K1 first-tx confirmation where applicable<br>
-          <strong>③</strong> Historical visit timestamp<br>
-          <strong>④</strong> Return visit confirmation<br><br>
+          Verification runs locally on your device against a narrow set of historical signals.
+          The exact marker set is intentionally undisclosed.<br><br>
 
-          <span class="mag">3 of 4 artifacts must match.</span>
+          If enough expected signals are found, the dashboard unlocks and all scan data is immediately wiped.
           The K1 address becomes <strong>hard-bound</strong> to this session upon verification start
-          and cannot be changed without SCRUB.
+          and cannot be changed without <span class="mag">SCRUB</span>.
         </div>
       </div>
     </div>
