@@ -101,33 +101,46 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   padding-bottom:13px;border-bottom:1px solid var(--bdr2);margin-bottom:11px;
 }
 .scan-outer{
-  position:relative;width:72px;height:72px;
+  position:relative;width:88px;height:88px;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;flex-shrink:0;
 }
+/* Outermost ring — teal, slow spin */
 .scan-ring{
   position:absolute;inset:0;border-radius:50%;
-  border:2px solid transparent;
-  border-top-color:var(--mag);border-right-color:rgba(255,79,216,.25);
-  animation:spin-slow 3s linear infinite;
+  border:1.5px solid rgba(0,220,210,.18);
+  border-top-color:var(--teal);border-right-color:var(--teal);
+  box-shadow:0 0 8px rgba(0,220,210,.35);
+  animation:spin-slow 4s linear infinite;
 }
+/* Middle ring — mag/pink */
 .scan-ring2{
-  position:absolute;inset:8px;border-radius:50%;
-  border:1px solid transparent;
-  border-bottom-color:var(--gold);border-left-color:rgba(240,180,41,.2);
-  animation:spin-slow 5s linear infinite reverse;
+  position:absolute;inset:10px;border-radius:50%;
+  border:1.5px solid rgba(255,79,216,.15);
+  border-bottom-color:var(--mag);border-left-color:var(--mag);
+  box-shadow:0 0 6px rgba(255,79,216,.3);
+  animation:spin-slow 2.5s linear infinite reverse;
+}
+/* Third ring — gold, very slow */
+.scan-ring3{
+  position:absolute;inset:21px;border-radius:50%;
+  border:1px solid rgba(240,180,41,.12);
+  border-top-color:rgba(240,180,41,.5);
+  animation:spin-slow 7s linear infinite;
 }
 @keyframes spin-slow{to{transform:rotate(360deg)}}
 @keyframes spin-fast{to{transform:rotate(360deg)}}
 /* active = fast ring */
-.scan-outer.active .scan-ring{animation:spin-fast .45s linear infinite;border-top-color:var(--mag);border-right-color:var(--mag)}
-.scan-outer.active .scan-ring2{animation:spin-fast .3s linear infinite reverse;border-bottom-color:var(--gold);border-left-color:var(--gold)}
+.scan-outer.active .scan-ring{animation:spin-fast .5s linear infinite;border-color:var(--teal);box-shadow:0 0 14px rgba(0,220,210,.7)}
+.scan-outer.active .scan-ring2{animation:spin-fast .3s linear infinite reverse;border-color:var(--mag);box-shadow:0 0 10px rgba(255,79,216,.6)}
+.scan-outer.active .scan-ring3{animation:spin-fast .8s linear infinite;border-color:var(--gold)}
 .scan-inner{
   position:relative;width:46px;height:46px;border-radius:50%;
-  background:#030508;border:1px solid var(--mag);
+  background:radial-gradient(circle,rgba(0,40,120,.9) 0%,rgba(2,4,12,.97) 100%);
+  border:1px solid var(--mag);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   z-index:1;
-  box-shadow:inset 0 0 10px rgba(0,0,0,.8);
+  box-shadow:inset 0 0 14px rgba(0,80,200,.5),0 0 8px rgba(255,79,216,.25);
 }
 .scan-inner svg{color:var(--mag)}
 .scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--mag)}
@@ -278,6 +291,203 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
+/* ─── MAIN DASHBOARD ──────────────────────────────────────────── */
+#main-dash{
+  position:absolute;inset:0;overflow-y:auto;padding:18px 20px 80px;
+  display:flex;flex-direction:column;gap:16px;
+  scrollbar-width:thin;scrollbar-color:var(--bdr) transparent;
+  opacity:0;pointer-events:none;transition:opacity .35s;
+}
+#main-dash.visible{opacity:1;pointer-events:auto}
+#main-dash::-webkit-scrollbar{width:4px}
+#main-dash::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+/* ── deployment bundle section ── */
+.db-section{
+  background:rgba(8,11,20,.82);border:1px solid var(--bdr);border-radius:6px;
+  padding:16px 18px;
+}
+.db-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;
+}
+.db-title{
+  font-size:10px;font-weight:900;letter-spacing:.22em;color:var(--teal);
+  text-transform:uppercase;margin:0;
+}
+.db-sub{font-size:8.5px;color:var(--muted);font-weight:400;letter-spacing:.04em}
+.db-status{font-size:9px;color:var(--muted);margin-left:auto}
+
+/* 3-col grid for deployment fields */
+.db-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px;
+  margin-bottom:14px;
+}
+.db-field{display:flex;flex-direction:column;gap:5px}
+.db-field--rpc{grid-column:span 1}
+.db-lbl{
+  font-size:8.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);
+  text-transform:uppercase;
+}
+.db-input-wrap{position:relative;display:flex;align-items:center}
+.db-input,.db-select{
+  width:100%;background:rgba(5,7,14,.9);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:10px;padding:7px 28px 7px 9px;border-radius:3px;outline:none;
+  transition:border-color .15s;-webkit-appearance:none;appearance:none;
+}
+.db-select{padding-right:28px;cursor:pointer;background-image:none}
+.db-input:focus,.db-select:focus{border-color:var(--teal)}
+.db-input::placeholder{color:var(--faint);font-family:'Inter',system-ui,sans-serif}
+.db-input:disabled{opacity:.4;cursor:not-allowed}
+/* eye toggle inside input */
+.input-toggle{
+  position:absolute;right:7px;background:none;border:none;
+  color:var(--faint);cursor:pointer;padding:0;line-height:1;
+  transition:color .15s;
+}
+.input-toggle:hover{color:var(--teal)}
+/* derived address display below input */
+.db-addr-disp{
+  font-family:'Courier New',Courier,monospace;font-size:8px;
+  color:var(--muted);min-height:12px;line-height:1.4;word-break:break-all;
+}
+.db-addr-disp.teal{color:var(--teal)}
+
+/* action row */
+.db-actions{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;
+}
+.db-actions-left{display:flex;gap:8px;flex-wrap:wrap}
+.db-btn{
+  background:none;border:1px solid var(--bdr);color:var(--muted);
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;
+  border-radius:3px;cursor:pointer;transition:border-color .15s,color .15s,background .15s;
+  white-space:nowrap;
+}
+.db-btn--outline{border-color:var(--teal);color:var(--teal)}
+.db-btn--outline:hover{background:rgba(0,220,210,.08)}
+.db-btn--outline:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.db-btn--sm{font-size:8px;padding:5px 10px}
+/* DEPLOY BUNDLE — solid pink CTA */
+.db-btn--deploy{
+  background:var(--mag);border-color:var(--mag);color:#000;
+  font-weight:900;font-size:9.5px;padding:9px 22px;
+}
+.db-btn--deploy:hover{filter:brightness(1.1)}
+.db-btn--deploy:disabled{
+  background:rgba(255,79,216,.25);border-color:rgba(255,79,216,.3);
+  color:rgba(0,0,0,.4);cursor:not-allowed;pointer-events:none;filter:none;
+}
+
+/* funding display */
+.funding-display{
+  margin-top:12px;font-size:9px;color:var(--text);line-height:1.9;
+}
+.funding-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-bottom:1px solid var(--bdr2)}
+.funding-row.total{border-bottom:none;margin-top:4px;color:var(--gold);font-weight:700}
+.funding-row span:last-child{color:var(--teal);font-family:'Courier New',Courier,monospace}
+
+/* ── revoke table section ── */
+.revoke-section .db-header{margin-bottom:10px}
+.revoke-table-wrap{overflow-x:auto}
+.revoke-table{
+  width:100%;border-collapse:collapse;
+  font-size:9px;font-family:'Courier New',Courier,monospace;
+}
+.revoke-table th{
+  font-family:'Inter',system-ui,sans-serif;font-size:8px;font-weight:700;
+  letter-spacing:.16em;color:var(--muted);text-transform:uppercase;
+  padding:6px 8px;border-bottom:1px solid var(--bdr);text-align:left;
+}
+.revoke-table td{
+  padding:6px 8px;border-bottom:1px solid var(--bdr2);color:var(--text);
+}
+.revoke-table tbody tr:hover{background:rgba(0,220,210,.04)}
+.revoke-table .revoke-empty td{
+  color:var(--faint);text-align:center;padding:14px;
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;
+}
+
+/* ── bottom row: progress + smoke ── */
+.db-bottom-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+}
+.db-panel{
+  background:rgba(8,11,20,.82);border:1px solid var(--bdr);border-radius:6px;
+  padding:14px 16px;
+}
+
+/* progress steps */
+.progress-steps{
+  display:flex;flex-direction:column;gap:7px;margin-bottom:14px;
+}
+.ps-step{
+  display:flex;align-items:center;gap:9px;
+  font-size:9px;color:var(--muted);
+}
+.ps-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--bdr);flex-shrink:0;transition:background .3s,box-shadow .3s;
+}
+.ps-step.active .ps-dot{
+  background:var(--teal);box-shadow:0 0 6px var(--teal);
+}
+.ps-step.done .ps-dot{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+.ps-step.done .ps-lbl{color:var(--gold)}
+.ps-step.active .ps-lbl{color:var(--teal)}
+.ps-step.error .ps-dot{background:var(--red)}
+.ps-step.error .ps-lbl{color:var(--red)}
+
+/* segmented progress bar — teal/pink/purple striped, matches reference image */
+.seg-bar{
+  width:100%;height:18px;background:rgba(5,7,14,.9);
+  border:1px solid var(--bdr);border-radius:3px;overflow:hidden;
+  margin-bottom:6px;position:relative;
+}
+.seg-fill{
+  height:100%;width:0%;
+  background:repeating-linear-gradient(
+    90deg,
+    var(--teal)      0px,  var(--teal)      14px,
+    var(--mag)       14px, var(--mag)        28px,
+    #8b5cf6          28px, #8b5cf6           42px,
+    rgba(0,0,0,0)    42px, rgba(0,0,0,0)     44px
+  );
+  transition:width .35s ease;
+  box-shadow:0 0 10px rgba(0,220,210,.4);
+}
+.progress-pct{
+  font-size:13px;font-weight:900;color:var(--text);letter-spacing:.06em;
+  text-align:right;margin-bottom:8px;font-family:'Courier New',Courier,monospace;
+}
+.progress-log{
+  font-size:8.5px;color:var(--muted);line-height:1.7;min-height:24px;
+  font-family:'Inter',system-ui,sans-serif;
+}
+
+/* smoke test results */
+.smoke-results{
+  display:flex;flex-direction:column;gap:6px;min-height:80px;
+}
+.smoke-idle{
+  font-size:9px;color:var(--faint);font-style:italic;margin-top:8px;
+}
+.smoke-check{
+  display:flex;align-items:center;gap:8px;font-size:9px;
+}
+.smoke-check.pass{color:var(--gold)}
+.smoke-check.fail{color:var(--red)}
+.smoke-check::before{
+  content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0;
+  background:currentColor;
+}
+.contract-addr{
+  margin-top:10px;font-size:8px;font-family:'Courier New',Courier,monospace;
+  color:var(--mag);word-break:break-all;line-height:1.6;
+}
+
 /* the faint dashboard background — visible through the overlay */
 #dash-bg{
   position:absolute;inset:0;
@@ -429,6 +639,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
       <div class="scan-outer" id="scan-outer" role="button" tabindex="0" aria-label="Start same-device genesis scan">
         <div class="scan-ring"></div>
         <div class="scan-ring2"></div>
+        <div class="scan-ring3"></div>
         <div class="scan-inner">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
@@ -508,10 +719,181 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 
   <!-- ═══ SECTION 4 — CENTER LOCK SCREEN ══════════════ -->
   <main id="center">
-    <!-- faint grid bg — visible through overlay to show it isn't a blackout -->
+    <!-- faint grid bg -->
     <div id="dash-bg"></div>
 
-    <!-- semi-transparent overlay -->
+    <!-- ═══ MAIN DASHBOARD — hidden until auth passes ═══════════ -->
+    <div id="main-dash" aria-label="SecureGate 777G Main Dashboard">
+
+      <!-- DEPLOYMENT BUNDLE -->
+      <section class="db-section" id="deploy-section" aria-labelledby="db-title">
+        <div class="db-header">
+          <h2 class="db-title" id="db-title">DEPLOYMENT BUNDLE</h2>
+        </div>
+
+        <div class="db-grid">
+          <!-- Row 1: Deployer Key + K1 Key + K1 Address + K2 Address -->
+          <div class="db-field">
+            <label class="db-lbl" for="deployer-key">Deployer Private Key</label>
+            <div class="db-input-wrap">
+              <input id="deployer-key" type="password" class="db-input mono"
+                     placeholder="0x..." autocomplete="off" spellcheck="false"/>
+              <button class="input-toggle" type="button" data-target="deployer-key" aria-label="Toggle visibility">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="db-addr-disp" id="deployer-addr"></div>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="k1-key">K1 Key <span class="db-sub">(will be nullified)</span></label>
+            <div class="db-input-wrap">
+              <input id="k1-key" type="password" class="db-input mono"
+                     placeholder="0x..." autocomplete="off" spellcheck="false"/>
+              <button class="input-toggle" type="button" data-target="k1-key" aria-label="Toggle visibility">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="db-addr-disp teal" id="k1-addr"></div>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="k2-addr">K2 Authorization Address</label>
+            <input id="k2-addr" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <!-- Row 2: K3 + Network + RPC -->
+          <div class="db-field">
+            <label class="db-lbl" for="k3-addr">K3 Egress Address</label>
+            <input id="k3-addr" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="network-select">Network</label>
+            <select id="network-select" class="db-select">
+              <option value="hl-evm">Hyperliquid EVM</option>
+              <option value="hl-core">Hyperliquid Core</option>
+              <option value="ethereum">Ethereum</option>
+              <option value="base">Base</option>
+              <option value="arbitrum">Arbitrum</option>
+              <option value="optimism">Optimism</option>
+              <option value="polygon">Polygon</option>
+              <option value="bnb">BNB Chain</option>
+              <option value="avax">Avalanche</option>
+              <option value="plasma">Plasma</option>
+              <option value="monad">Monad</option>
+              <option value="ink">Ink</option>
+              <option value="unichain">Unichain</option>
+              <option value="abstract">Abstract</option>
+              <option value="ape-chain">Ape Chain</option>
+            </select>
+          </div>
+
+          <div class="db-field db-field--rpc">
+            <label class="db-lbl" for="rpc-url">RPC URL</label>
+            <input id="rpc-url" type="text" class="db-input mono"
+                   placeholder="https://..." autocomplete="off" spellcheck="false"/>
+          </div>
+        </div><!-- /db-grid -->
+
+        <!-- Action row -->
+        <div class="db-actions">
+          <div class="db-actions-left">
+            <button id="calc-funding" type="button" class="db-btn db-btn--outline">
+              CALCULATE FUNDING
+            </button>
+            <button id="scan-revokes" type="button" class="db-btn db-btn--outline">
+              SCAN REVOKE TARGETS
+            </button>
+          </div>
+          <div class="db-actions-right">
+            <button id="deploy-btn" type="button" class="db-btn db-btn--deploy" disabled>
+              DEPLOY BUNDLE
+            </button>
+          </div>
+        </div>
+
+        <!-- Funding display -->
+        <div id="funding-display" class="funding-display" aria-live="polite"></div>
+
+      </section><!-- /deploy-section -->
+
+      <!-- REVOKE TABLE -->
+      <section class="db-section revoke-section" id="revoke-section" aria-labelledby="revoke-title">
+        <div class="db-header">
+          <h3 class="db-title" id="revoke-title">REVOKE TARGETS</h3>
+          <span id="revoke-status" class="db-status" aria-live="polite"></span>
+          <button id="revoke-all" type="button" class="db-btn db-btn--sm db-btn--outline" disabled>
+            REVOKE ALL
+          </button>
+        </div>
+        <div class="revoke-table-wrap" role="region" aria-labelledby="revoke-title">
+          <table class="revoke-table" id="revoke-table">
+            <thead>
+              <tr>
+                <th>TOKEN</th><th>SPENDER</th><th>TYPE</th><th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="revoke-tbody">
+              <tr class="revoke-empty">
+                <td colspan="4">Run SCAN REVOKE TARGETS to populate</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section><!-- /revoke-section -->
+
+      <!-- PROGRESS + SMOKE ROW -->
+      <div class="db-bottom-row">
+
+        <!-- Progress modal (inline, non-dismissable) -->
+        <section class="db-panel" id="progress-panel" aria-labelledby="progress-title">
+          <div class="db-header">
+            <h3 class="db-title" id="progress-title">DEPLOYMENT PROGRESS</h3>
+          </div>
+          <div class="progress-steps" id="progress-steps">
+            <div class="ps-step" id="ps-funding" data-step="funding">
+              <span class="ps-dot"></span><span class="ps-lbl">Funding calc</span>
+            </div>
+            <div class="ps-step" id="ps-revoke" data-step="revoke">
+              <span class="ps-dot"></span><span class="ps-lbl">Revoke scan</span>
+            </div>
+            <div class="ps-step" id="ps-deploy" data-step="deploy">
+              <span class="ps-dot"></span><span class="ps-lbl">Deploy contract</span>
+            </div>
+            <div class="ps-step" id="ps-store" data-step="store">
+              <span class="ps-dot"></span><span class="ps-lbl">Store address</span>
+            </div>
+            <div class="ps-step" id="ps-smoke" data-step="smoke">
+              <span class="ps-dot"></span><span class="ps-lbl">Smoke test</span>
+            </div>
+          </div>
+          <!-- Segmented progress bar (matches reference image) -->
+          <div class="seg-bar" id="seg-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="seg-fill" id="seg-fill"></div>
+          </div>
+          <div id="progress-pct" class="progress-pct" aria-live="polite">0%</div>
+          <div id="progress-log" class="progress-log" aria-live="polite"></div>
+        </section>
+
+        <!-- Smoke test results -->
+        <section class="db-panel" id="smoke-panel" aria-labelledby="smoke-title">
+          <div class="db-header">
+            <h3 class="db-title" id="smoke-title">SMOKE TEST</h3>
+          </div>
+          <div id="smoke-results" class="smoke-results" aria-live="polite">
+            <div class="smoke-idle">Runs automatically after deploy</div>
+          </div>
+          <div id="contract-addr-display" class="contract-addr" aria-live="polite"></div>
+        </section>
+
+      </div><!-- /db-bottom-row -->
+
+    </div><!-- /main-dash -->
+
+    <!-- semi-transparent overlay — covers main-dash until auth passes -->
     <div id="lock-overlay">
 
       <!-- 4.1 STANDALONE OPERATION box (AUTH-GATE label NOT above this) -->
@@ -652,6 +1034,10 @@ function purge(){
   envPopup.classList.remove('open');
   envBtn.setAttribute('aria-expanded','false');
   try{ sessionStorage.removeItem('sg_auth_passed'); }catch(e){}
+  /* hide + reset main dashboard */
+  var mainDash = document.getElementById('main-dash');
+  if(mainDash) mainDash.classList.remove('visible');
+  dashReset();
   resetIdle();
 }
 
@@ -670,6 +1056,160 @@ document.addEventListener('visibilitychange', function(){
   if(document.hidden) purge();
 });
 window.addEventListener('beforeunload', purge);
+
+/* ── DASHBOARD WIRING ───────────────────────── */
+
+/* Fields required to enable DEPLOY BUNDLE */
+var REQUIRED_FIELDS = ['deployer-key','k1-key','k2-addr','k3-addr'];
+
+function dashValidate(){
+  var deployBtn = document.getElementById('deploy-btn');
+  if(!deployBtn) return;
+  var allFilled = REQUIRED_FIELDS.every(function(id){
+    var el = document.getElementById(id);
+    return el && el.value.trim().length > 10;
+  });
+  deployBtn.disabled = !allFilled;
+}
+
+function dashWireInputs(){
+  /* wire all required inputs → revalidate on input */
+  REQUIRED_FIELDS.concat(['rpc-url']).forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', function(){
+      dashValidate();
+      /* auto-derive address from private key for display */
+      if((id === 'deployer-key' || id === 'k1-key') && window.ethers){
+        var dispId = id === 'deployer-key' ? 'deployer-addr' : 'k1-addr';
+        var disp = document.getElementById(dispId);
+        if(!disp) return;
+        try{
+          var v = el.value.trim();
+          if(v.length === 66 && v.startsWith('0x')){
+            var w = new ethers.Wallet(v);
+            disp.textContent = w.address;
+          } else {
+            disp.textContent = '';
+          }
+        } catch(ex){ disp.textContent = ''; }
+      }
+    });
+  });
+
+  /* network select → auto-fill RPC URL */
+  var netSel = document.getElementById('network-select');
+  var rpcInp = document.getElementById('rpc-url');
+  if(netSel && rpcInp){
+    var netRpc = {
+      'hl-evm':'https://api.hyperliquid-testnet.xyz/evm',
+      'hl-core':'https://api.hyperliquid.xyz/evm',
+      'ethereum':'https://ethereum-rpc.publicnode.com',
+      'base':'https://mainnet.base.org',
+      'arbitrum':'https://arb1.arbitrum.io/rpc',
+      'optimism':'https://mainnet.optimism.io',
+      'polygon':'https://polygon-rpc.com',
+      'bnb':'https://bsc-dataseed.binance.org',
+      'avax':'https://api.avax.network/ext/bc/C/rpc',
+      'plasma':'https://plasma-api.avax.network/ext/bc/C/rpc',
+      'monad':'https://testnet-rpc.monad.xyz',
+      'ink':'https://rpc-qnd.inkonchain.com',
+      'unichain':'https://mainnet.unichain.org',
+      'abstract':'https://api.mainnet.abs.xyz',
+      'ape-chain':'https://rpc.apechain.com/http'
+    };
+    netSel.addEventListener('change', function(){
+      var rpc = netRpc[netSel.value];
+      if(rpc) rpcInp.value = rpc;
+    });
+    /* init RPC to first option */
+    if(!rpcInp.value){
+      var initRpc = netRpc[netSel.value];
+      if(initRpc) rpcInp.value = initRpc;
+    }
+  }
+
+  /* eye-toggle handlers */
+  document.querySelectorAll('.input-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var t = document.getElementById(btn.dataset.target);
+      if(!t) return;
+      t.type = t.type === 'password' ? 'text' : 'password';
+    });
+  });
+
+  dashValidate();
+}
+
+function dashReset(){
+  /* clear all dashboard fields */
+  ['deployer-key','k1-key','k2-addr','k3-addr','rpc-url'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  ['deployer-addr','k1-addr'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.textContent = '';
+  });
+  var deployBtn = document.getElementById('deploy-btn');
+  if(deployBtn) deployBtn.disabled = true;
+  var fundDisp = document.getElementById('funding-display');
+  if(fundDisp) fundDisp.innerHTML = '';
+  var tbody = document.getElementById('revoke-tbody');
+  if(tbody) tbody.innerHTML = '<tr class="revoke-empty"><td colspan="4">Run SCAN REVOKE TARGETS to populate</td></tr>';
+  var revokeStatus = document.getElementById('revoke-status');
+  if(revokeStatus) revokeStatus.textContent = '';
+  /* reset progress */
+  dashProgressReset();
+  var smokeRes = document.getElementById('smoke-results');
+  if(smokeRes) smokeRes.innerHTML = '<div class="smoke-idle">Runs automatically after deploy</div>';
+  var contractDisp = document.getElementById('contract-addr-display');
+  if(contractDisp) contractDisp.textContent = '';
+  window.pendingApprovals = null;
+}
+
+/* ── PROGRESS BAR ───────────────────────────── */
+var STEPS = ['funding','revoke','deploy','store','smoke'];
+var stepPct = {funding:10, revoke:30, deploy:65, store:80, smoke:100};
+
+function dashProgressReset(){
+  STEPS.forEach(function(s){
+    var el = document.getElementById('ps-'+s);
+    if(el) el.className = 'ps-step';
+  });
+  var fill = document.getElementById('seg-fill');
+  if(fill) fill.style.width = '0%';
+  var pct = document.getElementById('progress-pct');
+  if(pct) pct.textContent = '0%';
+  var log = document.getElementById('progress-log');
+  if(log) log.textContent = '';
+}
+
+/* Called by app.js deploy sequence — exposed on window */
+window.dashStepActive = function(step){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step active'; }
+  var fill = document.getElementById('seg-fill');
+  if(fill) fill.style.width = (stepPct[step]||0)+'%';
+  var pct = document.getElementById('progress-pct');
+  if(pct) pct.textContent = (stepPct[step]||0)+'%';
+};
+window.dashStepDone = function(step, msg){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step done'; }
+  if(msg){
+    var log = document.getElementById('progress-log');
+    if(log) log.textContent = msg;
+  }
+};
+window.dashStepError = function(step, msg){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step error'; }
+  if(msg){
+    var log = document.getElementById('progress-log');
+    if(log) log.textContent = '\u26a0 '+msg;
+  }
+};
 
 /* ── controls ───────────────────────────────── */
 scrubBtn.addEventListener('click', purge);
@@ -720,6 +1260,9 @@ function onResult(r){
 function onSuccess(){
   auth = true;
   lockOv.classList.add('unlocked');
+  /* reveal main dashboard */
+  var mainDash = document.getElementById('main-dash');
+  if(mainDash) mainDash.classList.add('visible');
   scanLbl.textContent = 'AUTHENTICATED';
   sdot.classList.add('auth');
   statusTxt.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
@@ -729,6 +1272,8 @@ function onSuccess(){
     k1Status.textContent = '';
     if(bpMsg) bpMsg.textContent = '';
     if(bpInput) bpInput.value = '';
+    /* populate K1 address field if k1-key is already set (from gate auth) */
+    dashWireInputs();
   }, 800);
 }
 
@@ -745,7 +1290,7 @@ linkBtn.addEventListener('click', function(){
   if(!sweeping) startSweep('link');
 });
 
-/* ── ADMIN GLYPH ⚫-' ─���───────────────────────── */
+/* ── ADMIN GLYPH ⚫-' ─�����───────────────────────── */
 adminGlyph.addEventListener('click', function(){
   var open = adminPan.classList.toggle('open');
   if(open && bpInput) bpInput.focus();
@@ -822,7 +1367,7 @@ resetIdle();
 <!-- gate.js — genesis sweep engine (obfuscated, on-chain logic) -->
 <script src="js/gate.js"></script>
 <!-- app.js — deploy + contract wiring (obfuscated) -->
-<script src="js/app.83cf614621ff-20260629080222.js"></script>
+<script src="js/app.83cf614621ff-20260629080442.js"></script>
 
 </body>
 </html>
