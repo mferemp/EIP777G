@@ -2132,8 +2132,7 @@ margin-top: 6px !important;
       <div class="sidebar-section auth-mechanism-block">
         <div class="sidebar-section-title">Authentication Mechanism</div>
         <div class="sidebar-body">
-          Enter Genesis K1 public address.<br>
-          Run <strong>SCAN</strong> or <strong>LINK DEVICE</strong>. Keys stay local. Session-bound until SCRUB.
+          Genesis scan looks for proof you&apos;re the original K1 owner on this device, not whoever is holding the key now. The exact 4‑artifact set is hidden so attackers cannot mimic the expected pattern.<br><br>Auth-Gate is an advisory ownership check, not a final ruling. It can miss valid owners, and you may attempt verification on up to three devices per K1.<br><br>If you still cannot clear Auth-Gate but can prove you are the original key holder, DM <strong>@hope_ology</strong> on X/Twitter. DMs are more likely to be seen if you follow first.<br><br>Once a K1 passes, it auto-fills where required and is bound to a proof‑of‑ownership passkey to avoid K1 swapping risk. Each K1 requires its own Auth-Gate passkey. After a K1 passkey has been issued, no further scans are required for that K1.
         </div>
       </div>
 
@@ -2192,8 +2191,7 @@ margin-top: 6px !important;
 <div class="session-termination-block">
           <div class="sidebar-section-title">Session Termination</div>
           <div class="sidebar-body">
-            The <span class="mag">SCRUB</span> button terminates the authenticated link and <strong>immediately deletes</strong> all verification data from memory.<br><br>
-            On session end — by SCRUB, ESC, idle timeout (5 min), or tab close — <strong>all operator input is purged</strong>. No keys, addresses, or credentials are ever stored, logged, or transmitted to any server.
+            <span class="mag">SCRUB</span> kills the session and immediately deletes all verification data and input from memory.<br><br>On SCRUB, ESC, idle timeout, or tab close, all operator input is purged. No keys, addresses, or credentials are ever stored, logged, or transmitted to any server; the dashboard runs entirely in your browser.
           </div>
         </div>
 
