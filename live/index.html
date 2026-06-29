@@ -3,953 +3,789 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SECUREGATE — EIP-777G</title>
-<meta name="securegate-build" content="clean-20260629">
+<title>SecureGate EIP-777G</title>
 <style>
-/* ── VARIABLES ──────────────────────────────────────────────────── */
-:root {
-  --bg:     #080808;
-  --sur:    #0f0f0f;
-  --bdr:    #1e1e1e;
-  --teal:   #00e5d1;
-  --mag:    #ff2d78;
-  --gold:   #ffd700;
-  --gold2:  #c9a227;
-  --text:   #e8e8e8;
-  --muted:  #888;
-  --faint:  #444;
-  --warn:   #ff8800;
-}
+/* ─── RESET ──────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
-body{
-  font-family:'Satoshi','Inter',ui-sans-serif,sans-serif;
-  background:var(--bg);color:var(--text);
-  font-size:13px;display:flex;flex-direction:column;height:100vh;
+
+/* ─── DESIGN TOKENS ──────────────────────── */
+:root{
+  --bg:       #080b10;
+  --sur:      #0d1018;
+  --bdr:      #1a1f2e;
+  --bdr2:     #0f1320;
+  --teal:     #00dcd2;
+  --teal-d:   rgba(0,220,210,.10);
+  --gold:     #f0b429;
+  --gold-d:   rgba(240,180,41,.10);
+  --mag:      #ff4fd8;
+  --mag-d:    rgba(255,79,216,.12);
+  --orange:   #ff8800;
+  --red:      #e53e3e;
+  --text:     #c8d0e0;
+  --muted:    #5a6272;
+  --faint:    #272d3c;
+  --sw:       220px;
 }
 
-/* ── TOPBAR ─────────────────────────────────────────────────────── */
-.topbar{
-  flex-shrink:0;height:38px;background:#050505;
-  border-bottom:1px solid var(--bdr);
-  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
-}
-.brand{display:flex;flex-direction:column;line-height:1.1}
-.brand-main{
-  font-size:15px;font-weight:900;letter-spacing:.08em;
-  background:linear-gradient(90deg,var(--teal),var(--mag));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
-.brand-sub{font-size:8px;font-weight:600;letter-spacing:.22em;color:var(--gold);text-transform:uppercase}
-.topbar-right{display:flex;gap:8px;align-items:center}
-#scrub-btn{
-  background:var(--mag);color:#fff;border:none;
-  padding:5px 18px;font-size:11px;font-weight:700;letter-spacing:.12em;
-  cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
-  transition:background .15s;
-}
-#scrub-btn:hover{background:#ff0066}
-#purge-btn{
-  width:28px;height:28px;border-radius:50%;
-  border:2px solid var(--gold);background:transparent;color:var(--gold);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-size:13px;transition:all .15s;
-}
-#purge-btn:hover{background:var(--gold);color:#000}
+/* ─── BASE ───────────────────────────────── */
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:'Courier New',Courier,monospace;font-size:11px;}
 
-/* ── LAYOUT ─────────────────────────────────────────────────────── */
-.layout{flex:1;display:grid;grid-template-columns:220px 1fr;overflow:hidden}
-
-/* ── LEFT SIDEBAR ────────────────────────────────────────────────── */
-.sidebar{
-  background:#050505;border-right:1px solid var(--bdr);
-  display:flex;flex-direction:column;gap:12px;
-  padding:14px 12px 56px;overflow-y:auto;
+/* ─── TOP BAR (Section 1 + 2) ────────────── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:42px;
+  background:var(--sur);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;z-index:900;
 }
 
-/* 1. SCAN */
-.scan-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
-.scan-btn-outer{position:relative;width:100px;height:100px;cursor:pointer}
+/* Section 1 — TWO DISTINCT LINES, never collapse */
+#identity{display:flex;flex-direction:column;gap:1px;line-height:1}
+#sg-name{
+  font-size:14px;font-weight:900;letter-spacing:.16em;
+  color:var(--teal);text-transform:uppercase;white-space:nowrap;
+}
+#sg-sub{
+  font-size:8px;font-weight:700;letter-spacing:.26em;
+  color:var(--gold);text-transform:uppercase;white-space:nowrap;
+}
+
+/* Section 2 — top-right controls */
+#topbar-right{display:flex;align-items:center;gap:8px}
+.ctrl{
+  background:none;border:1px solid var(--bdr);color:var(--muted);
+  font-family:'Courier New',Courier,monospace;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;
+  border-radius:3px;cursor:pointer;transition:border-color .15s,color .15s;
+}
+.ctrl:hover{border-color:var(--mag);color:var(--mag)}
+#scrub-btn{border-color:var(--red);color:var(--red)}
+#scrub-btn:hover{background:rgba(229,62,62,.10)}
+
+/* ─── SHELL ──────────────────────────────── */
+#shell{
+  position:fixed;top:42px;bottom:0;left:0;right:0;
+  display:flex;
+}
+
+/* ─── SIDEBAR (Section 3) ────────────────── */
+#sidebar{
+  width:var(--sw);min-width:var(--sw);height:100%;
+  background:var(--sur);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  padding:14px 11px 72px;gap:0;
+  scrollbar-width:thin;scrollbar-color:var(--faint) transparent;
+}
+
+/* ── 3.1 SCAN button ─────────────────────── */
+.scan-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  padding-bottom:13px;border-bottom:1px solid var(--bdr2);margin-bottom:11px;
+}
+.scan-outer{
+  position:relative;width:72px;height:72px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
 .scan-ring{
   position:absolute;inset:0;border-radius:50%;
   border:2px solid transparent;
-  background:conic-gradient(var(--teal),var(--mag),var(--teal)) border-box;
-  -webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
-  -webkit-mask-composite:destination-out;mask-composite:exclude;
-  animation:spin 2s linear infinite;
+  border-top-color:var(--teal);border-right-color:rgba(0,220,210,.25);
+  animation:spin-slow 3s linear infinite;
 }
-.scan-ring.fast{animation-duration:.4s}
-@keyframes spin{to{transform:rotate(360deg)}}
 .scan-ring2{
   position:absolute;inset:8px;border-radius:50%;
-  border:1px solid var(--teal);opacity:.28;
-  animation:pulse 1.6s ease-in-out infinite;
+  border:1px solid transparent;
+  border-bottom-color:var(--gold);border-left-color:rgba(240,180,41,.2);
+  animation:spin-slow 5s linear infinite reverse;
 }
-@keyframes pulse{0%,100%{opacity:.12;transform:scale(.95)}50%{opacity:.55;transform:scale(1.03)}}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+@keyframes spin-fast{to{transform:rotate(360deg)}}
+/* active = fast ring */
+.scan-outer.active .scan-ring{animation:spin-fast .45s linear infinite;border-top-color:var(--teal);border-right-color:var(--teal)}
+.scan-outer.active .scan-ring2{animation:spin-fast .3s linear infinite reverse;border-bottom-color:var(--gold);border-left-color:var(--gold)}
 .scan-inner{
-  position:absolute;inset:14px;border-radius:50%;
-  background:radial-gradient(circle,#001a18 0%,#000 100%);
-  border:1px solid #0a3a35;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;transition:background .2s;
+  position:relative;width:46px;height:46px;border-radius:50%;
+  background:var(--bg);border:1px solid var(--teal);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  z-index:1;
 }
-.scan-inner:hover{background:radial-gradient(circle,#002f2a 0%,#000 100%)}
 .scan-inner svg{color:var(--teal)}
-.scan-inner .scan-word{font-size:8px;font-weight:800;letter-spacing:.15em;color:var(--gold)}
-#scan-label{
-  font-size:9px;font-weight:700;letter-spacing:.15em;
-  color:var(--gold);text-align:center;text-transform:uppercase;line-height:1.35;
+.scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--teal)}
+.scan-lbl{
+  font-size:7px;font-weight:700;letter-spacing:.12em;
+  color:var(--muted);text-align:center;text-transform:uppercase;line-height:1.4;
 }
 
-/* 2. LOCKED BLOCK */
+/* ── 3.2 Dashboard Locked block ──────────── */
 .locked-block{
-  background:rgba(255,45,120,.06);border:1px solid rgba(255,45,120,.25);
-  border-radius:5px;padding:9px 10px;
+  background:rgba(255,136,0,.05);border:1px solid rgba(255,136,0,.18);
+  border-radius:4px;padding:9px 10px;
+  margin-bottom:11px;
 }
-.locked-block-title{
-  font-size:8px;font-weight:700;letter-spacing:.22em;
-  color:var(--mag);text-transform:uppercase;margin-bottom:5px;
+.locked-title{
+  font-size:9px;font-weight:900;letter-spacing:.18em;
+  color:var(--orange);text-transform:uppercase;margin-bottom:4px;
 }
-.locked-block-body{font-size:10px;color:var(--muted);line-height:1.5}
-.locked-block-body .ht{color:var(--teal);font-weight:600}
-.locked-block-body .hg{color:var(--gold);font-weight:600}
+.locked-sub{
+  font-size:7.5px;font-weight:700;letter-spacing:.10em;
+  color:var(--muted);text-transform:uppercase;line-height:1.5;
+}
 
-/* 3. K1 PANEL */
+/* ── 3.3 K1 Panel (label → input → LINK DEVICE) */
 .k1-panel{
-  background:rgba(5,5,5,.92);border:1px solid #1e1e1e;border-radius:6px;
-  padding:10px;display:flex;flex-direction:column;gap:8px;
+  display:flex;flex-direction:column;gap:6px;
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
-.k1-panel-title{font-size:8px;font-weight:800;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
-#verify-k1-addr{
-  width:100%;background:#050505;border:1px solid #222;border-radius:4px;
-  color:var(--teal);font-family:monospace;font-size:11px;padding:7px 8px;
+.k1-lbl{
+  font-size:7.5px;font-weight:900;letter-spacing:.16em;
+  color:var(--gold);text-transform:uppercase;
+}
+.k1-input{
+  width:100%;background:var(--bg);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:9px;padding:7px 8px;border-radius:3px;outline:none;
   transition:border-color .15s;
 }
-#verify-k1-addr::placeholder{color:#555}
-#verify-k1-addr:focus{outline:none;border-color:var(--teal)}
-#verify-k1-addr:disabled{opacity:.45;cursor:not-allowed}
-.verify-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-#verify-scan-btn,#verify-qr-btn{
-  font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-  padding:7px 5px;border-radius:3px;cursor:pointer;background:transparent;transition:background .15s;
+.k1-input::placeholder{color:var(--faint)}
+.k1-input:focus{border-color:var(--teal)}
+.k1-input:disabled{opacity:.38;cursor:not-allowed}
+.link-btn{
+  width:100%;background:none;border:1px solid var(--teal);color:var(--teal);
+  font-family:'Courier New',Courier,monospace;font-size:8px;font-weight:900;
+  letter-spacing:.14em;text-transform:uppercase;padding:7px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
 }
-#verify-scan-btn{border:1px solid var(--gold);color:var(--gold)}
-#verify-scan-btn:hover{background:rgba(255,215,0,.08)}
-#verify-qr-btn{border:1px solid var(--teal);color:var(--teal)}
-#verify-qr-btn:hover{background:rgba(0,229,209,.08)}
-#verify-scan-btn:disabled,#verify-qr-btn:disabled{opacity:.35;cursor:not-allowed}
-#scan-status{font-size:9px;color:var(--muted);text-align:center;line-height:1.4;min-height:12px}
-#verify-status{font-size:8px;color:var(--teal);text-align:center;min-height:10px}
+.link-btn:hover{background:var(--teal-d)}
+#k1-status{font-size:8px;color:var(--muted);min-height:10px;line-height:1.4}
 
-/* 4. SHORT INSTRUCTIONS */
-.verify-directions{font-size:10px;color:var(--muted);line-height:1.5}
-.verify-directions strong{color:var(--gold)}
-
-/* 5. AUTH-GATE BLOCK */
-.auth-gate-block{border-top:1px solid var(--bdr);padding-top:10px}
-.sidebar-section-title{
-  font-size:8px;font-weight:700;letter-spacing:.25em;
-  color:var(--gold);text-transform:uppercase;margin-bottom:6px;
+/* ── 3.4 Short instructions ──────────────── */
+.instructions{
+  font-size:8px;color:var(--muted);line-height:1.65;
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
-.sidebar-body{font-size:10.5px;color:var(--muted);line-height:1.65}
-.sidebar-body .st{color:var(--teal);font-weight:600}
-.sidebar-body .sm{color:var(--mag);font-weight:600}
-.sidebar-body strong{color:var(--teal)}
+.instructions .hi{color:var(--teal);font-weight:700}
 
-/* 6. CAUTION BLOCK */
+/* ── 3.5 AUTH-GATE block ─────────────────── */
+.authgate-block{
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
+}
+.authgate-hd{
+  font-size:8px;font-weight:900;letter-spacing:.24em;
+  color:var(--mag);text-transform:uppercase;margin-bottom:9px;
+}
+.ag-points{display:flex;flex-direction:column;gap:7px}
+.ag-p{font-size:8px;color:var(--muted);line-height:1.65}
+.ag-p a{color:var(--teal);text-decoration:none}
+.ag-p a:hover{text-decoration:underline}
+.ag-p .hm{color:var(--mag);font-weight:700}
+.ag-p .hg{color:var(--gold);font-weight:700}
+.ag-p .ht{color:var(--teal);font-weight:700}
+
+/* fallback msg */
+#fallback-msg{
+  display:none;margin-top:9px;padding:9px;border:1px solid var(--orange);
+  border-radius:3px;background:rgba(255,136,0,.05);
+  font-size:8px;color:var(--orange);line-height:1.6;
+}
+#fallback-msg.show{display:block}
+
+/* ── 3.6 CAUTION block ───────────────────── */
 .caution-block{
-  margin-top:auto;position:relative;
-  border:1px solid #2a1a00;background:#0d0800;border-radius:4px;padding:10px;
+  position:relative;border:1px solid rgba(255,136,0,.22);
+  background:rgba(255,136,0,.04);border-radius:4px;
+  padding:10px 10px 28px;
 }
-.caution-title{font-size:8px;font-weight:700;letter-spacing:.2em;color:var(--warn);text-transform:uppercase;margin-bottom:4px}
-.caution-body{font-size:10px;color:#886600;line-height:1.5}
-.admin-stick-button{
-  position:absolute;bottom:6px;right:8px;background:none;border:none;
-  cursor:pointer;font-size:11px;color:var(--faint);opacity:.55;
-  transition:opacity .2s,color .2s;line-height:1;padding:2px 3px;
+.caution-title{
+  font-size:8px;font-weight:900;letter-spacing:.18em;
+  color:var(--orange);text-transform:uppercase;margin-bottom:6px;
 }
-.admin-stick-button:hover{opacity:1;color:var(--mag)}
+.caution-body{font-size:8px;color:var(--muted);line-height:1.7}
+.caution-body .bad{color:var(--red);font-weight:700}
+/* ⚫-' admin glyph — fixed to bottom-right of THIS block */
+#admin-glyph{
+  position:absolute;bottom:6px;right:8px;
+  background:none;border:none;cursor:pointer;
+  font-family:'Courier New',Courier,monospace;
+  font-size:9px;color:var(--faint);letter-spacing:-.05em;
+  transition:color .15s;user-select:none;line-height:1;padding:2px 3px;
+}
+#admin-glyph:hover{color:var(--muted)}
+/* admin bypass panel */
+#admin-bypass{
+  display:none;flex-direction:column;gap:6px;
+  margin-top:10px;padding:10px;
+  border:1px solid var(--bdr);border-radius:3px;background:var(--bg);
+}
+#admin-bypass.open{display:flex}
+.bp-lbl{font-size:7.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.bp-input{
+  width:100%;background:var(--bg);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:9px;padding:6px 8px;border-radius:3px;outline:none;
+}
+.bp-input:focus{border-color:var(--mag)}
+.bp-btn{
+  background:none;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Courier New',Courier,monospace;font-size:8px;font-weight:900;
+  letter-spacing:.14em;text-transform:uppercase;padding:6px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.bp-btn:hover{background:var(--mag-d)}
+#bypass-msg{font-size:8px;color:var(--muted);min-height:10px}
 
-/* ADMIN BYPASS PANEL */
-.auth-bypass-panel{
-  background:rgba(5,5,5,.95);border:1px solid #2a1a2a;border-radius:5px;
-  padding:10px;display:flex;flex-direction:column;gap:6px;
+/* ─── CENTER (Section 4) ─────────────────── */
+#center{
+  flex:1;height:100%;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
 }
-.bypass-panel-title{font-size:8px;font-weight:700;letter-spacing:.22em;color:var(--mag);text-transform:uppercase}
-#bypass-key-input{
-  background:#050505;border:1px solid #333;border-radius:3px;
-  color:var(--text);font-family:monospace;font-size:11px;
-  padding:7px 8px;width:100%;outline:none;transition:border-color .15s;
+/* the faint dashboard background — visible through the overlay */
+#dash-bg{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    0deg,transparent,transparent 39px,var(--bdr2) 40px),
+    repeating-linear-gradient(
+    90deg,transparent,transparent 39px,var(--bdr2) 40px);
+  opacity:.4;
 }
-#bypass-key-input:focus{border-color:var(--mag)}
-.bypass-verify-btn{
-  width:100%;padding:7px;background:transparent;
-  border:1px solid var(--teal);color:var(--teal);
-  font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-  cursor:pointer;border-radius:3px;transition:background .15s;
-}
-.bypass-verify-btn:hover{background:rgba(0,229,209,.08)}
-#bypass-status{font-size:8px;color:var(--muted);min-height:10px}
-
-/* ── MAIN PANEL ──────────────────────────────────────────────────── */
-.main-panel{position:relative;background:#000;display:flex;flex-direction:column;overflow:hidden}
-
-/* LOCK OVERLAY — semi-transparent, NOT a blackout */
+/* semi-transparent overlay — NOT a blackout */
 #lock-overlay{
   position:absolute;inset:0;
-  background:rgba(0,0,0,.82);backdrop-filter:blur(3px);
-  display:flex;align-items:center;justify-content:center;
-  z-index:50;transition:opacity .5s,visibility .5s;
+  background:rgba(8,11,16,.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:20px;z-index:10;
+  transition:opacity .4s;
 }
-#lock-overlay.unlocked{opacity:0;visibility:hidden;pointer-events:none}
-.lock-card{
-  position:relative;background:#0d0800;border:1px solid #3a2a00;
-  border-radius:8px;padding:28px 36px;max-width:480px;width:92%;
-  text-align:center;box-shadow:0 0 42px rgba(201,162,39,.15);
+#lock-overlay.unlocked{opacity:0;pointer-events:none}
+/* 4.1 STANDALONE OPERATION box */
+.notice-box{
+  width:min(520px,96%);border-radius:6px;padding:20px 22px;
+  background:rgba(13,16,24,.96);
 }
-#disclaimer-overlay{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  z-index:10;background:rgba(0,0,0,.92);backdrop-filter:blur(4px);border-radius:8px;
+.standalone-box{border:1px solid var(--teal)}
+.standalone-box .ntitle{
+  font-size:11px;font-weight:900;letter-spacing:.22em;
+  color:var(--teal);text-transform:uppercase;margin-bottom:11px;
 }
-.disclaimer-frame{
-  max-width:400px;width:90%;border:2px solid var(--gold2);border-radius:8px;
-  background:rgba(12,8,0,.95);box-shadow:0 0 28px rgba(201,162,39,.2);
-  padding:22px 18px;text-align:center;
-}
-.disclaimer-text{font-family:monospace;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--gold2);line-height:1.65}
-.disclaimer-btn{
-  margin-top:14px;padding:8px 24px;background:transparent;
-  border:1px solid var(--gold2);color:var(--gold2);
-  font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-  cursor:pointer;border-radius:3px;transition:background .15s;
-}
-.disclaimer-btn:hover{background:rgba(201,162,39,.1)}
-.lock-card h2{font-size:13px;font-weight:900;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
-.lock-subtitle{font-size:9px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:16px}
-.lock-body{font-size:9px;color:var(--muted);line-height:1.7;text-align:left}
-.lock-body .lt{color:var(--teal);font-weight:600}
-.lock-body .lm{color:var(--mag);font-weight:600}
-.lock-body .lg{color:var(--gold);font-weight:600}
-
-/* DASHBOARD */
-#dashboard{padding:14px 16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1}
-
-/* STANDALONE OPERATION BOX */
-.standalone-box{
-  width:min(92%,440px);margin:0 auto;padding:14px 16px;
-  border:1px solid var(--teal);background:rgba(0,229,209,.07);border-radius:8px;text-align:center;
-}
-.standalone-title{font-size:11px;font-weight:900;letter-spacing:.16em;color:var(--mag);text-transform:uppercase;margin-bottom:8px}
-.standalone-copy{font-size:11px;color:var(--text);line-height:1.5}
-
-/* GOLD ACK BOX */
-.ack-box{
-  width:min(92%,440px);margin:0 auto;padding:14px 16px;
-  border:1px solid var(--gold2);background:rgba(201,162,39,.07);border-radius:8px;text-align:center;
-}
-.ack-title{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
-.ack-copy{font-size:11px;color:var(--text);line-height:1.55}
-
-/* SECTION TITLE */
-.section-title{
-  font-size:9px;font-weight:700;letter-spacing:.25em;color:var(--teal);text-transform:uppercase;
-  display:flex;align-items:center;gap:8px;
-}
-.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--bdr),transparent)}
-
-/* FORM */
-.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.form-group{display:flex;flex-direction:column;gap:4px}
-.form-group.span2{grid-column:span 2}
-.form-label{font-size:8px;font-weight:700;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
-.form-input{
-  background:#0a0a0a;border:1px solid var(--bdr);color:var(--text);
-  padding:7px 10px;font-size:11px;font-family:monospace;border-radius:3px;
-  outline:none;transition:border-color .15s;width:100%;
-}
-.form-input:focus{border-color:var(--teal)}
-.form-input::placeholder{color:var(--faint)}
-.input-wrap{position:relative}
-.input-eye{
-  position:absolute;right:8px;top:50%;transform:translateY(-50%);
-  color:var(--faint);cursor:pointer;background:none;border:none;transition:color .15s;
-}
-.input-eye:hover{color:var(--teal)}
-.rpc-row{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:end}
-.chain-select{
-  background:#0a0a0a;border:1px solid var(--bdr);color:var(--text);
-  padding:7px 10px;font-size:11px;border-radius:3px;outline:none;cursor:pointer;width:100%;
-  appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23444'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 10px center;
-}
-.chain-select:focus{border-color:var(--teal)}
-.chain-select option{background:#0f0f0f}
-.action-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{
-  padding:8px 18px;font-size:10px;font-weight:700;letter-spacing:.14em;
-  text-transform:uppercase;cursor:pointer;border-radius:2px;border:none;transition:all .15s;
-  clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);
-}
-.btn-teal{background:transparent;border:1px solid var(--teal);color:var(--teal)}
-.btn-teal:hover{background:rgba(0,229,209,.08)}
-.btn-deploy{background:var(--mag);color:#fff;margin-left:auto;padding:9px 28px}
-.btn-deploy:hover{background:#ff0066}
-.btn-deploy:disabled{background:#2a2a2a;color:var(--faint);cursor:not-allowed}
-
-/* PROGRESS MODAL */
-#progress-modal{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;
-}
-#progress-modal.active{display:flex}
-.progress-card{background:#0a0a0a;border:1px solid var(--bdr);border-radius:8px;padding:24px 28px;width:360px;text-align:center}
-.progress-title{font-size:10px;font-weight:700;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
-.progress-bar-track{background:#1a1a1a;border-radius:4px;height:8px;overflow:hidden;margin-bottom:8px}
-#progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--mag));transition:width .4s;border-radius:4px}
-#progress-pct{font-size:11px;color:var(--teal);font-weight:700;margin-bottom:4px}
-#progress-label-text{font-size:9px;color:var(--muted)}
-.progress-steps{margin-top:14px;display:flex;flex-direction:column;gap:4px;text-align:left}
-.step{font-size:9px;color:var(--faint);display:flex;align-items:center;gap:6px}
-.step.active{color:var(--teal)}.step.done{color:var(--gold)}
-.step-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-
-/* REVOKE TABLE */
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:10px}
-th{text-align:left;font-size:8px;font-weight:700;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--bdr);padding:6px 10px}
-td{padding:7px 10px;border-bottom:1px solid #111;color:var(--text)}
-tr:hover td{background:#0a0a0a}
-#revoke-status{font-size:10px;color:var(--muted);margin-top:4px}
-#smoke-results{font-size:10px;color:var(--teal);margin-top:4px;white-space:pre-wrap;font-family:monospace}
-
-/* ── FOOTER BRANDING — fixed bottom-RIGHT ────────────────────────── */
-#sg-footer-branding{
-  position:fixed;right:14px;bottom:10px;z-index:100;
-  display:flex;flex-direction:column;align-items:flex-end;gap:6px;
+.notice-body{font-size:10px;color:var(--muted);line-height:1.8}
+/* 4.2 Gold ack box */
+.ack-box{border:1px solid var(--gold)}
+.ack-box .notice-body{
+  font-size:10px;font-weight:700;color:var(--gold);
+  text-transform:uppercase;letter-spacing:.03em;
 }
 
-/* ENVELOPE — angled, above built-by line */
-#thank-you-envelope{
-  position:relative;background:none;border:none;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  transform:rotate(7deg);transform-origin:bottom right;transition:transform .2s;
-  filter:drop-shadow(0 0 10px rgba(0,229,209,.4));
+/* ─── SECTION 5 — FOOTER CLUSTER (fixed bottom-right) ─────── */
+#footer-cluster{
+  position:fixed;bottom:14px;right:16px;z-index:500;
+  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
 }
-#thank-you-envelope:hover{transform:rotate(4deg) scale(1.05)}
-.envelope-icon{width:110px;height:70px;overflow:visible;display:block}
-.env-body{fill:rgba(0,229,209,.1);stroke:var(--teal);stroke-width:3;stroke-linejoin:round}
-.env-flap{fill:none;stroke:var(--teal);stroke-width:2.5;stroke-linejoin:round}
-.env-fold{fill:none;stroke:var(--teal);stroke-width:1.5;opacity:.5}
-.envelope-label{
-  font-size:11px;font-weight:900;letter-spacing:.14em;
-  color:var(--gold);text-transform:uppercase;white-space:nowrap;
-  text-shadow:0 0 8px rgba(255,215,0,.6);
+/* Envelope wrapper — provides popup anchor */
+#env-wrap{position:relative}
+/* Envelope button — teal body, gold THANK YOU, angled out */
+#env-btn{
+  background:none;border:none;cursor:pointer;padding:0;
+  transform:rotate(-8deg);transform-origin:bottom right;
+  transition:transform .2s;
+  filter:drop-shadow(0 2px 8px rgba(0,220,210,.3));
 }
-
-/* POPOVER — pink-framed transparent */
-#thank-you-popover{
-  position:absolute;bottom:calc(100% + 8px);right:0;width:280px;
-  background:rgba(8,5,10,.9);border:1.5px solid var(--mag);border-radius:8px;
-  padding:14px;backdrop-filter:blur(8px);
-  box-shadow:0 0 24px rgba(255,45,120,.22);
-  display:flex;flex-direction:column;gap:9px;
+#env-btn:hover{transform:rotate(-4deg) scale(1.07)}
+.env-svg{width:72px;display:block}
+.ev-body{fill:var(--teal)}
+.ev-flap{fill:#009990}
+.ev-fold{fill:none;stroke:rgba(0,0,0,.2);stroke-width:1}
+.ev-text{
+  font-size:9.5px;font-weight:900;fill:var(--gold);
+  font-family:'Courier New',Courier,monospace;letter-spacing:.06em;
+  dominant-baseline:middle;text-anchor:middle;
 }
-#thank-you-popover[hidden]{display:none}
-.popover-title{font-size:8px;font-weight:700;letter-spacing:.22em;color:var(--mag);text-transform:uppercase}
-#thank-you-note-input{
-  width:100%;background:rgba(255,255,255,.04);border:1px solid #333;border-radius:4px;
-  color:var(--text);font-family:monospace;font-size:11px;
-  padding:8px;resize:vertical;min-height:64px;outline:none;transition:border-color .15s;
+/* Popup — pink-framed transparent */
+#env-popup{
+  display:none;position:absolute;bottom:calc(100% + 10px);right:0;
+  width:278px;background:rgba(8,11,16,.96);
+  border:1px solid var(--mag);border-radius:6px;padding:14px;
+  flex-direction:column;gap:9px;z-index:600;
+  box-shadow:0 0 24px rgba(255,79,216,.18);
 }
-#thank-you-note-input:focus{border-color:var(--mag)}
-#thank-you-note-input::placeholder{color:rgba(255,45,120,.5)}
-#thank-you-address{
-  width:100%;background:rgba(255,45,120,.05);border:1px solid rgba(255,45,120,.4);
-  border-radius:4px;color:var(--mag);font-family:monospace;font-size:9px;
-  padding:6px 8px;cursor:pointer;text-align:left;word-break:break-all;
-  transition:border-color .15s,background .15s;
+#env-popup.open{display:flex}
+.pp-title{
+  font-size:8px;font-weight:900;letter-spacing:.2em;
+  color:var(--mag);text-transform:uppercase;
 }
-#thank-you-address:hover{background:rgba(255,45,120,.12);border-color:var(--mag)}
-.popover-hint{font-size:8px;color:var(--faint)}
-#thank-you-send-btn{
-  width:100%;padding:8px;background:transparent;
-  border:1px solid var(--mag);color:var(--mag);
-  font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;
-  cursor:pointer;border-radius:4px;transition:background .15s;
+.pp-note{
+  width:100%;background:rgba(0,0,0,.3);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:9px;padding:8px;border-radius:3px;
+  resize:vertical;min-height:68px;outline:none;
 }
-#thank-you-send-btn:hover{background:rgba(255,45,120,.12)}
-
-/* BUILT BY EMP line */
-.built-by-line{
-  display:inline-flex;align-items:center;gap:5px;
-  font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--muted);white-space:nowrap;
+.pp-note:focus{border-color:var(--mag)}
+.pp-addr{
+  font-size:7.5px;font-family:'Courier New',Courier,monospace;
+  color:var(--teal);cursor:pointer;word-break:break-all;
+  padding:6px 8px;border:1px solid var(--bdr);border-radius:3px;
+  background:rgba(0,220,210,.04);transition:background .15s,border-color .15s;
+  line-height:1.5;
 }
-.trinity-knot{width:14px;height:14px;flex-shrink:0}
-.trinity-path{fill:none;stroke:var(--mag);stroke-width:1.6;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(255,45,120,.6))}
-.built-by-line a{color:var(--teal);text-decoration:none;transition:color .15s}
-.built-by-line a:hover{color:var(--mag)}
-
-/* ── VERSION BADGE — fixed bottom-LEFT, single instance ─────────── */
-#version-badge{
-  position:fixed;left:14px;bottom:12px;z-index:100;
+.pp-addr:hover{background:var(--teal-d);border-color:var(--teal)}
+.pp-hint{font-size:7px;color:var(--muted)}
+#addr-confirm{font-size:7px;color:var(--teal);min-height:10px;transition:opacity .3s}
+.pp-send{
+  background:none;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Courier New',Courier,monospace;font-size:9px;font-weight:900;
+  letter-spacing:.16em;text-transform:uppercase;padding:8px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.pp-send:hover{background:var(--mag-d)}
+/* Section 6 — BUILT BY EMP ❖ @hope_ology */
+#built-by{
   display:flex;align-items:center;gap:5px;
-  font-size:8px;font-weight:700;letter-spacing:.14em;color:var(--muted);pointer-events:none;
+  font-size:8.5px;font-weight:700;letter-spacing:.12em;color:var(--muted);
+  white-space:nowrap;
 }
-.status-dot{
+#built-by .knot{color:var(--mag);font-size:11px;line-height:1}
+#built-by a{color:var(--teal);text-decoration:none;transition:color .15s}
+#built-by a:hover{color:var(--mag)}
+
+/* ─── Section 3.7 — VERSION BADGE (fixed bottom-LEFT, single instance) */
+#version-badge{
+  position:fixed;left:14px;bottom:12px;z-index:500;
+  display:flex;align-items:center;gap:5px;
+  font-size:8px;font-weight:700;letter-spacing:.14em;
+  color:var(--muted);pointer-events:none;
+}
+.sdot{
   width:6px;height:6px;border-radius:50%;
-  background:var(--teal);box-shadow:0 0 6px var(--teal);flex-shrink:0;
+  background:var(--teal);box-shadow:0 0 5px var(--teal);
+  transition:background .4s,box-shadow .4s;
 }
-.status-dot.auth{background:var(--gold);box-shadow:0 0 6px var(--gold)}
+.sdot.auth{background:var(--gold);box-shadow:0 0 5px var(--gold)}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<header class="topbar">
-  <div class="brand">
-    <span class="brand-main">SECUREGATE</span>
-    <span class="brand-sub">EIP-777G</span>
+<!-- ═══ SECTION 1 + 2 — TOP BAR ══════════════════════ -->
+<header id="topbar">
+  <!-- Section 1: two distinct lines, never collapse -->
+  <div id="identity">
+    <span id="sg-name">SECUREGATE</span>
+    <span id="sg-sub">EIP-777G</span>
   </div>
-  <div class="topbar-right">
-    <button id="scrub-btn" onclick="scrub()">SCRUB</button>
-    <button id="purge-btn" onclick="scrub()" aria-label="Power off">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>
-      </svg>
-    </button>
+  <!-- Section 2: top-right persistent controls -->
+  <div id="topbar-right">
+    <button class="ctrl" id="scrub-btn" type="button">SCRUB</button>
+    <button class="ctrl" id="poweroff-btn" type="button">Power off session</button>
   </div>
 </header>
 
-<!-- LAYOUT -->
-<div class="layout">
+<div id="shell">
 
-  <!-- LEFT SIDEBAR -->
-  <aside class="sidebar">
+  <!-- ═══ SECTION 3 — LEFT SIDEBAR ═══════════════════ -->
+  <aside id="sidebar">
 
-    <!-- 1. SCAN -->
+    <!-- 3.1 SCAN button -->
     <div class="scan-wrap">
-      <div class="scan-btn-outer" id="scan-btn-outer" onclick="startScan()">
-        <div class="scan-ring" id="scan-ring"></div>
+      <div class="scan-outer" id="scan-outer" role="button" tabindex="0" aria-label="Start same-device genesis scan">
+        <div class="scan-ring"></div>
         <div class="scan-ring2"></div>
-        <div class="scan-inner" id="scan-inner">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <div class="scan-inner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
             <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
             <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
           </svg>
-          <span class="scan-word">SCAN</span>
+          <span class="sw">SCAN</span>
         </div>
       </div>
-      <div id="scan-label">GENESIS OWNER AUTHENTICATION<br>VERIFY OWNERSHIP</div>
+      <div class="scan-lbl" id="scan-lbl">GENESIS OWNER AUTHENTICATION</div>
     </div>
 
-    <!-- 2. LOCKED BLOCK -->
+    <!-- 3.2 Dashboard Locked block -->
     <div class="locked-block">
-      <div class="locked-block-title">Dashboard Locked</div>
-      <div class="locked-block-body">
-        Enter your <span class="ht">K1 genesis address</span> below and click
-        <span class="hg">SCAN</span> to verify ownership.<br><br>
-        All recovery controls are held behind this gate — no exceptions.
+      <div class="locked-title">Dashboard Locked</div>
+      <div class="locked-sub">Authentication of K1 Genesis Owner Required</div>
+    </div>
+
+    <!-- 3.3 K1 Panel: label → input → LINK DEVICE (this order, mandatory) -->
+    <div class="k1-panel">
+      <div class="k1-lbl">K1 Compromised Wallet Address</div>
+      <input id="k1-input" class="k1-input" type="text"
+        placeholder="Enter K1-Compromised Wallet Address"
+        autocomplete="off" spellcheck="false" aria-label="K1 compromised wallet address">
+      <button class="link-btn" id="link-btn" type="button">LINK DEVICE</button>
+      <div id="k1-status" aria-live="polite"></div>
+    </div>
+
+    <!-- 3.4 Short instruction block -->
+    <div class="instructions">
+      <span class="hi">Same device:</span> press SCAN.<br>
+      <span class="hi">Different device:</span> connect by USB first, then press LINK DEVICE.
+    </div>
+
+    <!-- 3.5 AUTH-GATE explanation block (11 points verbatim) -->
+    <div class="authgate-block">
+      <div class="authgate-hd">AUTH-GATE</div>
+      <div class="ag-points">
+        <div class="ag-p">The scan is to verify the real K1 owner — not the thief. The exact checks are hidden on purpose so they can&apos;t be cloned or gamed.</div>
+        <div class="ag-p">Auth-Gate is an advisory ownership check, not a final ruling. It can miss evidence of valid ownership.</div>
+        <div class="ag-p">In an effort to avoid this, you may attempt verification on up to three devices per K1. Markers can be compiled — the combination can span all three devices if necessary. A collective historical-marker sweep across those devices that together indicates high-probability ownership is valid.</div>
+        <div class="ag-p">If you still cannot clear Auth-Gate but can prove you are the original key holder, DM <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a> on X/Twitter. DMs are more likely to be seen if you follow first.</div>
+        <div class="ag-p">A successful K1 scan <span class="ht">will</span> grant the user access to the SecureGate dashboard with the cleared K1 address auto-populated to reduce swap risk, and a passkey for future visits will be generated.</div>
+        <div class="ag-p">Each K1 requires its own Auth-Gate verification and is assigned its own unique passkey. There are no exceptions and no shared passkeys between K1 addresses.</div>
+        <div class="ag-p">Once a K1 passkey has been issued, no further scans are required for that K1.</div>
+        <div class="ag-p">Info is auto-scrubbed immediately after Auth-Gate verification completes AND again at session end. <span class="hm">SCRUB</span> is an added precautionary layer that lets the user purge at will.</div>
+        <div class="ag-p">The dashboard is a standalone application. You are the only one who has access to your information.</div>
+        <div class="ag-p">At no point are any keys, addresses, or credentials ever stored, logged, or transmitted to any server. The dashboard runs entirely in your browser.</div>
+        <div class="ag-p">On <span class="hm">SCRUB</span>, ESC, idle timeout, or tab close, all operator input is purged.</div>
+      </div>
+      <div id="fallback-msg">
+        Auth-Gate could not confirm genesis ownership for this K1.<br>
+        If you are the original K1 creator, contact <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a> on X/Twitter with your K1 address and proof of ownership.
       </div>
     </div>
 
-    <!-- 3. K1 PANEL -->
-    <div class="k1-panel" id="genesis-k1-verify-panel">
-      <div class="k1-panel-title">GENESIS K1 ADDRESS</div>
-      <input id="verify-k1-addr" type="text" placeholder="0x... K1 PUBLIC ADDRESS" autocomplete="off" spellcheck="false">
-      <div class="verify-actions">
-        <button id="verify-scan-btn" onclick="startScan()">SCAN</button>
-        <button id="verify-qr-btn"   onclick="linkDevice()">LINK DEVICE</button>
-      </div>
-      <div id="scan-status">Verifies the real K1 owner &#8212; not the thief.</div>
-      <div id="verify-status"></div>
-    </div>
-
-    <!-- 4. SHORT INSTRUCTIONS -->
-    <div class="verify-directions">
-      <strong>SCAN</strong> &#8212; same-device sweep.<br>
-      <strong>LINK DEVICE</strong> &#8212; USB-connected separate device.
-    </div>
-
-    <!-- 5. AUTH-GATE BLOCK -->
-    <div class="auth-gate-block">
-      <div class="sidebar-section-title">AUTH-GATE</div>
-      <div class="sidebar-body">
-        Genesis scan looks for proof you&rsquo;re the original K1 owner on this
-        device, not whoever is holding the key now. The exact 4&#8209;artifact
-        set is hidden so attackers cannot mimic the expected pattern.<br><br>
-
-        Auth&#8209;Gate is an advisory ownership check, not a final ruling. It
-        can miss evidence of valid ownership, so you may attempt verification on
-        up to three devices per K1.<br><br>
-
-        If you still cannot clear Auth&#8209;Gate but can prove you are the
-        original key holder, DM <strong>@hope_ology</strong> on X/Twitter. DMs
-        are more likely to be seen if you follow first.<br><br>
-
-        Once a K1 passes, it auto&#8209;fills where required and is bound to a
-        proof&#8209;of&#8209;ownership passkey. Each K1 requires its own
-        verification and unique passkey &#8212; no exceptions.
-        <span class="sm">SCRUB</span> kills the session immediately, purging all
-        data. On SCRUB, ESC, idle timeout, or tab close, all operator input is
-        purged &#8212; nothing is ever stored, logged, or transmitted.
-      </div>
-    </div>
-
-    <!-- 6. CAUTION BLOCK -->
+    <!-- 3.6 CAUTION block (⚫-' glyph at bottom-right of block) -->
     <div class="caution-block">
       <div class="caution-title">&#9888; Caution</div>
       <div class="caution-body">
         Use at your own risk.<br>
         Hope for the best.<br>
-        If you&rsquo;re a hacker?<br>
-        <strong style="color:#664400">Get fucked.</strong>
+        If you&apos;re a hacker?<br>
+        <span class="bad">Get fucked.</span>
       </div>
-      <button id="auth-bypass-trigger" class="admin-stick-button" onclick="toggleBypass()" aria-label="Admin">&#9899;-&apos;</button>
-    </div>
-
-    <!-- ADMIN BYPASS PANEL (hidden) -->
-    <div id="auth-bypass-panel" class="auth-bypass-panel" style="display:none">
-      <div class="bypass-panel-title">ADMIN BYPASS</div>
-      <input id="bypass-key-input" type="password" placeholder="Admin key for this K1&#8230;" autocomplete="off" spellcheck="false">
-      <button class="bypass-verify-btn" onclick="attemptBypass()">VERIFY</button>
-      <div id="bypass-status"></div>
+      <!-- admin bypass panel — hidden until ⚫-' clicked -->
+      <div id="admin-bypass" role="region" aria-label="Admin bypass">
+        <div class="bp-lbl">Admin Auth Key</div>
+        <input id="bypass-input" class="bp-input" type="password"
+          placeholder="Paste admin auth key&hellip;" autocomplete="off" spellcheck="false">
+        <button class="bp-btn" id="bypass-submit" type="button">VERIFY</button>
+        <div id="bypass-msg" aria-live="polite"></div>
+      </div>
+      <!-- ⚫-' functional admin glyph, bottom-right of caution block -->
+      <button id="admin-glyph" type="button" aria-label="Admin" title="Admin">&#9899;-&apos;</button>
     </div>
 
   </aside>
 
-  <!-- MAIN PANEL -->
-  <main class="main-panel">
+  <!-- ═══ SECTION 4 — CENTER LOCK SCREEN ══════════════ -->
+  <main id="center">
+    <!-- faint grid bg — visible through overlay to show it isn't a blackout -->
+    <div id="dash-bg"></div>
 
-    <!-- LOCK OVERLAY -->
+    <!-- semi-transparent overlay -->
     <div id="lock-overlay">
-      <!-- DISCLAIMER (first visit) -->
-      <div id="disclaimer-overlay">
-        <div class="disclaimer-frame">
-          <div class="disclaimer-text">
-            This tool is for authorized use only.<br>
-            Unauthorized access attempts are logged and prosecuted.<br>
-            By proceeding you confirm you are the genesis owner<br>
-            of the K1 address you intend to verify.
-          </div>
-          <button class="disclaimer-btn" onclick="dismissDisclaimer()">I UNDERSTAND &#8212; PROCEED</button>
-        </div>
-      </div>
-      <!-- LOCK CARD -->
-      <div class="lock-card">
-        <h2>Dashboard Locked</h2>
-        <div class="lock-subtitle">Genesis Owner Verification Required</div>
-        <div class="lock-body">
-          The SecureGate dashboard requires <span class="lg">Genesis Owner Verification</span>
-          before recovery controls are accessible.<br><br>
-          <span class="lt">Left sidebar &rarr; Enter K1 public address &rarr; SCAN</span><br><br>
-          Verification runs locally on your device. The exact marker set is
-          intentionally undisclosed.<br><br>
-          If enough expected signals are found, the dashboard unlocks and scan
-          data is immediately wiped. The K1 address becomes
-          <span class="lg">hard-bound</span> to this session and cannot be
-          changed without <span class="lm">SCRUB</span>.
-        </div>
-      </div>
-    </div>
 
-    <!-- DASHBOARD (post-auth) -->
-    <div id="dashboard">
-
-      <div class="standalone-box">
-        <div class="standalone-title">Standalone Operation</div>
-        <div class="standalone-copy">
-          SecureGate runs entirely in your browser. No data leaves this device.
-          No keys, addresses, or credentials are ever stored, logged, or
-          transmitted to any server. Close this tab at any time to terminate
-          the session completely.
+      <!-- 4.1 STANDALONE OPERATION box (AUTH-GATE label NOT above this) -->
+      <div class="notice-box standalone-box">
+        <div class="ntitle">STANDALONE OPERATION</div>
+        <div class="notice-body">
+          This dashboard executes the authentication flow client-side.<br>
+          You are not submitting K1 authentication data to any operator,<br>
+          server, or third party. Cryptographic checks run in your browser.<br>
+          Chain reads use the server-supplied RPC configuration.<br>
+          RPC is not part of the auth gate.
         </div>
       </div>
 
-      <div class="ack-box">
-        <div class="ack-title">Acknowledgement</div>
-        <div class="ack-copy">
-          By using SecureGate you acknowledge that genesis ownership verification
-          is advisory and that you bear full responsibility for all transactions
-          executed through this interface.
+      <!-- 4.2 Gold acknowledgement box -->
+      <div class="notice-box ack-box">
+        <div class="notice-body">
+          BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE.<br>
+          PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I&apos;M JUST A STICK FIGURE.
         </div>
       </div>
 
-      <div>
-        <div class="section-title">Operator Credentials</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label" for="deployer-key">Deployer Key</label>
-            <div class="input-wrap">
-              <input class="form-input" id="deployer-key" type="password" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
-              <button class="input-eye" onclick="toggleEye('deployer-key')" aria-label="Toggle">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="k1-key">K1 Key</label>
-            <div class="input-wrap">
-              <input class="form-input" id="k1-key" type="password" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
-              <button class="input-eye" onclick="toggleEye('k1-key')" aria-label="Toggle">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="k1-addr">K1 Address</label>
-            <input class="form-input" id="k1-addr" type="text" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="k2-addr">K2 Address</label>
-            <input class="form-input" id="k2-addr" type="text" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="k3-addr">K3 Address</label>
-            <input class="form-input" id="k3-addr" type="text" placeholder="0x&#8230;" autocomplete="off" spellcheck="false">
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="section-title">Network</div>
-        <div class="rpc-row">
-          <select class="chain-select" id="network-select">
-            <optgroup label="Mainnets">
-              <option value="ethereum">Ethereum Mainnet</option>
-              <option value="polygon">Polygon</option>
-              <option value="arbitrum">Arbitrum One</option>
-              <option value="optimism">Optimism</option>
-              <option value="base">Base</option>
-              <option value="bsc">BNB Smart Chain</option>
-              <option value="avalanche">Avalanche C-Chain</option>
-            </optgroup>
-            <optgroup label="Testnets">
-              <option value="sepolia">Sepolia</option>
-              <option value="mumbai">Mumbai</option>
-            </optgroup>
-          </select>
-          <input class="form-input" id="rpc-url" type="text" placeholder="Custom RPC URL (optional)" autocomplete="off">
-        </div>
-      </div>
-
-      <div>
-        <div class="section-title">Funding</div>
-        <div class="action-row">
-          <button class="btn btn-teal" id="calc-funding" onclick="if(typeof calcFunding==='function')calcFunding()">CALC FUNDING</button>
-          <span id="funding-display" style="font-size:10px;color:var(--muted)"></span>
-        </div>
-      </div>
-
-      <div>
-        <div class="section-title">Token Approvals</div>
-        <div class="action-row" style="margin-bottom:8px">
-          <button class="btn btn-teal" id="scan-revokes" onclick="if(typeof scanRevokes==='function')scanRevokes()">SCAN APPROVALS</button>
-          <button class="btn btn-teal" id="revoke-all"   onclick="if(typeof revokeAll==='function')revokeAll()">REVOKE ALL</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Token</th><th>Spender</th><th>Allowance</th><th>Action</th></tr></thead>
-            <tbody id="revoke-tbody">
-              <tr><td colspan="4" style="color:var(--faint);text-align:center">Run scan to populate</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="revoke-status"></div>
-      </div>
-
-      <div id="revoke-section">
-        <div class="section-title">Deploy</div>
-        <div class="action-row">
-          <button class="btn btn-deploy" id="deploy-btn" onclick="if(typeof deployBundle==='function')deployBundle()" disabled>DEPLOY BUNDLE</button>
-        </div>
-        <div id="smoke-results"></div>
-      </div>
-
-    </div><!-- /#dashboard -->
+    </div><!-- /lock-overlay -->
   </main>
-</div><!-- /.layout -->
 
-<!-- PROGRESS MODAL -->
-<div id="progress-modal">
-  <div class="progress-card">
-    <div class="progress-title">Deploying Bundle</div>
-    <div class="progress-bar-track"><div id="progress-fill"></div></div>
-    <div id="progress-pct">0%</div>
-    <div id="progress-label-text">Initializing&#8230;</div>
-    <div class="progress-steps">
-      <div class="step" id="step1"><span class="step-dot"></span>Compile contracts</div>
-      <div class="step" id="step2"><span class="step-dot"></span>Deploy EIP-777G</div>
-      <div class="step" id="step3"><span class="step-dot"></span>Configure gates</div>
-      <div class="step" id="step4"><span class="step-dot"></span>Verify on-chain</div>
-      <div class="step" id="step5"><span class="step-dot"></span>Finalize</div>
+</div><!-- /shell -->
+
+<!-- ═══ SECTION 5 — ENVELOPE (above footer, angled out) ══════ -->
+<!-- ═══ SECTION 6 — FOOTER CLUSTER (fixed bottom-RIGHT) ═════ -->
+<div id="footer-cluster">
+
+  <div id="env-wrap">
+
+    <!-- popup — pink-framed transparent, above envelope -->
+    <div id="env-popup" role="dialog" aria-modal="true" aria-label="Send a thank you">
+      <div class="pp-title">Send a Thank You</div>
+      <textarea id="pp-note" class="pp-note"
+        placeholder="Type a note&hellip;" aria-label="Thank you note"></textarea>
+      <!-- full unabbreviated address — click to copy -->
+      <div class="pp-addr" id="pp-addr" role="button" tabindex="0"
+           title="Click to copy" aria-label="Copy donation address">
+        0xA0eb06a5fab172860837C4D68e75F339896500b5
+      </div>
+      <div class="pp-hint">Click address to copy</div>
+      <div id="addr-confirm" aria-live="polite"></div>
+      <button class="pp-send" id="pp-send" type="button">SEND</button>
     </div>
-  </div>
-</div>
 
-<!-- VERSION BADGE — bottom-LEFT, single instance -->
-<div id="version-badge">
-  <span class="status-dot" id="status-dot"></span>
-  <span id="status-text">777G v1.0 &middot; SECURE</span>
-</div>
-
-<!-- FOOTER BRANDING — bottom-RIGHT -->
-<div id="sg-footer-branding">
-
-  <!-- POPOVER (above envelope) -->
-  <div id="thank-you-popover" hidden>
-    <div class="popover-title">Thank You Note</div>
-    <textarea id="thank-you-note-input" placeholder="Write a thank you&#8230;"></textarea>
-    <button id="thank-you-address"
-      onclick="copyAddress(this)"
-      data-address="0xA0eb06a5fab172860837C4D68e75F339896500b5"
-      title="Click to copy">
-      0xA0eb06a5fab172860837C4D68e75F339896500b5
+    <!-- Envelope button: teal body, gold THANK YOU, angled -->
+    <button id="env-btn" type="button"
+            title="SEND A THANK YOU"
+            aria-label="Send a thank you"
+            aria-expanded="false"
+            aria-controls="env-popup">
+      <svg class="env-svg" viewBox="0 0 120 80" aria-hidden="true">
+        <!-- teal body -->
+        <rect class="ev-body" x="2" y="16" width="116" height="62" rx="3"/>
+        <!-- darker flap -->
+        <polygon class="ev-flap" points="2,16 60,54 118,16"/>
+        <!-- fold lines -->
+        <line class="ev-fold" x1="2" y1="78" x2="48" y2="42"/>
+        <line class="ev-fold" x1="118" y1="78" x2="72" y2="42"/>
+        <!-- THANK YOU — gold, scaled to fit inside body -->
+        <text class="ev-text" x="60" y="70">THANK YOU</text>
+      </svg>
     </button>
-    <div class="popover-hint">Click address to copy &bull; SEND routes to @hope_ology DMs</div>
-    <button id="thank-you-send-btn" onclick="sendNote()">SEND</button>
+
   </div>
 
-  <!-- ENVELOPE — angled, teal body, gold THANK YOU label -->
-  <button id="thank-you-envelope" onclick="togglePopover()" aria-label="Send a thank you" aria-expanded="false">
-    <svg class="envelope-icon" viewBox="0 0 120 78" aria-hidden="true">
-      <path class="env-body" d="M6 8H114V70H6Z"/>
-      <path class="env-flap" d="M8 10L60 45L112 10"/>
-      <path class="env-fold" d="M8 70L46 39"/>
-      <path class="env-fold" d="M112 70L74 39"/>
-    </svg>
-    <span class="envelope-label">THANK YOU</span>
-  </button>
-
-  <!-- BUILT BY EMP line -->
-  <div class="built-by-line">
+  <!-- Section 6: BUILT BY EMP ❖ @hope_ology — magenta knot -->
+  <div id="built-by">
     <span>BUILT BY EMP</span>
-    <svg class="trinity-knot" viewBox="0 0 24 24" aria-hidden="true">
-      <path class="trinity-path" d="M12 2.5 Q16 8 18 11.5 Q17 15 15 15 Q13.5 18 12 17.5 Q10.5 18 9 15 Q7 15 6 11.5 Q8 8 12 2.5 Z"/>
-      <path class="trinity-path" d="M6 11.5 Q12 9 18 11.5"/>
-      <path class="trinity-path" d="M9 15 Q12 8.5 15 15"/>
-    </svg>
+    <span class="knot" aria-hidden="true">&#10022;</span>
     <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a>
   </div>
 
-</div><!-- /#sg-footer-branding -->
+</div><!-- /footer-cluster -->
 
-<!-- gate.js + app.js only — no envelope-fix.js, no dashboard-wiring.js -->
-<script src="js/gate.js"></script>
-<script src="js/app.2bac52647e4c-20260629080222.js"></script>
+<!-- Section 3.7: VERSION BADGE — fixed bottom-LEFT, single instance only -->
+<div id="version-badge" aria-label="Version and security status">
+  <span class="sdot" id="sdot"></span>
+  <span id="status-txt">777G v1.0 &middot; SECURE</span>
+</div>
+
+<!-- ═══ INLINE JS — not stripped by any build script ════════════
+     No envelope-fix.js. No dashboard-wiring.js. Self-contained.
+════════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
 'use strict';
 
-var _auth     = false;
-var _scanning = false;
-var _k1Locked = null;
-var _idle;
-var IDLE_MS   = 5 * 60 * 1000;
+/* ── state ──────────────────────────────────── */
+var auth        = false;
+var sweeping    = false;
+var devCount    = 0;   // devices attempted (max 3)
+var idleT       = null;
+var IDLE        = 15 * 60 * 1000;
 
-var $overlay    = document.getElementById('lock-overlay');
-var $disclaimer = document.getElementById('disclaimer-overlay');
-var $scanRing   = document.getElementById('scan-ring');
-var $scanLabel  = document.getElementById('scan-label');
-var $scanStatus = document.getElementById('scan-status');
-var $verifySt   = document.getElementById('verify-status');
-var $k1Input    = document.getElementById('verify-k1-addr');
-var $scanBtn    = document.getElementById('verify-scan-btn');
-var $qrBtn      = document.getElementById('verify-qr-btn');
-var $statusText = document.getElementById('status-text');
-var $statusDot  = document.getElementById('status-dot');
-var $bypassPnl  = document.getElementById('auth-bypass-panel');
-var $bypassIn   = document.getElementById('bypass-key-input');
-var $bypassSt   = document.getElementById('bypass-status');
-var $deployBtn  = document.getElementById('deploy-btn');
+/* ── refs ───────────────────────────────────── */
+var scanOuter  = document.getElementById('scan-outer');
+var scanLbl    = document.getElementById('scan-lbl');
+var k1Input    = document.getElementById('k1-input');
+var linkBtn    = document.getElementById('link-btn');
+var k1Status   = document.getElementById('k1-status');
+var lockOv     = document.getElementById('lock-overlay');
+var scrubBtn   = document.getElementById('scrub-btn');
+var powerBtn   = document.getElementById('poweroff-btn');
+var sdot       = document.getElementById('sdot');
+var statusTxt  = document.getElementById('status-txt');
+var fallback   = document.getElementById('fallback-msg');
+var adminGlyph = document.getElementById('admin-glyph');
+var adminPan   = document.getElementById('admin-bypass');
+var bpInput    = document.getElementById('bypass-input');
+var bpSubmit   = document.getElementById('bypass-submit');
+var bpMsg      = document.getElementById('bypass-msg');
+var envBtn     = document.getElementById('env-btn');
+var envPopup   = document.getElementById('env-popup');
+var ppNote     = document.getElementById('pp-note');
+var ppAddr     = document.getElementById('pp-addr');
+var addrConf   = document.getElementById('addr-confirm');
+var ppSend     = document.getElementById('pp-send');
+var ADDR       = '0xA0eb06a5fab172860837C4D68e75F339896500b5';
 
-/* DISCLAIMER */
-window.dismissDisclaimer = function(){
-  if($disclaimer) $disclaimer.style.display = 'none';
-};
-
-/* PURGE ALL */
-function purgeAll(){
-  _auth = false; _scanning = false; _k1Locked = null;
-  clearTimeout(_idle);
-  document.querySelectorAll('input,textarea').forEach(function(el){
-    el.value = ''; el.disabled = false; el.readOnly = false;
-  });
-  if($overlay){ $overlay.classList.remove('unlocked'); }
-  if($disclaimer) $disclaimer.style.display = 'flex';
-  if($scanRing)  $scanRing.classList.remove('fast');
-  if($scanLabel) $scanLabel.innerHTML = 'GENESIS OWNER AUTHENTICATION<br>VERIFY OWNERSHIP';
-  if($scanStatus){ $scanStatus.textContent = 'Verifies the real K1 owner \u2014 not the thief.'; $scanStatus.style.color = ''; }
-  if($verifySt)  { $verifySt.textContent = ''; $verifySt.style.color = ''; }
-  if($statusText)  $statusText.textContent = '777G v1.0 \u00B7 SECURE';
-  if($statusDot)   $statusDot.className = 'status-dot';
-  if($scanBtn)     $scanBtn.disabled = false;
-  if($qrBtn)       $qrBtn.disabled   = false;
-  if($deployBtn)   $deployBtn.disabled = true;
-  sessionStorage.removeItem('sg_auth_passed');
-  sessionStorage.removeItem('sg_k1');
+/* ── PURGE (SCRUB) ──────────────────────────── */
+function purge(){
+  auth = false; sweeping = false; devCount = 0;
+  k1Input.value = ''; k1Input.disabled = false;
+  if(bpInput) bpInput.value = '';
+  k1Status.textContent = '';
+  if(bpMsg) bpMsg.textContent = '';
+  fallback.classList.remove('show');
+  lockOv.classList.remove('unlocked');
+  scanOuter.classList.remove('active');
+  scanLbl.textContent = 'GENESIS OWNER AUTHENTICATION';
+  sdot.className = 'sdot';
+  statusTxt.textContent = '777G v1.0 \u00B7 SECURE';
+  if(adminPan) adminPan.classList.remove('open');
+  envPopup.classList.remove('open');
+  envBtn.setAttribute('aria-expanded','false');
+  try{ sessionStorage.removeItem('sg_auth_passed'); }catch(e){}
+  resetIdle();
 }
-window.scrub = purgeAll;
 
-/* IDLE */
-function resetIdle(){ clearTimeout(_idle); _idle = setTimeout(purgeAll, IDLE_MS); }
-['mousemove','keydown','click','scroll','touchstart'].forEach(function(e){
-  document.addEventListener(e, resetIdle, {passive:true});
+/* ── idle ───────────────────────────────────── */
+function resetIdle(){
+  clearTimeout(idleT);
+  if(!auth) idleT = setTimeout(purge, IDLE);
+}
+['mousemove','keydown','touchstart'].forEach(function(ev){
+  document.addEventListener(ev, resetIdle, {passive:true});
 });
-resetIdle();
-
-/* ESC */
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') purgeAll(); });
-
-/* TAB CLOSE / HIDE */
-window.addEventListener('pagehide', purgeAll);
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') purge();
+});
 document.addEventListener('visibilitychange', function(){
-  if(document.visibilityState==='hidden') purgeAll();
+  if(document.hidden) purge();
+});
+window.addEventListener('beforeunload', purge);
+
+/* ── controls ───────────────────────────────── */
+scrubBtn.addEventListener('click', purge);
+powerBtn.addEventListener('click', purge);
+
+/* ── sweep (shared: SCAN + LINK DEVICE) ──────── */
+function startSweep(path){
+  if(sweeping) return;
+  var addr = k1Input.value.trim();
+  if(!addr){ k1Status.textContent = 'Enter a K1 address first.'; return; }
+  /* SECURITY: lock K1 input immediately */
+  k1Input.disabled = true;
+  sweeping = true;
+  devCount++;
+  scanOuter.classList.add('active');
+  scanLbl.textContent = path === 'link'
+    ? 'LINKING DEVICE \u2014 SWEEP IN PROGRESS'
+    : 'SWEEP IN PROGRESS';
+  k1Status.textContent = '';
+  /* delegate to gate.js if loaded */
+  if(typeof window.runGenesisSweep === 'function'){
+    window.runGenesisSweep(addr, path, onResult);
+  } else {
+    /* gate.js not yet loaded — show wait state */
+    k1Status.textContent = 'Sweep engine loading\u2026';
+    setTimeout(function(){ onResult({passed:false,reason:'engine-pending'}); }, 2400);
+  }
+}
+
+function onResult(r){
+  scanOuter.classList.remove('active');
+  sweeping = false;
+  if(r.passed){
+    onSuccess();
+  } else {
+    if(devCount >= 3){
+      fallback.classList.add('show');
+      k1Status.textContent = 'Genesis ownership could not be confirmed.';
+    } else {
+      k1Status.textContent =
+        'Sweep inconclusive (' + devCount + '/3 devices). Try another device.';
+      k1Input.disabled = false;
+      scanLbl.textContent = 'GENESIS OWNER AUTHENTICATION';
+    }
+  }
+}
+
+function onSuccess(){
+  auth = true;
+  lockOv.classList.add('unlocked');
+  scanLbl.textContent = 'AUTHENTICATED';
+  sdot.classList.add('auth');
+  statusTxt.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
+  try{ sessionStorage.setItem('sg_auth_passed','1'); }catch(e){}
+  /* auto-scrub verification data (K1 stays populated) */
+  setTimeout(function(){
+    k1Status.textContent = '';
+    if(bpMsg) bpMsg.textContent = '';
+    if(bpInput) bpInput.value = '';
+  }, 800);
+}
+
+/* ── SCAN ────────────────────────────────────── */
+scanOuter.addEventListener('click', function(){
+  if(!sweeping) startSweep('same');
+});
+scanOuter.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); startSweep('same'); }
 });
 
-/* RESTORE SESSION */
-if(sessionStorage.getItem('sg_auth_passed')==='1'){
-  authSuccess(sessionStorage.getItem('sg_k1')||'', true);
-}
+/* ── LINK DEVICE ─────────────────────────────── */
+linkBtn.addEventListener('click', function(){
+  if(!sweeping) startSweep('link');
+});
 
-/* SCAN */
-window.startScan = function(){
-  if(_scanning||_auth) return;
-  var addr = $k1Input ? $k1Input.value.trim() : '';
-  if(!addr||!/^0x[0-9a-fA-F]{40}$/.test(addr)){
-    if($scanStatus) $scanStatus.textContent = 'Enter a valid 0x K1 address first.';
-    return;
-  }
-  _scanning = true; _k1Locked = addr;
-  if($k1Input) $k1Input.disabled = true;
-  if($scanBtn) $scanBtn.disabled = true;
-  if($qrBtn)   $qrBtn.disabled   = true;
-  if($scanRing) $scanRing.classList.add('fast');
-  if($scanLabel) $scanLabel.textContent = 'SCANNING\u2026';
-  if($scanStatus) $scanStatus.textContent = 'Sweeping genesis artifacts\u2026';
-  var fn = (typeof window.runGateSweep==='function') ? window.runGateSweep : function(a,cb){ setTimeout(function(){cb(false);},2200); };
-  fn(addr, function(passed){
-    _scanning = false;
-    if(passed){ authSuccess(addr, false); } else { sweepFailed(); }
-  });
-};
-
-/* LINK DEVICE */
-window.linkDevice = function(){
-  if(_scanning||_auth) return;
-  var addr = $k1Input ? $k1Input.value.trim() : '';
-  if(!addr||!/^0x[0-9a-fA-F]{40}$/.test(addr)){
-    if($scanStatus) $scanStatus.textContent = 'Enter a valid 0x K1 address first.';
-    return;
-  }
-  if($k1Input) $k1Input.disabled = true;
-  if($qrBtn)   $qrBtn.textContent = 'LINKING\u2026';
-  if($scanRing) $scanRing.classList.add('fast');
-  if(typeof window.initDeviceLink==='function') window.initDeviceLink(addr);
-};
-
-/* AUTH SUCCESS */
-function authSuccess(addr, restore){
-  _auth = true; _k1Locked = addr;
-  if($scanRing)  $scanRing.classList.remove('fast');
-  if($scanLabel) $scanLabel.textContent = 'VERIFIED';
-  if($scanStatus){ $scanStatus.textContent = 'Genesis ownership confirmed.'; $scanStatus.style.color = 'var(--teal)'; }
-  var k1f = document.getElementById('k1-addr');
-  if(k1f && addr){ k1f.value = addr; k1f.readOnly = true; }
-  if($overlay) $overlay.classList.add('unlocked');
-  if($statusText) $statusText.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
-  if($statusDot)  $statusDot.classList.add('auth');
-  if($deployBtn)  $deployBtn.disabled = false;
-  sessionStorage.setItem('sg_auth_passed','1');
-  sessionStorage.setItem('sg_k1', addr);
-  if(!restore) setTimeout(function(){ if($verifySt) $verifySt.textContent = 'Scan data purged.'; }, 800);
-}
-
-/* SWEEP FAILED */
-function sweepFailed(){
-  if($scanRing) $scanRing.classList.remove('fast');
-  if($k1Input)  $k1Input.disabled = false;
-  if($scanBtn)  $scanBtn.disabled = false;
-  if($qrBtn)    { $qrBtn.disabled = false; $qrBtn.textContent = 'LINK DEVICE'; }
-  if($scanLabel) $scanLabel.innerHTML = 'GENESIS OWNER AUTHENTICATION<br>VERIFY OWNERSHIP';
-  if($verifySt){
-    $verifySt.style.color = 'var(--mag)';
-    $verifySt.textContent = 'Auth-Gate could not confirm genesis ownership for this K1. If you are the original K1 creator, contact @hope_ology on X/Twitter with your K1 address and proof of ownership.';
-  }
-}
-
-/* ADMIN BYPASS */
-window.toggleBypass = function(){
-  if(!$bypassPnl) return;
-  var open = $bypassPnl.style.display !== 'none';
-  $bypassPnl.style.display = open ? 'none' : 'flex';
-  if(!open && $bypassIn) $bypassIn.focus();
-};
-window.attemptBypass = function(){
-  var k1  = $k1Input  ? $k1Input.value.trim()  : '';
-  var key = $bypassIn ? $bypassIn.value.trim() : '';
-  if(!k1)  { if($bypassSt) $bypassSt.textContent = 'Enter K1 address first.'; return; }
-  if(!key) { if($bypassSt) $bypassSt.textContent = 'Enter admin key.'; return; }
-  if(typeof window.verifyAdminKey==='function'){
-    window.verifyAdminKey(k1, key, function(ok){
-      if(ok){ $bypassPnl.style.display='none'; authSuccess(k1,false); }
-      else  { if($bypassSt) $bypassSt.textContent = 'Invalid or mismatched admin key for this K1.'; }
+/* ── ADMIN GLYPH ⚫-' ─────────────────────────── */
+adminGlyph.addEventListener('click', function(){
+  var open = adminPan.classList.toggle('open');
+  if(open && bpInput) bpInput.focus();
+});
+bpSubmit.addEventListener('click', function(){
+  var addr = k1Input.value.trim();
+  var key  = bpInput.value.trim();
+  if(!addr){ bpMsg.textContent = 'Enter K1 address first.'; return; }
+  if(!key) { bpMsg.textContent = 'Paste admin auth key.'; return; }
+  bpMsg.textContent = 'Verifying\u2026';
+  if(typeof window.verifyAdminKey === 'function'){
+    window.verifyAdminKey(addr, key, function(ok){
+      if(ok){
+        k1Input.disabled = true;
+        adminPan.classList.remove('open');
+        onSuccess();
+      } else {
+        bpMsg.textContent = 'Invalid or mismatched admin key for this K1.';
+      }
     });
   } else {
-    if($bypassSt) $bypassSt.textContent = 'Admin verification unavailable.';
-  }
-};
-
-/* TOGGLE EYE */
-window.toggleEye = function(id){
-  var el = document.getElementById(id);
-  if(el) el.type = el.type==='password' ? 'text' : 'password';
-};
-
-/* ENVELOPE / POPOVER */
-var $popover  = document.getElementById('thank-you-popover');
-var $envelope = document.getElementById('thank-you-envelope');
-window.togglePopover = function(){
-  if(!$popover) return;
-  var open = !$popover.hidden;
-  $popover.hidden = open;
-  if($envelope) $envelope.setAttribute('aria-expanded', String(!open));
-};
-document.addEventListener('click', function(e){
-  if(!$popover||$popover.hidden) return;
-  if(!$popover.contains(e.target)&&!$envelope.contains(e.target)){
-    $popover.hidden = true;
-    if($envelope) $envelope.setAttribute('aria-expanded','false');
+    bpMsg.textContent = 'Bypass verification unavailable.';
   }
 });
 
-/* COPY ADDRESS */
-window.copyAddress = function(btn){
-  var addr = btn.dataset.address;
-  if(!addr) return;
-  navigator.clipboard.writeText(addr).then(function(){
-    var orig = btn.textContent;
-    btn.textContent = 'Copied!';
-    setTimeout(function(){ btn.textContent = orig; }, 1400);
-  }).catch(function(){ btn.textContent = 'Copy failed'; });
-};
+/* ── ENVELOPE popup ──────────────────────────── */
+envBtn.addEventListener('click', function(e){
+  e.stopPropagation();
+  var open = envPopup.classList.toggle('open');
+  envBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if(open && ppNote) ppNote.focus();
+});
+document.addEventListener('click', function(e){
+  if(envPopup.classList.contains('open') &&
+     !envPopup.contains(e.target) && !envBtn.contains(e.target)){
+    envPopup.classList.remove('open');
+    envBtn.setAttribute('aria-expanded','false');
+  }
+});
 
-/* SEND NOTE */
-window.sendNote = function(){
-  var note = document.getElementById('thank-you-note-input');
-  var msg  = note ? note.value.trim() : '';
-  var url  = 'https://twitter.com/messages/compose?recipient_id=hope_ology' + (msg ? '&text='+encodeURIComponent(msg) : '');
-  window.open(url,'_blank','noopener,noreferrer');
-};
+/* click-to-copy address */
+function doCopy(){
+  navigator.clipboard.writeText(ADDR).then(function(){
+    addrConf.textContent = 'Address copied';
+    setTimeout(function(){ addrConf.textContent = ''; }, 2000);
+  }).catch(function(){
+    addrConf.textContent = 'Select and copy manually';
+  });
+}
+ppAddr.addEventListener('click', doCopy);
+ppAddr.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); doCopy(); }
+});
 
-/* STUBS — app.js overrides */
-window.calcFunding  = window.calcFunding  || function(){};
-window.scanRevokes  = window.scanRevokes  || function(){};
-window.revokeAll    = window.revokeAll    || function(){};
-window.deployBundle = window.deployBundle || function(){};
+/* SEND — pre-filled DM to @hope_ology */
+ppSend.addEventListener('click', function(){
+  var msg = ppNote ? ppNote.value.trim() : '';
+  var url = 'https://twitter.com/messages/compose?recipient_id=hope_ology' +
+    (msg ? '&text=' + encodeURIComponent(msg) : '');
+  window.open(url, '_blank', 'noopener,noreferrer');
+});
+
+/* ── restore session ─────────────────────────── */
+try{
+  if(sessionStorage.getItem('sg_auth_passed') === '1') onSuccess();
+}catch(e){}
+
+/* ── start idle timer ────────────────────────── */
+resetIdle();
 
 })();
 </script>
+
+<!-- gate.js — genesis sweep engine (obfuscated, on-chain logic) -->
+<script src="js/gate.js"></script>
+<!-- app.js — deploy + contract wiring (obfuscated) -->
+<script src="js/app.83cf614621ff-20260629080222.js"></script>
+
 </body>
 </html>
