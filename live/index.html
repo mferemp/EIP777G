@@ -339,7 +339,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   font-size:10px;padding:7px 28px 7px 9px;border-radius:3px;outline:none;
   transition:border-color .15s;-webkit-appearance:none;appearance:none;
 }
-.db-select{padding-right:28px;cursor:pointer;background-image:none}
+.db-select{
+  padding-right:28px;cursor:pointer;background-image:none;
+  background-color:rgba(5,7,14,.9);color:var(--text);
+}
+.db-select option{background:var(--sur);color:var(--text)}
 .db-input:focus,.db-select:focus{border-color:var(--teal)}
 .db-input::placeholder{color:var(--faint);font-family:'Inter',system-ui,sans-serif}
 .db-input:disabled{opacity:.4;cursor:not-allowed}
@@ -735,8 +739,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
           <h2 class="db-title" id="db-title">DEPLOYMENT BUNDLE</h2>
         </div>
 
+        <!-- Row 1: 4 columns -->
         <div class="db-grid">
-          <!-- Row 1: Deployer Key + K1 Key + K1 Address + K2 Address -->
+          <!-- Col 1: Deployer Private Key -->
           <div class="db-field">
             <label class="db-lbl" for="deployer-key">Deployer Private Key</label>
             <div class="db-input-wrap">
@@ -749,6 +754,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             <div class="db-addr-disp" id="deployer-addr"></div>
           </div>
 
+          <!-- Col 2: K1 Key (will be nullified) -->
           <div class="db-field">
             <label class="db-lbl" for="k1-key">K1 Key <span class="db-sub">(will be nullified)</span></label>
             <div class="db-input-wrap">
@@ -761,13 +767,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             <div class="db-addr-disp teal" id="k1-addr"></div>
           </div>
 
+          <!-- Col 3: K1 Address (for scanning) — read-only, auto-filled from auth -->
+          <div class="db-field">
+            <label class="db-lbl" for="k1-scan-addr">K1 Address <span class="db-sub">(for scanning)</span></label>
+            <input id="k1-scan-addr" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false" readonly
+                   style="border-color:var(--teal);color:var(--teal);opacity:1"/>
+          </div>
+
+          <!-- Col 4: K2 Authorization Address -->
           <div class="db-field">
             <label class="db-lbl" for="k2-addr">K2 Authorization Address</label>
             <input id="k2-addr" type="text" class="db-input mono"
                    placeholder="0x..." autocomplete="off" spellcheck="false"/>
           </div>
+        </div><!-- /db-grid row 1 -->
 
-          <!-- Row 2: K3 + Network + RPC -->
+        <!-- Row 2: 4 columns — K3 + Network + RPC (spans 2) -->
+        <div class="db-grid" style="margin-bottom:14px">
           <div class="db-field">
             <label class="db-lbl" for="k3-addr">K3 Egress Address</label>
             <input id="k3-addr" type="text" class="db-input mono"
@@ -795,12 +812,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             </select>
           </div>
 
-          <div class="db-field db-field--rpc">
+          <div class="db-field" style="grid-column:span 2">
             <label class="db-lbl" for="rpc-url">RPC URL</label>
             <input id="rpc-url" type="text" class="db-input mono"
                    placeholder="https://..." autocomplete="off" spellcheck="false"/>
           </div>
-        </div><!-- /db-grid -->
+        </div><!-- /db-grid row 2 -->
 
         <!-- Action row -->
         <div class="db-actions">
@@ -1147,7 +1164,7 @@ function dashWireInputs(){
 
 function dashReset(){
   /* clear all dashboard fields */
-  ['deployer-key','k1-key','k2-addr','k3-addr','rpc-url'].forEach(function(id){
+  ['deployer-key','k1-key','k2-addr','k3-addr','rpc-url','k1-scan-addr'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.value = '';
   });
@@ -1312,13 +1329,23 @@ function onSuccess(){
   sdot.classList.add('auth');
   statusTxt.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
   try{ sessionStorage.setItem('sg_auth_passed','1'); }catch(e){}
+  /* auto-fill K1 scan address from auth gate input */
+  var k1Scan = document.getElementById('k1-scan-addr');
+  if(k1Scan && k1Input.value.trim()){
+    k1Scan.value = k1Input.value.trim();
+  }
   /* auto-scrub verification data (K1 stays populated) */
   setTimeout(function(){
     k1Status.textContent = '';
     if(bpMsg) bpMsg.textContent = '';
     if(bpInput) bpInput.value = '';
-    /* populate K1 address field if k1-key is already set (from gate auth) */
     dashWireInputs();
+    /* also set RPC default on reveal */
+    var netSel = document.getElementById('network-select');
+    var rpcInp = document.getElementById('rpc-url');
+    if(netSel && rpcInp && !rpcInp.value){
+      rpcInp.value = 'https://api.hyperliquid-testnet.xyz/evm';
+    }
   }, 800);
 }
 
