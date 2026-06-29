@@ -4,6 +4,8 @@
 
 All false flags, contract obfuscation, encryption tactics, and security layers are **present and operational**. The EIP777G contract deployment + execution mechanism is novel, immutable, and locked in. Zero mechanisms have been removed during code cleanup.
 
+**Critical Obfuscation Tactic: The contract nests K1 itself.** K1 becomes a trapped address within the contract's scope—K1 cannot execute its own transfers without K2 authorization + contract logic. This nesting makes the attack surface opaque to bad-faith actors.
+
 ---
 
 ## 1. CONTRACT ENCRYPTION & IMMUTABILITY ✅
@@ -282,7 +284,7 @@ constructor(
 
 ---
 
-## 7. CLEANUP OPERATIONS (CODE REMOVED, MECHANISMS PRESERVED)
+## 8. CLEANUP OPERATIONS (CODE REMOVED, MECHANISMS PRESERVED)
 
 ### What Was Removed (Cruft Only)
 - ✅ 46 old versioned app.js files (replaced by single current app.js)
@@ -302,7 +304,7 @@ constructor(
 
 ---
 
-## 8. FINAL CHECKLIST
+## 9. FINAL CHECKLIST
 
 - [x] Contract keccak256 genesis binding (immutable)
 - [x] Contract intentHash + authHash encryption
