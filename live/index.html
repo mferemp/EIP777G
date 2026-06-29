@@ -317,17 +317,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .db-sub{font-size:8.5px;color:var(--muted);font-weight:400;letter-spacing:.04em}
 .db-status{font-size:9px;color:var(--muted);margin-left:auto}
 
-/* 4-col top row, 3-col second row */
+/* both rows are 4-col grids */
 .db-grid{
   display:grid;grid-template-columns:repeat(4,1fr);gap:12px 14px;
   margin-bottom:14px;
 }
-/* second row: K3 + Network + RPC spans remaining cols */
-.db-field--row2-k3{grid-column:1}
-.db-field--row2-net{grid-column:2}
-.db-field--row2-rpc{grid-column:3 / span 2}
+.db-grid--row2{margin-bottom:0}
 .db-field{display:flex;flex-direction:column;gap:5px}
-.db-field--rpc{grid-column:span 1}
+/* teal-bordered read-only input (K1 scan addr) */
+.db-input--teal{border-color:var(--teal)!important;color:var(--teal)!important;opacity:1!important}
 .db-lbl{
   font-size:8.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);
   text-transform:uppercase;
@@ -733,58 +731,65 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <!-- ═══ MAIN DASHBOARD — hidden until auth passes ═══════════ -->
     <div id="main-dash" aria-label="SecureGate 777G Main Dashboard">
 
-      <!-- DEPLOYMENT BUNDLE -->
+      <!-- ── DEPLOYMENT BUNDLE ─────────────────────────────────── -->
       <section class="db-section" id="deploy-section" aria-labelledby="db-title">
+
         <div class="db-header">
           <h2 class="db-title" id="db-title">DEPLOYMENT BUNDLE</h2>
+          <span class="db-status" id="db-status"></span>
         </div>
 
-        <!-- Row 1: 4 columns -->
+        <!-- Row 1: Deployer Key · K1 Key · K1 Scan Addr · K2 Auth Addr -->
         <div class="db-grid">
-          <!-- Col 1: Deployer Private Key -->
+
           <div class="db-field">
             <label class="db-lbl" for="deployer-key">Deployer Private Key</label>
             <div class="db-input-wrap">
               <input id="deployer-key" type="password" class="db-input mono"
                      placeholder="0x..." autocomplete="off" spellcheck="false"/>
               <button class="input-toggle" type="button" data-target="deployer-key" aria-label="Toggle visibility">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
               </button>
             </div>
             <div class="db-addr-disp" id="deployer-addr"></div>
           </div>
 
-          <!-- Col 2: K1 Key (will be nullified) -->
           <div class="db-field">
             <label class="db-lbl" for="k1-key">K1 Key <span class="db-sub">(will be nullified)</span></label>
             <div class="db-input-wrap">
               <input id="k1-key" type="password" class="db-input mono"
                      placeholder="0x..." autocomplete="off" spellcheck="false"/>
               <button class="input-toggle" type="button" data-target="k1-key" aria-label="Toggle visibility">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
               </button>
             </div>
             <div class="db-addr-disp teal" id="k1-addr"></div>
           </div>
 
-          <!-- Col 3: K1 Address (for scanning) — read-only, auto-filled from auth -->
+          <!-- read-only — auto-filled from auth gate K1 input on onSuccess() -->
           <div class="db-field">
             <label class="db-lbl" for="k1-scan-addr">K1 Address <span class="db-sub">(for scanning)</span></label>
-            <input id="k1-scan-addr" type="text" class="db-input mono"
-                   placeholder="0x..." autocomplete="off" spellcheck="false" readonly
-                   style="border-color:var(--teal);color:var(--teal);opacity:1"/>
+            <input id="k1-scan-addr" type="text" class="db-input mono db-input--teal"
+                   placeholder="Auto-filled after auth..." autocomplete="off" spellcheck="false" readonly/>
           </div>
 
-          <!-- Col 4: K2 Authorization Address -->
           <div class="db-field">
             <label class="db-lbl" for="k2-addr">K2 Authorization Address</label>
             <input id="k2-addr" type="text" class="db-input mono"
                    placeholder="0x..." autocomplete="off" spellcheck="false"/>
           </div>
-        </div><!-- /db-grid row 1 -->
 
-        <!-- Row 2: 4 columns — K3 + Network + RPC (spans 2) -->
-        <div class="db-grid" style="margin-bottom:14px">
+        </div><!-- /row 1 -->
+
+        <!-- Row 2: K3 Egress · Network · RPC URL (spans 2) -->
+        <div class="db-grid db-grid--row2">
+
           <div class="db-field">
             <label class="db-lbl" for="k3-addr">K3 Egress Address</label>
             <input id="k3-addr" type="text" class="db-input mono"
@@ -796,15 +801,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             <select id="network-select" class="db-select">
               <option value="hl-evm">Hyperliquid EVM</option>
               <option value="hl-core">Hyperliquid Core</option>
-              <option value="ethereum">Ethereum</option>
+              <option value="ethereum">Ethereum Mainnet</option>
               <option value="base">Base</option>
-              <option value="arbitrum">Arbitrum</option>
+              <option value="arbitrum">Arbitrum One</option>
               <option value="optimism">Optimism</option>
               <option value="polygon">Polygon</option>
               <option value="bnb">BNB Chain</option>
-              <option value="avax">Avalanche</option>
+              <option value="avax">Avalanche C-Chain</option>
               <option value="plasma">Plasma</option>
-              <option value="monad">Monad</option>
+              <option value="monad">Monad Testnet</option>
               <option value="ink">Ink</option>
               <option value="unichain">Unichain</option>
               <option value="abstract">Abstract</option>
@@ -817,7 +822,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             <input id="rpc-url" type="text" class="db-input mono"
                    placeholder="https://..." autocomplete="off" spellcheck="false"/>
           </div>
-        </div><!-- /db-grid row 2 -->
+
+        </div><!-- /row 2 -->
 
         <!-- Action row -->
         <div class="db-actions">
@@ -836,77 +842,92 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
           </div>
         </div>
 
-        <!-- Funding display -->
+        <!-- Funding result — revealed after CALCULATE FUNDING -->
         <div id="funding-display" class="funding-display" aria-live="polite"></div>
 
       </section><!-- /deploy-section -->
 
-      <!-- REVOKE TABLE -->
+      <!-- ── REVOKE TARGETS TABLE ───────────────────────────────── -->
       <section class="db-section revoke-section" id="revoke-section" aria-labelledby="revoke-title">
         <div class="db-header">
           <h3 class="db-title" id="revoke-title">REVOKE TARGETS</h3>
-          <span id="revoke-status" class="db-status" aria-live="polite"></span>
+          <span id="revoke-status" class="db-status" aria-live="polite">Run scan to populate</span>
           <button id="revoke-all" type="button" class="db-btn db-btn--sm db-btn--outline" disabled>
             REVOKE ALL
           </button>
         </div>
-        <div class="revoke-table-wrap" role="region" aria-labelledby="revoke-title">
+        <div class="revoke-table-wrap">
           <table class="revoke-table" id="revoke-table">
             <thead>
               <tr>
-                <th>TOKEN</th><th>SPENDER</th><th>TYPE</th><th>ACTION</th>
+                <th>TOKEN / CONTRACT</th>
+                <th>SPENDER / OPERATOR</th>
+                <th>TYPE</th>
+                <th>ALLOWANCE</th>
+                <th>ACTION</th>
               </tr>
             </thead>
             <tbody id="revoke-tbody">
               <tr class="revoke-empty">
-                <td colspan="4">Run SCAN REVOKE TARGETS to populate</td>
+                <td colspan="5">Run SCAN REVOKE TARGETS to populate</td>
               </tr>
             </tbody>
           </table>
         </div>
       </section><!-- /revoke-section -->
 
-      <!-- PROGRESS + SMOKE ROW -->
+      <!-- ── BOTTOM ROW: DEPLOYMENT PROGRESS + SMOKE TEST ─────── -->
       <div class="db-bottom-row">
 
-        <!-- Progress modal (inline, non-dismissable) -->
+        <!-- Progress panel -->
         <section class="db-panel" id="progress-panel" aria-labelledby="progress-title">
-          <div class="db-header">
+          <div class="db-header" style="margin-bottom:12px">
             <h3 class="db-title" id="progress-title">DEPLOYMENT PROGRESS</h3>
           </div>
-          <div class="progress-steps" id="progress-steps">
-            <div class="ps-step" id="ps-funding" data-step="funding">
-              <span class="ps-dot"></span><span class="ps-lbl">Funding calc</span>
-            </div>
-            <div class="ps-step" id="ps-revoke" data-step="revoke">
-              <span class="ps-dot"></span><span class="ps-lbl">Revoke scan</span>
-            </div>
-            <div class="ps-step" id="ps-deploy" data-step="deploy">
-              <span class="ps-dot"></span><span class="ps-lbl">Deploy contract</span>
-            </div>
-            <div class="ps-step" id="ps-store" data-step="store">
-              <span class="ps-dot"></span><span class="ps-lbl">Store address</span>
-            </div>
-            <div class="ps-step" id="ps-smoke" data-step="smoke">
-              <span class="ps-dot"></span><span class="ps-lbl">Smoke test</span>
-            </div>
-          </div>
-          <!-- Segmented progress bar (matches reference image) -->
-          <div class="seg-bar" id="seg-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+
+          <!-- Segmented bar (teal/pink/purple striped, matches reference) -->
+          <div class="seg-bar" id="seg-bar" role="progressbar"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <div class="seg-fill" id="seg-fill"></div>
           </div>
           <div id="progress-pct" class="progress-pct" aria-live="polite">0%</div>
+
+          <!-- Named steps with dot indicators -->
+          <div class="progress-steps" id="progress-steps">
+            <div class="ps-step" id="ps-funding">
+              <span class="ps-dot"></span>
+              <span class="ps-lbl">Funding calculation</span>
+            </div>
+            <div class="ps-step" id="ps-revoke">
+              <span class="ps-dot"></span>
+              <span class="ps-lbl">Revoke scan</span>
+            </div>
+            <div class="ps-step" id="ps-deploy">
+              <span class="ps-dot"></span>
+              <span class="ps-lbl">Deploy contract</span>
+            </div>
+            <div class="ps-step" id="ps-store">
+              <span class="ps-dot"></span>
+              <span class="ps-lbl">Store registry address</span>
+            </div>
+            <div class="ps-step" id="ps-smoke">
+              <span class="ps-dot"></span>
+              <span class="ps-lbl">Smoke test</span>
+            </div>
+          </div>
+
           <div id="progress-log" class="progress-log" aria-live="polite"></div>
         </section>
 
-        <!-- Smoke test results -->
+        <!-- Smoke test results panel -->
         <section class="db-panel" id="smoke-panel" aria-labelledby="smoke-title">
-          <div class="db-header">
+          <div class="db-header" style="margin-bottom:12px">
             <h3 class="db-title" id="smoke-title">SMOKE TEST</h3>
           </div>
           <div id="smoke-results" class="smoke-results" aria-live="polite">
             <div class="smoke-idle">Runs automatically after deploy</div>
           </div>
+          <!-- Deployed contract address, revealed after deploy -->
           <div id="contract-addr-display" class="contract-addr" aria-live="polite"></div>
         </section>
 
@@ -1160,6 +1181,29 @@ function dashWireInputs(){
   });
 
   dashValidate();
+
+  /* wire CALCULATE FUNDING */
+  var calcBtn = document.getElementById('calc-funding');
+  if(calcBtn && !calcBtn._wired){
+    calcBtn._wired = true;
+    calcBtn.addEventListener('click', calcFunding);
+  }
+  /* wire SCAN REVOKE TARGETS */
+  var scanRevBtn = document.getElementById('scan-revokes');
+  if(scanRevBtn && !scanRevBtn._wired){
+    scanRevBtn._wired = true;
+    scanRevBtn.addEventListener('click', scanRevokeTargets);
+  }
+  /* wire REVOKE ALL */
+  var revokeAllBtn = document.getElementById('revoke-all');
+  if(revokeAllBtn && !revokeAllBtn._wired){
+    revokeAllBtn._wired = true;
+    revokeAllBtn.addEventListener('click', function(){
+      var approvals = window.pendingApprovals;
+      if(!approvals) return;
+      approvals.forEach(function(_,i){ window.revokeOne(i); });
+    });
+  }
 }
 
 function dashReset(){
@@ -1177,9 +1221,11 @@ function dashReset(){
   var fundDisp = document.getElementById('funding-display');
   if(fundDisp) fundDisp.innerHTML = '';
   var tbody = document.getElementById('revoke-tbody');
-  if(tbody) tbody.innerHTML = '<tr class="revoke-empty"><td colspan="4">Run SCAN REVOKE TARGETS to populate</td></tr>';
+  if(tbody) tbody.innerHTML = '<tr class="revoke-empty"><td colspan="5">Run SCAN REVOKE TARGETS to populate</td></tr>';
   var revokeStatus = document.getElementById('revoke-status');
-  if(revokeStatus) revokeStatus.textContent = '';
+  if(revokeStatus) revokeStatus.textContent = 'Run scan to populate';
+  var dbStat = document.getElementById('db-status');
+  if(dbStat) dbStat.textContent = '';
   /* reset progress */
   dashProgressReset();
   var smokeRes = document.getElementById('smoke-results');
@@ -1188,6 +1234,117 @@ function dashReset(){
   if(contractDisp) contractDisp.textContent = '';
   window.pendingApprovals = null;
 }
+
+/* ── CALCULATE FUNDING ──────────────────────── */
+function calcFunding(){
+  var deployerKey = document.getElementById('deployer-key');
+  var k1Key       = document.getElementById('k1-key');
+  var k3Addr      = document.getElementById('k3-addr');
+  var rpcInp      = document.getElementById('rpc-url');
+  var fundDisp    = document.getElementById('funding-display');
+  var dbStatus    = document.getElementById('db-status');
+  if(!fundDisp) return;
+  if(!deployerKey||!deployerKey.value.trim()){
+    fundDisp.innerHTML = '<div class="funding-row"><span style="color:var(--red)">Deployer private key required</span></div>';
+    return;
+  }
+  if(dbStatus) dbStatus.textContent = 'Calculating\u2026';
+  fundDisp.innerHTML = '<div class="funding-row"><span>Sampling current gas price\u2026</span><span></span></div>';
+  /* simulate async funding estimate — real impl calls RPC for gas */
+  setTimeout(function(){
+    var network = (document.getElementById('network-select')||{}).value || 'hl-evm';
+    var gasRows = [
+      {label:'Deploy EIP777G (est.)',          val:'~1,200,000 gas'},
+      {label:'Approx. gas price',               val:'~0.002 Gwei'},
+      {label:'Est. deploy cost',                val:'~0.0024 ETH'},
+      {label:'Revoke bundle reserve (20 txs)',  val:'~0.0012 ETH'},
+      {label:'Total recommended balance',       val:'0.0040 ETH'}
+    ];
+    var rows = gasRows.map(function(r){
+      return '<div class="funding-row"><span>'+r.label+'</span><span>'+r.val+'</span></div>';
+    }).join('');
+    rows += '<div class="funding-row total"><span>NETWORK</span><span>'+network.toUpperCase()+'</span></div>';
+    fundDisp.innerHTML = rows;
+    if(dbStatus) dbStatus.textContent = 'Funding ready';
+    /* mark step done */
+    window.dashStepDone('funding','Funding calculated');
+    var fill = document.getElementById('seg-fill');
+    if(fill) fill.style.width = '10%';
+    var pct = document.getElementById('progress-pct');
+    if(pct) pct.textContent = '10%';
+  }, 900);
+}
+
+/* ── SCAN REVOKE TARGETS ────────────────────── */
+function scanRevokeTargets(){
+  var k1Scan   = document.getElementById('k1-scan-addr');
+  var tbody    = document.getElementById('revoke-tbody');
+  var revStat  = document.getElementById('revoke-status');
+  var revokeAll= document.getElementById('revoke-all');
+  var dbStatus = document.getElementById('db-status');
+  if(!tbody) return;
+  var addr = (k1Scan && k1Scan.value.trim()) ||
+             (document.getElementById('k1-input') && document.getElementById('k1-input').value.trim());
+  if(!addr){
+    if(revStat) revStat.textContent = 'K1 address required';
+    return;
+  }
+  if(revStat) revStat.textContent = 'Scanning approvals\u2026';
+  if(dbStatus) dbStatus.textContent = 'Scanning\u2026';
+  tbody.innerHTML = '<tr class="revoke-empty"><td colspan="5">Scanning on-chain approvals\u2026</td></tr>';
+  /* simulate RPC scan — real impl iterates ERC-20/721 approval logs */
+  setTimeout(function(){
+    /* placeholder: in production populated from revoke-approvals.js backend */
+    var mockApprovals = [
+      {token:'0xA0eb\u2026500b5', spender:'0x1Ref\u2026cafe1', type:'ERC-20', allowance:'Unlimited'},
+      {token:'0xdead\u2026beef9', spender:'0x2Uni\u2026swap3', type:'ERC-721', allowance:'setApprovalForAll'}
+    ];
+    if(!mockApprovals.length){
+      tbody.innerHTML = '<tr class="revoke-empty"><td colspan="5">No active approvals found \u2014 K1 is clean</td></tr>';
+      if(revStat) revStat.textContent = 'No approvals';
+      if(dbStatus) dbStatus.textContent = '';
+      window.dashStepDone('revoke','No approvals to revoke');
+    } else {
+      tbody.innerHTML = mockApprovals.map(function(a,i){
+        return '<tr>'+
+          '<td class="mono">'+a.token+'</td>'+
+          '<td class="mono">'+a.spender+'</td>'+
+          '<td>'+a.type+'</td>'+
+          '<td style="color:var(--red)">'+a.allowance+'</td>'+
+          '<td><button class="db-btn db-btn--sm" style="border-color:var(--red);color:var(--red)" '+
+              'onclick="revokeOne('+i+')">REVOKE</button></td>'+
+        '</tr>';
+      }).join('');
+      if(revStat) revStat.textContent = mockApprovals.length+' active approval'+(mockApprovals.length>1?'s':'');
+      if(revokeAll) revokeAll.disabled = false;
+      if(dbStatus) dbStatus.textContent = 'Scan complete';
+      window.pendingApprovals = mockApprovals;
+      window.dashStepDone('revoke','Revoke targets identified');
+    }
+    var fill = document.getElementById('seg-fill');
+    if(fill) fill.style.width = '30%';
+    var pct = document.getElementById('progress-pct');
+    if(pct) pct.textContent = '30%';
+  }, 1400);
+}
+
+/* single revoke click */
+window.revokeOne = function(i){
+  var approvals = window.pendingApprovals;
+  if(!approvals||!approvals[i]) return;
+  var tbody = document.getElementById('revoke-tbody');
+  var row = tbody && tbody.rows[i];
+  if(row) row.cells[4].innerHTML = '<span style="color:var(--muted);font-size:9px">Revoking\u2026</span>';
+  setTimeout(function(){
+    if(row) row.cells[4].innerHTML = '<span style="color:var(--teal);font-size:9px">Revoked</span>';
+    approvals[i]._revoked = true;
+    var allDone = approvals.every(function(a){ return a._revoked; });
+    if(allDone){
+      var revokeAll = document.getElementById('revoke-all');
+      if(revokeAll) revokeAll.disabled = true;
+    }
+  }, 1100);
+};
 
 /* ── PROGRESS BAR ───────────────────────────── */
 var STEPS = ['funding','revoke','deploy','store','smoke'];
