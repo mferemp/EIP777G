@@ -38,13 +38,18 @@ async function buildDeployTx(provider, deployer, tierGwei) {
     throw new Error(`Deploy est. ${ethers.formatEther(estCost)} ETH exceeds cap`);
   }
 
+  /* constructor(_k1Genesis, _k2Authority, _k3DropWallet, _cleanWallet,
+                   _authWindow, _minDelay, _additionalWhitelisted[]) */
   const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, deployer);
+  const K3_ADDRESS = process.env.K3_ADDRESS || CLEAN_WALLET; // K3 = clean terminus
   const txRequest = await factory.getDeployTransaction(
-    K1_ADDRESS,
-    K2_ADDRESS,
-    CLEAN_WALLET,
-    BigInt(AUTH_WINDOW),
-    BigInt(MIN_DELAY),
+    K1_ADDRESS,                // _k1Genesis
+    K2_ADDRESS,                // _k2Authority
+    K3_ADDRESS,                // _k3DropWallet
+    CLEAN_WALLET,              // _cleanWallet
+    BigInt(AUTH_WINDOW),       // _authWindow
+    BigInt(MIN_DELAY),         // _minDelay
+    [],                        // _additionalWhitelisted
   );
 
   const nonce = await provider.getTransactionCount(deployer.address, 'pending');
