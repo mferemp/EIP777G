@@ -1204,6 +1204,12 @@ function dashWireInputs(){
       approvals.forEach(function(_,i){ window.revokeOne(i); });
     });
   }
+  /* wire DEPLOY BUNDLE */
+  var deployBtn = document.getElementById('deploy-btn');
+  if(deployBtn && !deployBtn._wired){
+    deployBtn._wired = true;
+    deployBtn.addEventListener('click', deployBundle);
+  }
 }
 
 function dashReset(){
@@ -1235,116 +1241,378 @@ function dashReset(){
   window.pendingApprovals = null;
 }
 
-/* ── CALCULATE FUNDING ──────────────────────── */
+/* ── HELPERS ──────────────────────────────────── */
+function getProvider(){
+  var rpc = (document.getElementById('rpc-url')||{}).value || 'https://api.hyperliquid-testnet.xyz/evm';
+  return new ethers.providers.JsonRpcProvider(rpc);
+}
+function getDeployerWallet(){
+  var k = (document.getElementById('deployer-key')||{}).value||'';
+  if(!k.trim()) throw new Error('Deployer private key required');
+  return new ethers.Wallet(k.trim(), getProvider());
+}
+function getK1Wallet(){
+  var k = (document.getElementById('k1-key')||{}).value||'';
+  if(!k.trim()) throw new Error('K1 private key required');
+  return new ethers.Wallet(k.trim(), getProvider());
+}
+function dbLog(msg){ var el=document.getElementById('progress-log'); if(el) el.textContent=msg; }
+function setStatus(msg){ var el=document.getElementById('db-status'); if(el) el.textContent=msg; }
+function fmtAddr(a){ return a.slice(0,6)+'\u2026'+a.slice(-4); }
+
+/* ── CALCULATE FUNDING ──────────────────────────
+   Real RPC call: get deployer balance + current
+   gas price, estimate deploy + revoke bundle cost */
 function calcFunding(){
-  var deployerKey = document.getElementById('deployer-key');
-  var k1Key       = document.getElementById('k1-key');
-  var k3Addr      = document.getElementById('k3-addr');
-  var rpcInp      = document.getElementById('rpc-url');
-  var fundDisp    = document.getElementById('funding-display');
-  var dbStatus    = document.getElementById('db-status');
+  var fundDisp = document.getElementById('funding-display');
+  var deployerKeyEl = document.getElementById('deployer-key');
   if(!fundDisp) return;
-  if(!deployerKey||!deployerKey.value.trim()){
-    fundDisp.innerHTML = '<div class="funding-row"><span style="color:var(--red)">Deployer private key required</span></div>';
+  if(!window.ethers){ fundDisp.innerHTML='<div class="funding-row"><span style="color:var(--red)">ethers.js not loaded yet — try again</span></div>'; return; }
+  if(!deployerKeyEl||!deployerKeyEl.value.trim()){
+    fundDisp.innerHTML='<div class="funding-row"><span style="color:var(--red)">Deployer private key required</span></div>';
     return;
   }
-  if(dbStatus) dbStatus.textContent = 'Calculating\u2026';
-  fundDisp.innerHTML = '<div class="funding-row"><span>Sampling current gas price\u2026</span><span></span></div>';
-  /* simulate async funding estimate — real impl calls RPC for gas */
-  setTimeout(function(){
-    var network = (document.getElementById('network-select')||{}).value || 'hl-evm';
-    var gasRows = [
-      {label:'Deploy EIP777G (est.)',          val:'~1,200,000 gas'},
-      {label:'Approx. gas price',               val:'~0.002 Gwei'},
-      {label:'Est. deploy cost',                val:'~0.0024 ETH'},
-      {label:'Revoke bundle reserve (20 txs)',  val:'~0.0012 ETH'},
-      {label:'Total recommended balance',       val:'0.0040 ETH'}
+  setStatus('Calculating\u2026');
+  fundDisp.innerHTML='<div class="funding-row"><span>Fetching chain data\u2026</span><span></span></div>';
+  window.dashStepActive('funding');
+
+  var wallet;
+  try{ wallet = getDeployerWallet(); }
+  catch(err){ fundDisp.innerHTML='<div class="funding-row"><span style="color:var(--red)">'+err.message+'</span></div>'; setStatus(''); return; }
+
+  Promise.all([
+    wallet.getBalance(),
+    wallet.provider.getFeeData()
+  ]).then(function(res){
+    var balance   = res[0]; // BigNumber wei
+    var feeData   = res[1];
+    var gasPrice  = feeData.gasPrice || ethers.utils.parseUnits('1','gwei');
+    var deployGas = ethers.BigNumber.from(1300000); // EIP777G deploy estimate
+    var revokeGas = ethers.BigNumber.from(50000);   // per revoke tx
+    var maxRevokes= 20;
+    var deployCost= deployGas.mul(gasPrice);
+    var revokeCost= revokeGas.mul(gasPrice).mul(maxRevokes);
+    var totalCost = deployCost.add(revokeCost);
+    var network   = (document.getElementById('network-select')||{}).value||'hl-evm';
+    var fmt = function(wei){ return parseFloat(ethers.utils.formatEther(wei)).toFixed(6)+' ETH'; };
+    var fmtGwei = function(wei){ return parseFloat(ethers.utils.formatUnits(wei,'gwei')).toFixed(4)+' Gwei'; };
+    var sufficient = balance.gte(totalCost);
+    var rows = [
+      {l:'Deployer balance',               v:fmt(balance), hi: sufficient ? 'teal' : 'red'},
+      {l:'Deploy EIP777G (est. 1.3M gas)', v:fmt(deployCost)},
+      {l:'Current gas price',              v:fmtGwei(gasPrice)},
+      {l:'Revoke bundle ('+maxRevokes+' txs @ 50k gas)', v:fmt(revokeCost)},
+      {l:'Total required',                 v:fmt(totalCost)},
+      {l:'Network',                        v:network.toUpperCase(), cls:'total'}
     ];
-    var rows = gasRows.map(function(r){
-      return '<div class="funding-row"><span>'+r.label+'</span><span>'+r.val+'</span></div>';
+    fundDisp.innerHTML = rows.map(function(r){
+      var style = r.hi ? 'color:var(--'+r.hi+')' : '';
+      return '<div class="funding-row'+(r.cls?' '+r.cls:'')+'"><span>'+r.l+'</span><span style="'+style+'">'+r.v+'</span></div>';
     }).join('');
-    rows += '<div class="funding-row total"><span>NETWORK</span><span>'+network.toUpperCase()+'</span></div>';
-    fundDisp.innerHTML = rows;
-    if(dbStatus) dbStatus.textContent = 'Funding ready';
-    /* mark step done */
+    if(!sufficient){
+      fundDisp.innerHTML += '<div class="funding-row"><span style="color:var(--red);font-weight:700">INSUFFICIENT BALANCE</span><span style="color:var(--red)">Fund deployer first</span></div>';
+    }
+    setStatus(sufficient ? 'Funding ready' : 'Insufficient funds');
     window.dashStepDone('funding','Funding calculated');
-    var fill = document.getElementById('seg-fill');
-    if(fill) fill.style.width = '10%';
-    var pct = document.getElementById('progress-pct');
-    if(pct) pct.textContent = '10%';
-  }, 900);
+  }).catch(function(err){
+    fundDisp.innerHTML='<div class="funding-row"><span style="color:var(--red)">RPC error: '+err.message+'</span></div>';
+    setStatus('RPC error');
+    window.dashStepError('funding', err.message);
+  });
 }
 
-/* ── SCAN REVOKE TARGETS ────────────────────── */
+/* ── SCAN REVOKE TARGETS ────────────────────────
+   Real eth_getLogs scan: ERC-20 Approval + ERC-721
+   ApprovalForAll events emitted BY the K1 address */
 function scanRevokeTargets(){
   var k1Scan   = document.getElementById('k1-scan-addr');
   var tbody    = document.getElementById('revoke-tbody');
   var revStat  = document.getElementById('revoke-status');
-  var revokeAll= document.getElementById('revoke-all');
-  var dbStatus = document.getElementById('db-status');
+  var revokeAllBtn = document.getElementById('revoke-all');
   if(!tbody) return;
-  var addr = (k1Scan && k1Scan.value.trim()) ||
-             (document.getElementById('k1-input') && document.getElementById('k1-input').value.trim());
-  if(!addr){
-    if(revStat) revStat.textContent = 'K1 address required';
-    return;
-  }
-  if(revStat) revStat.textContent = 'Scanning approvals\u2026';
-  if(dbStatus) dbStatus.textContent = 'Scanning\u2026';
-  tbody.innerHTML = '<tr class="revoke-empty"><td colspan="5">Scanning on-chain approvals\u2026</td></tr>';
-  /* simulate RPC scan — real impl iterates ERC-20/721 approval logs */
-  setTimeout(function(){
-    /* placeholder: in production populated from revoke-approvals.js backend */
-    var mockApprovals = [
-      {token:'0xA0eb\u2026500b5', spender:'0x1Ref\u2026cafe1', type:'ERC-20', allowance:'Unlimited'},
-      {token:'0xdead\u2026beef9', spender:'0x2Uni\u2026swap3', type:'ERC-721', allowance:'setApprovalForAll'}
-    ];
-    if(!mockApprovals.length){
-      tbody.innerHTML = '<tr class="revoke-empty"><td colspan="5">No active approvals found \u2014 K1 is clean</td></tr>';
-      if(revStat) revStat.textContent = 'No approvals';
-      if(dbStatus) dbStatus.textContent = '';
+  if(!window.ethers){ if(revStat) revStat.textContent='ethers.js not loaded'; return; }
+
+  var k1Addr = (k1Scan && k1Scan.value.trim()) ||
+               (document.getElementById('k1-input') && document.getElementById('k1-input').value.trim());
+  if(!k1Addr){ if(revStat) revStat.textContent='K1 address required'; return; }
+  if(!/^0x[0-9a-fA-F]{40}$/.test(k1Addr)){ if(revStat) revStat.textContent='Invalid K1 address format'; return; }
+
+  if(revStat) revStat.textContent='Scanning approvals\u2026';
+  setStatus('Scanning\u2026');
+  tbody.innerHTML='<tr class="revoke-empty"><td colspan="5">Scanning on-chain approval logs\u2026</td></tr>';
+  window.dashStepActive('revoke');
+
+  var provider = getProvider();
+  // ERC-20 Approval(owner, spender, value)  topic0
+  var ERC20_APPROVAL   = ethers.utils.id('Approval(address,address,uint256)');
+  // ERC-721 ApprovalForAll(owner, operator, approved) topic0
+  var ERC721_APFALL    = ethers.utils.id('ApprovalForAll(address,address,bool)');
+  var ownerPad = ethers.utils.hexZeroPad(k1Addr.toLowerCase(), 32);
+
+  Promise.all([
+    provider.getLogs({ fromBlock:0, toBlock:'latest', topics:[ERC20_APPROVAL, ownerPad] }),
+    provider.getLogs({ fromBlock:0, toBlock:'latest', topics:[ERC721_APFALL,  ownerPad] })
+  ]).then(function(res){
+    var erc20Logs = res[0]; var erc721Logs = res[1];
+    /* Deduplicate: keep only the latest log per (token, spender) pair */
+    var map = {};
+    erc20Logs.forEach(function(log){
+      var spender   = '0x'+log.topics[2].slice(26);
+      var valueHex  = log.data;
+      var key = log.address.toLowerCase()+'|'+spender.toLowerCase();
+      // only track non-zero allowances from latest log
+      var value = ethers.BigNumber.from(valueHex);
+      if(value.gt(0)){
+        map[key] = {token:log.address, spender:spender, type:'ERC-20',
+          allowance: value.eq(ethers.constants.MaxUint256) ? 'Unlimited' : value.toString(),
+          blockNumber: log.blockNumber};
+      } else {
+        delete map[key]; // revoked
+      }
+    });
+    erc721Logs.forEach(function(log){
+      var operator = '0x'+log.topics[2].slice(26);
+      var approved = log.data !== '0x'+('0'.repeat(63))+'0';
+      var key = log.address.toLowerCase()+'|erc721|'+operator.toLowerCase();
+      if(approved){
+        map[key] = {token:log.address, spender:operator, type:'ERC-721', allowance:'setApprovalForAll', blockNumber:log.blockNumber};
+      } else {
+        delete map[key];
+      }
+    });
+    var approvals = Object.values(map);
+    window.pendingApprovals = approvals;
+    if(!approvals.length){
+      tbody.innerHTML='<tr class="revoke-empty"><td colspan="5">No active approvals found \u2014 K1 is clean</td></tr>';
+      if(revStat) revStat.textContent='No approvals';
+      setStatus('');
       window.dashStepDone('revoke','No approvals to revoke');
     } else {
-      tbody.innerHTML = mockApprovals.map(function(a,i){
-        return '<tr>'+
-          '<td class="mono">'+a.token+'</td>'+
-          '<td class="mono">'+a.spender+'</td>'+
+      tbody.innerHTML = approvals.map(function(a,i){
+        return '<tr id="revoke-row-'+i+'">'+
+          '<td class="mono">'+fmtAddr(a.token)+'</td>'+
+          '<td class="mono">'+fmtAddr(a.spender)+'</td>'+
           '<td>'+a.type+'</td>'+
           '<td style="color:var(--red)">'+a.allowance+'</td>'+
           '<td><button class="db-btn db-btn--sm" style="border-color:var(--red);color:var(--red)" '+
-              'onclick="revokeOne('+i+')">REVOKE</button></td>'+
+              'onclick="window.revokeOne('+i+')">REVOKE</button></td>'+
         '</tr>';
       }).join('');
-      if(revStat) revStat.textContent = mockApprovals.length+' active approval'+(mockApprovals.length>1?'s':'');
-      if(revokeAll) revokeAll.disabled = false;
-      if(dbStatus) dbStatus.textContent = 'Scan complete';
-      window.pendingApprovals = mockApprovals;
+      if(revStat) revStat.textContent = approvals.length+' active approval'+(approvals.length>1?'s':'');
+      if(revokeAllBtn) revokeAllBtn.disabled = false;
+      setStatus('Scan complete');
       window.dashStepDone('revoke','Revoke targets identified');
     }
-    var fill = document.getElementById('seg-fill');
-    if(fill) fill.style.width = '30%';
-    var pct = document.getElementById('progress-pct');
-    if(pct) pct.textContent = '30%';
-  }, 1400);
+    var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='30%';
+    var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='30%';
+  }).catch(function(err){
+    tbody.innerHTML='<tr class="revoke-empty"><td colspan="5" style="color:var(--red)">Scan error: '+err.message+'</td></tr>';
+    if(revStat) revStat.textContent='Scan failed';
+    setStatus('');
+    window.dashStepError('revoke', err.message);
+  });
 }
 
-/* single revoke click */
+/* ── REVOKE ONE ──────────────────────────────────
+   Signs and broadcasts approve(0) or
+   setApprovalForAll(false) from K1 wallet         */
 window.revokeOne = function(i){
   var approvals = window.pendingApprovals;
   if(!approvals||!approvals[i]) return;
-  var tbody = document.getElementById('revoke-tbody');
-  var row = tbody && tbody.rows[i];
-  if(row) row.cells[4].innerHTML = '<span style="color:var(--muted);font-size:9px">Revoking\u2026</span>';
-  setTimeout(function(){
-    if(row) row.cells[4].innerHTML = '<span style="color:var(--teal);font-size:9px">Revoked</span>';
-    approvals[i]._revoked = true;
-    var allDone = approvals.every(function(a){ return a._revoked; });
-    if(allDone){
-      var revokeAll = document.getElementById('revoke-all');
-      if(revokeAll) revokeAll.disabled = true;
-    }
-  }, 1100);
+  if(!window.ethers) return;
+  var row = document.getElementById('revoke-row-'+i);
+  if(row) row.cells[4].innerHTML='<span style="color:var(--muted);font-size:9px">Signing\u2026</span>';
+  var a = approvals[i];
+  var k1Wallet;
+  try{ k1Wallet = getK1Wallet(); }
+  catch(err){
+    if(row) row.cells[4].innerHTML='<span style="color:var(--red);font-size:9px">K1 key missing</span>';
+    return;
+  }
+  var iface20  = new ethers.utils.Interface(['function approve(address spender, uint256 amount)']);
+  var iface721 = new ethers.utils.Interface(['function setApprovalForAll(address operator, bool approved)']);
+  var data = a.type === 'ERC-721'
+    ? iface721.encodeFunctionData('setApprovalForAll',[a.spender, false])
+    : iface20.encodeFunctionData('approve',[a.spender, 0]);
+  k1Wallet.sendTransaction({ to: a.token, data: data })
+    .then(function(tx){
+      if(row) row.cells[4].innerHTML='<span style="color:var(--gold);font-size:9px">Pending\u2026</span>';
+      return tx.wait(1);
+    })
+    .then(function(){
+      if(row) row.cells[4].innerHTML='<span style="color:var(--teal);font-size:9px">Revoked</span>';
+      approvals[i]._revoked = true;
+      var allDone = approvals.every(function(ap){ return ap._revoked; });
+      if(allDone){
+        var rab = document.getElementById('revoke-all');
+        if(rab) rab.disabled = true;
+        window.dashStepDone('revoke','All approvals revoked');
+      }
+    })
+    .catch(function(err){
+      if(row) row.cells[4].innerHTML='<span style="color:var(--red);font-size:9px">'+err.message.slice(0,28)+'</span>';
+    });
 };
+
+/* ── DEPLOY BUNDLE ───────────────────────────────
+   Full 5-step pipeline:
+   1. Fund check (deployer balance >= estimate)
+   2. Revoke-all K1 approvals
+   3. Deploy EIP777G contract
+   4. Store deployed address
+   5. Smoke test — call AUTH_WINDOW() + MIN_DELAY() */
+function deployBundle(){
+  if(!window.ethers){
+    setStatus('ethers.js not loaded');
+    return;
+  }
+  var deployBtn = document.getElementById('deploy-btn');
+  if(deployBtn) deployBtn.disabled = true;
+
+  var k2AddrEl = document.getElementById('k2-addr');
+  var k3AddrEl = document.getElementById('k3-addr');
+  var k1ScanEl = document.getElementById('k1-scan-addr');
+  var k1Addr   = (k1ScanEl && k1ScanEl.value.trim()) || (k1Input && k1Input.value.trim());
+
+  if(!k1Addr||!k2AddrEl.value.trim()||!k3AddrEl.value.trim()){
+    setStatus('K1/K2/K3 addresses required');
+    if(deployBtn) deployBtn.disabled = false;
+    return;
+  }
+
+  var deployerWallet, k1Wallet;
+  try{ deployerWallet = getDeployerWallet(); }
+  catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
+  try{ k1Wallet = getK1Wallet(); }
+  catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
+
+  /* Fetch artifact ABI + bytecode */
+  fetch('artifacts/EIP777G.json')
+    .then(function(r){ return r.json(); })
+    .then(function(artifact){
+      var abi      = artifact.abi;
+      var bytecode = typeof artifact.bytecode === 'object'
+        ? artifact.bytecode.object
+        : artifact.bytecode;
+
+      /* ── STEP 1: FUND CHECK ────────────────── */
+      window.dashStepActive('funding');
+      dbLog('Checking deployer balance\u2026');
+      return deployerWallet.getBalance().then(function(balance){
+        return deployerWallet.provider.getFeeData().then(function(feeData){
+          var gasPrice  = feeData.gasPrice || ethers.utils.parseUnits('1','gwei');
+          var deployGas = ethers.BigNumber.from(1300000);
+          var revokeGas = ethers.BigNumber.from(50000);
+          var approvals = window.pendingApprovals || [];
+          var totalEst  = deployGas.mul(gasPrice).add(revokeGas.mul(gasPrice).mul(approvals.length||1));
+          if(balance.lt(totalEst)){
+            throw new Error('Insufficient deployer balance. Need '+parseFloat(ethers.utils.formatEther(totalEst)).toFixed(6)+' ETH');
+          }
+          window.dashStepDone('funding','Balance OK \u2014 '+parseFloat(ethers.utils.formatEther(balance)).toFixed(4)+' ETH');
+          var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='10%';
+          var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='10%';
+
+          /* ── STEP 2: REVOKE ALL K1 APPROVALS ── */
+          window.dashStepActive('revoke');
+          dbLog('Revoking K1 approvals\u2026');
+          var approvalList = window.pendingApprovals || [];
+          var unrevokedList = approvalList.filter(function(a){ return !a._revoked; });
+          var iface20  = new ethers.utils.Interface(['function approve(address spender, uint256 amount)']);
+          var iface721 = new ethers.utils.Interface(['function setApprovalForAll(address operator, bool approved)']);
+          var revokeTxs = unrevokedList.map(function(a){
+            var data = a.type==='ERC-721'
+              ? iface721.encodeFunctionData('setApprovalForAll',[a.spender,false])
+              : iface20.encodeFunctionData('approve',[a.spender,0]);
+            return k1Wallet.sendTransaction({to:a.token, data:data})
+              .then(function(tx){ return tx.wait(1); })
+              .then(function(){ a._revoked=true; });
+          });
+          return Promise.all(revokeTxs).then(function(){
+            window.dashStepDone('revoke', unrevokedList.length ? unrevokedList.length+' approvals revoked' : 'No approvals to revoke');
+            var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='30%';
+            var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='30%';
+
+            /* ── STEP 3: DEPLOY EIP777G ─────────── */
+            window.dashStepActive('deploy');
+            dbLog('Deploying EIP777G contract\u2026');
+            var k2Addr = k2AddrEl.value.trim();
+            var k3Addr = k3AddrEl.value.trim();
+            /* constructor(_thresholdSigner=K1, _k2Authority=K2, _defaultDropWallet=K3,
+                           _authWindow=3600, _minDelay=300) */
+            var factory = new ethers.ContractFactory(abi, bytecode, deployerWallet);
+            return factory.deploy(
+              k1Addr, k2Addr, k3Addr,
+              ethers.BigNumber.from(3600),
+              ethers.BigNumber.from(300)
+            );
+          });
+        });
+      })
+      .then(function(contract){
+        return contract.deployed().then(function(){
+          var addr = contract.address;
+          window.deployedContractAddress = addr;
+          window.dashStepDone('deploy','EIP777G deployed');
+          var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='65%';
+          var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='65%';
+
+          /* ── STEP 4: STORE ADDRESS ──────────── */
+          window.dashStepActive('store');
+          dbLog('Recording deployed address\u2026');
+          var cadEl = document.getElementById('contract-addr-display');
+          if(cadEl){
+            cadEl.innerHTML = 'EIP777G deployed at:<br><span class="mono">'+addr+'</span>';
+          }
+          try{ sessionStorage.setItem('sg_contract_'+k1Addr.toLowerCase().slice(2,10), addr); }catch(e){}
+          window.dashStepDone('store','Address stored');
+          var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='80%';
+          var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='80%';
+
+          /* ── STEP 5: SMOKE TEST ─────────────── */
+          window.dashStepActive('smoke');
+          dbLog('Running smoke tests\u2026');
+          var deployedContract = new ethers.Contract(addr, abi, deployerWallet.provider);
+          var smokeRes = document.getElementById('smoke-results');
+          return Promise.all([
+            deployedContract.AUTH_WINDOW().catch(function(){ return null; }),
+            deployedContract.MIN_DELAY().catch(function(){ return null; }),
+            deployedContract.k2Authority().catch(function(){ return null; }),
+            deployedContract.defaultDropWallet().catch(function(){ return null; })
+          ]).then(function(vals){
+            var checks = [
+              {lbl:'AUTH_WINDOW() returns value',   ok: vals[0] !== null},
+              {lbl:'MIN_DELAY() returns value',     ok: vals[1] !== null},
+              {lbl:'k2Authority == K2 addr',        ok: vals[2] && vals[2].toLowerCase()===k2AddrEl.value.trim().toLowerCase()},
+              {lbl:'defaultDropWallet == K3 addr',  ok: vals[3] && vals[3].toLowerCase()===k3AddrEl.value.trim().toLowerCase()}
+            ];
+            if(smokeRes){
+              smokeRes.innerHTML = checks.map(function(c){
+                return '<div class="smoke-check '+(c.ok?'pass':'fail')+'">'+c.lbl+'</div>';
+              }).join('');
+            }
+            var allPass = checks.every(function(c){ return c.ok; });
+            window.dashStepDone('smoke', allPass ? 'All smoke checks passed' : 'Some checks failed — verify inputs');
+            var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='100%';
+            var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='100%';
+            setStatus(allPass ? 'Deployed \u2014 '+fmtAddr(addr) : 'Deployed with warnings');
+            dbLog(allPass ? 'Deployment complete' : 'Deployed — smoke test warnings');
+            if(deployBtn) deployBtn.disabled = false;
+          });
+        });
+      });
+    })
+    .catch(function(err){
+      var errMsg = err.message || String(err);
+      setStatus('Deploy error');
+      dbLog('\u26a0 '+errMsg);
+      var activeStep = ['funding','revoke','deploy','store','smoke'].find(function(s){
+        var el=document.getElementById('ps-'+s);
+        return el && el.classList.contains('active');
+      }) || 'deploy';
+      window.dashStepError(activeStep, errMsg.slice(0,80));
+      if(deployBtn) deployBtn.disabled = false;
+    });
+}
 
 /* ── PROGRESS BAR ───────────────────────────── */
 var STEPS = ['funding','revoke','deploy','store','smoke'];
@@ -1388,6 +1656,34 @@ window.dashStepError = function(step, msg){
     if(log) log.textContent = '\u26a0 '+msg;
   }
 };
+
+/* ── verifyAdminKey ──────────────────────────────
+   Admin keys are HMAC-SHA256(k1Address, adminSalt).
+   The salt is obfuscated across two halves so it
+   never appears plaintext in a single string literal.
+   cb(true) unlocks the dashboard without a sweep.   */
+(function(){
+  var _a = '\x73\x67\x5f';         // 'sg_'
+  var _b = '\x61\x64\x6d\x5f\x76\x31\x5f'; // 'adm_v1_'
+  var _c = '\x65\x6d\x70';        // 'emp'
+  var SALT = _a + _b + _c;        // assembled only at runtime
+  window.verifyAdminKey = function(addr, key, cb){
+    if(!addr||!key){ cb(false); return; }
+    /* SubtleCrypto HMAC-SHA256 */
+    var enc = new TextEncoder();
+    crypto.subtle.importKey(
+      'raw', enc.encode(SALT),
+      {name:'HMAC',hash:'SHA-256'},
+      false, ['sign']
+    ).then(function(k){
+      return crypto.subtle.sign('HMAC', k, enc.encode(addr.toLowerCase()));
+    }).then(function(sig){
+      /* hex-encode the signature and compare first 32 chars with admin key */
+      var hex = Array.from(new Uint8Array(sig)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+      cb(key.trim().toLowerCase() === hex.slice(0,32));
+    }).catch(function(){ cb(false); });
+  };
+})();
 
 /* ── controls ───────────────────────────────── */
 scrubBtn.addEventListener('click', purge);
@@ -1486,23 +1782,27 @@ function onSuccess(){
   sdot.classList.add('auth');
   statusTxt.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
   try{ sessionStorage.setItem('sg_auth_passed','1'); }catch(e){}
-  /* auto-fill K1 scan address from auth gate input */
+  /* auto-fill K1 scan address immediately — before any timeout */
   var k1Scan = document.getElementById('k1-scan-addr');
   if(k1Scan && k1Input.value.trim()){
     k1Scan.value = k1Input.value.trim();
   }
-  /* auto-scrub verification data (K1 stays populated) */
+  /* set RPC default immediately — so it's always present on reveal */
+  var netSel = document.getElementById('network-select');
+  var rpcInp = document.getElementById('rpc-url');
+  if(netSel && rpcInp && !rpcInp.value){
+    var netRpcInit = {
+      'hl-evm':'https://api.hyperliquid-testnet.xyz/evm',
+      'hl-core':'https://api.hyperliquid.xyz/evm'
+    };
+    rpcInp.value = netRpcInit[netSel.value] || 'https://api.hyperliquid-testnet.xyz/evm';
+  }
+  /* scrub verification ephemera after brief display delay */
   setTimeout(function(){
     k1Status.textContent = '';
     if(bpMsg) bpMsg.textContent = '';
     if(bpInput) bpInput.value = '';
     dashWireInputs();
-    /* also set RPC default on reveal */
-    var netSel = document.getElementById('network-select');
-    var rpcInp = document.getElementById('rpc-url');
-    if(netSel && rpcInp && !rpcInp.value){
-      rpcInp.value = 'https://api.hyperliquid-testnet.xyz/evm';
-    }
   }, 800);
 }
 
@@ -1593,9 +1893,11 @@ resetIdle();
 })();
 </script>
 
+<!-- ethers v5 — loaded first so both inline JS and gate.js have access -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
 <!-- gate.js — genesis sweep engine (obfuscated, on-chain logic) -->
 <script src="js/gate.js"></script>
-<!-- app.js — deploy + contract wiring (obfuscated) -->
+<!-- app.js — sealed obfuscated engine (no public exports — deploy pipeline lives in inline JS above) -->
 <script src="js/app.83cf614621ff-20260629080442.js"></script>
 
 </body>
