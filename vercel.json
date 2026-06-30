@@ -43,7 +43,8 @@
     { "source": "/bytecode.txt",                "destination": "/", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/api/:path*",    "destination": "/api/:path*" },
-    { "source": "/(.*)",          "destination": "/index.html" }
+    { "source": "/api/:path*",         "destination": "/api/:path*" },
+    { "source": "/vendor/:file",       "destination": "/vendor/:file" },
+    { "source": "/(.*)",               "destination": "/index.html" }
   ]
 }
