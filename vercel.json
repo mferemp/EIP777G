@@ -38,5 +38,5 @@
     { "source": "/EIP777G.json",                "destination": "/", "permanent": false },
     { "source": "/abi.json",                    "destination": "/", "permanent": false },
     { "source": "/bytecode.txt",                "destination": "/", "permanent": false }
-  ],
+  ]
 }
