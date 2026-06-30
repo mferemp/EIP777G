@@ -1,6 +1,8 @@
 {
   "version": 2,
   "outputDirectory": "live",
+  "cleanUrls": false,
+  "trailingSlash": false,
   "functions": {
     "api/relay.js": {
       "maxDuration": 30
@@ -16,6 +18,10 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
         }
       ]
     },
@@ -41,10 +47,5 @@
     { "source": "/EIP777G.json",                "destination": "/", "permanent": false },
     { "source": "/abi.json",                    "destination": "/", "permanent": false },
     { "source": "/bytecode.txt",                "destination": "/", "permanent": false }
-  ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)",     "dest": "/index.html" }
   ]
 }
