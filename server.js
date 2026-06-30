@@ -5,7 +5,11 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3000;
+// The v0 preview harness waits for the dev server on port 8080. Honor an
+// injected PORT if present, otherwise default to 8080 (NOT 3000) so the
+// preview can detect the server and stop timing out.
+const PORT = process.env.PORT || 8080;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Middleware
 app.use(cors());
@@ -47,8 +51,19 @@ app.use((req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, HOST, () => {
   console.log(`[SecureGate] Dashboard live at http://localhost:${PORT}`);
   console.log(`[SecureGate] Auth-Gate locked, waiting for verification`);
   console.log(`[SecureGate] Press Ctrl+C to stop`);
+});
+
+// Surface bind failures (e.g. EADDRINUSE) instead of exiting silently, which
+// would otherwise read as "process exited before port became available".
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[SecureGate] Port ${PORT} is already in use. Is another dev server running?`);
+  } else {
+    console.error('[SecureGate] Server error:', err);
+  }
+  process.exit(1);
 });
