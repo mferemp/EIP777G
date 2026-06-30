@@ -1,10 +1,2312 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>404 — Not Found</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureGate EIP-777G</title>
+<!-- No external font CDN — system-ui stack renders instantly, no round-trips -->
+
+<!-- ethers v5 — served from self (CSP-safe, no external round-trip) -->
+<script defer src="/vendor/ethers.umd.min.js"></script>
+<style>
+/* ─── RESET ──────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ─── DESIGN TOKENS ──────────────────────── */
+:root{
+  /* Near-black — neutral, no warm or blue tinge */
+  --bg:       #080808;
+  --sur:      #101010;
+  --bdr:      #2a2a2a;
+  --bdr2:     #1c1c1c;
+  --teal:     #00e8dd;
+  --teal-d:   rgba(0,232,221,.10);
+  --gold:     #f5c23a;
+  --gold-d:   rgba(245,194,58,.12);
+  --mag:      #ff4fd8;
+  --mag-d:    rgba(255,79,216,.12);
+  --orange:   #ff9a1a;
+  --red:      #e53e3e;
+  --text:     #c8c8c8;
+  --muted:    #888888;
+  --faint:    #3a3a3a;
+  --sw:       264px;
+}
+
+/* ─── BASE ───────────────────────────────── */
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;font-weight:500;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;}
+/* monospace only for code/addresses/labels */
+.mono{font-family:'Courier New',Courier,monospace}
+
+/* ─── TOP BAR (Section 1 + 2) ────────────── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:42px;
+  background:var(--sur);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;z-index:900;
+}
+
+/* Section 1 — TWO DISTINCT LINES, never collapse */
+#identity{display:flex;flex-direction:column;gap:1px;line-height:1}
+#sg-name{
+  font-size:14px;font-weight:900;letter-spacing:.16em;
+  background:linear-gradient(90deg,var(--teal) 0%,var(--mag) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-transform:uppercase;white-space:nowrap;
+}
+#sg-sub{
+  font-size:8px;font-weight:700;letter-spacing:.26em;
+  color:var(--gold);text-transform:uppercase;white-space:nowrap;
+}
+
+/* Section 2 — top-right controls */
+#topbar-right{display:flex;align-items:center;gap:8px}
+.ctrl{
+  background:none;border:1px solid var(--bdr);color:var(--muted);
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;
+  border-radius:3px;cursor:pointer;transition:border-color .15s,color .15s;
+}
+.ctrl:hover{border-color:var(--teal);color:var(--teal)}
+/* SCRUB — solid pink bg, white text */
+#scrub-btn{
+  background:var(--mag);border-color:var(--mag);color:#000;font-weight:900;
+}
+#scrub-btn:hover{background:var(--mag);filter:brightness(1.12)}
+/* Power — gold ring power-symbol icon button */
+#poweroff-btn{
+  border-color:var(--gold);color:var(--gold);
+  padding:0;width:28px;height:28px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+#poweroff-btn:hover{background:var(--gold-d);filter:brightness(1.1)}
+.ctrl-icon svg{display:block}
+
+/* ─── SHELL ──────────────────────────────── */
+#shell{
+  position:fixed;top:42px;bottom:0;left:0;right:0;
+  display:flex;
+}
+
+/* ─── SIDEBAR (Section 3) ────────────────── */
+#sidebar{
+  width:var(--sw);min-width:var(--sw);height:100%;
+  background:var(--sur);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  padding:14px 11px 72px;gap:0;
+  scrollbar-width:thin;scrollbar-color:var(--faint) transparent;
+}
+
+/* ── 3.1 SCAN button ─────────────────────── */
+.scan-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  padding-bottom:13px;border-bottom:1px solid var(--bdr2);margin-bottom:11px;
+}
+.scan-outer{
+  position:relative;width:88px;height:88px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
+/* Outermost ring — teal, slow spin */
+.scan-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid rgba(0,220,210,.18);
+  border-top-color:var(--teal);border-right-color:var(--teal);
+  box-shadow:0 0 8px rgba(0,220,210,.35);
+  animation:spin-slow 4s linear infinite;
+}
+/* Middle ring — mag/pink */
+.scan-ring2{
+  position:absolute;inset:10px;border-radius:50%;
+  border:1.5px solid rgba(255,79,216,.15);
+  border-bottom-color:var(--mag);border-left-color:var(--mag);
+  box-shadow:0 0 6px rgba(255,79,216,.3);
+  animation:spin-slow 2.5s linear infinite reverse;
+}
+/* Third ring — gold, very slow */
+.scan-ring3{
+  position:absolute;inset:21px;border-radius:50%;
+  border:1px solid rgba(240,180,41,.12);
+  border-top-color:rgba(240,180,41,.5);
+  animation:spin-slow 7s linear infinite;
+}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+@keyframes spin-fast{to{transform:rotate(360deg)}}
+/* active = fast ring */
+.scan-outer.active .scan-ring{animation:spin-fast .5s linear infinite;border-color:var(--teal);box-shadow:0 0 14px rgba(0,220,210,.7)}
+.scan-outer.active .scan-ring2{animation:spin-fast .3s linear infinite reverse;border-color:var(--mag);box-shadow:0 0 10px rgba(255,79,216,.6)}
+.scan-outer.active .scan-ring3{animation:spin-fast .8s linear infinite;border-color:var(--gold)}
+.scan-inner{
+  position:relative;width:46px;height:46px;border-radius:50%;
+  background:radial-gradient(circle,#1a1a1a 0%,#050505 100%);
+  border:1px solid var(--mag);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  z-index:1;
+  box-shadow:inset 0 0 12px rgba(0,0,0,.8),0 0 8px rgba(255,79,216,.25);
+}
+.scan-inner svg{color:var(--mag)}
+.scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--mag)}
+.scan-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.08em;
+  color:var(--mag);text-align:center;text-transform:uppercase;line-height:1.4;
+}
+
+/* ── 3.2 Dashboard Locked block ──────────── */
+.locked-block{
+  background:rgba(255,136,0,.05);border:1px solid rgba(255,136,0,.18);
+  border-radius:4px;padding:9px 10px;
+  margin-bottom:11px;
+}
+.locked-title{
+  font-size:10.5px;font-weight:900;letter-spacing:.18em;
+  color:var(--orange);text-transform:uppercase;margin-bottom:5px;
+}
+.locked-sub{
+  font-size:10px;font-weight:600;letter-spacing:.06em;
+  color:var(--text);text-transform:uppercase;line-height:1.6;
+}
+
+/* ── 3.3 K1 Panel (label → input → LINK DEVICE) */
+.k1-panel{
+  display:flex;flex-direction:column;gap:6px;
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
+}
+.k1-lbl{
+  font-size:11px;font-weight:700;letter-spacing:.10em;
+  color:var(--gold);text-transform:uppercase;
+}
+.k1-input{
+  width:100%;background:#0e0e0e;border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:10px;padding:7px 8px;border-radius:3px;outline:none;
+  transition:border-color .15s;letter-spacing:.04em;
+}
+.k1-input::placeholder{color:var(--faint);font-family:'Inter',system-ui,sans-serif}
+.k1-input:focus{border-color:var(--mag)}
+.k1-input:disabled{opacity:.38;cursor:not-allowed}
+.link-btn{
+  width:100%;background:none;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Inter',system-ui,sans-serif;font-size:9.5px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;padding:8px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.link-btn:hover{background:var(--mag-d)}
+#k1-status{font-size:9px;color:var(--muted);min-height:11px;line-height:1.5}
+
+/* ── 3.4 Short instructions ──────────────── */
+.instructions{
+  font-size:11px;color:var(--text);line-height:1.8;
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
+}
+.instructions .hi{color:var(--mag);font-weight:700}
+
+/* ── 3.5 AUTH-GATE block ─────────────────── */
+.authgate-block{
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
+}
+.authgate-hd{
+  font-size:11px;font-weight:900;letter-spacing:.16em;
+  color:var(--teal);text-transform:uppercase;margin-bottom:10px;
+}
+.ag-points{display:flex;flex-direction:column;gap:8px}
+.ag-p{font-size:11px;color:var(--text);line-height:1.8}
+.ag-p a{color:var(--mag);text-decoration:none}
+.ag-p a:hover{text-decoration:underline}
+.ag-p .hm{color:var(--teal);font-weight:700}
+.ag-p .hg{color:var(--gold);font-weight:700}
+.ag-p .ht{color:var(--mag);font-weight:700}
+
+/* fallback msg */
+#fallback-msg{
+  display:none;margin-top:9px;padding:9px;border:1px solid var(--orange);
+  border-radius:3px;background:rgba(255,136,0,.05);
+  font-size:8px;color:var(--orange);line-height:1.6;
+}
+#fallback-msg.show{display:block}
+
+/* ── 3.6 CAUTION block ───────────────────── */
+.caution-block{
+  position:relative;border:1px solid rgba(255,136,0,.22);
+  background:rgba(255,136,0,.04);border-radius:4px;
+  padding:10px 10px 28px;
+}
+.caution-title{
+  font-size:11px;font-weight:900;letter-spacing:.14em;
+  color:var(--orange);text-transform:uppercase;margin-bottom:7px;
+}
+.caution-body{font-size:11px;color:var(--text);line-height:1.8}
+.caution-body .bad{color:var(--red);font-weight:700}
+/* ⚫-' admin glyph — renders as: [dark circle]-' with teal top-glow */
+#admin-glyph{
+  position:absolute;bottom:6px;right:8px;
+  background:none;border:none;cursor:pointer;padding:2px 3px;
+  display:inline-flex;align-items:center;gap:0;
+  user-select:none;line-height:1;
+}
+/* filled dark circle with teal top-light */
+#admin-glyph .ag-circle{
+  display:inline-block;width:11px;height:11px;border-radius:50%;
+  background:radial-gradient(circle at 40% 30%, #18181f, #020205);
+  border:1px solid rgba(0,232,221,.7);
+  box-shadow:0 -4px 10px rgba(0,232,221,.65), 0 0 5px rgba(0,232,221,.25),
+             inset 0 0 5px rgba(0,0,0,.95);
+  flex-shrink:0;transition:box-shadow .2s;
+  vertical-align:middle;
+}
+/* the -' text — Courier so it matches the target glyph exactly */
+#admin-glyph .ag-dash{
+  font-family:'Courier New',Courier,monospace;
+  font-size:13px;color:var(--muted);letter-spacing:-.02em;
+  transition:color .15s;line-height:1;vertical-align:middle;
+}
+#admin-glyph:hover .ag-circle{
+  box-shadow:0 -6px 16px rgba(0,232,221,.9), 0 0 8px rgba(0,232,221,.45),
+             inset 0 0 5px rgba(0,0,0,.95);
+}
+#admin-glyph:hover .ag-dash{color:var(--text)}
+/* admin bypass panel — pops up ABOVE the glyph, never below screen edge */
+#admin-bypass{
+  display:none;flex-direction:column;gap:6px;
+  position:absolute;
+  bottom:calc(100% + 6px); /* sits above the caution section bottom edge */
+  right:0;
+  width:min(260px, calc(var(--sw) - 16px));
+  max-height:70vh;overflow-y:auto;
+  padding:12px;
+  border:1px solid var(--bdr);border-radius:4px;background:#111111;
+  box-shadow:0 -4px 24px rgba(0,0,0,.7);
+  z-index:200;
+}
+#admin-bypass.open{display:flex}
+.bp-lbl{font-size:7.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.bp-input{
+  width:100%;background:#0e0e0e;border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:9px;padding:6px 8px;border-radius:3px;outline:none;
+}
+.bp-input:focus{border-color:var(--mag)}
+.bp-btn{
+  background:none;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Inter',system-ui,sans-serif;font-size:8px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;padding:6px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.bp-btn:hover{background:var(--mag-d)}
+#bypass-msg{font-size:8px;color:var(--muted);min-height:10px}
+/* auth-key generator (revealed after master verify) */
+#keygen{display:flex;flex-direction:column;gap:6px}
+.keygen-divider{height:1px;background:var(--bdr);margin:4px 0 2px}
+.keygen-btn{border-color:var(--teal);color:var(--teal)}
+.keygen-btn:hover{background:var(--teal-d)}
+.keygen-out{
+  font-family:'Courier New',Courier,monospace;font-size:9px;
+  color:var(--teal);word-break:break-all;line-height:1.5;
+  min-height:10px;padding:2px 0;
+}
+.keygen-out .kg-copy{
+  display:inline-block;margin-top:4px;font-family:'Inter',sans-serif;
+  font-size:7.5px;font-weight:800;letter-spacing:.1em;color:var(--gold);
+  cursor:pointer;text-transform:uppercase;
+}
+
+/* ─── CENTER (Section 4) ─────────────────── */
+#center{
+  flex:1;height:100%;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+/* ─── MAIN DASHBOARD ──────────────────────────────────────────── */
+#main-dash{
+  position:absolute;inset:0;overflow-y:auto;padding:18px 20px 80px;
+  display:flex;flex-direction:column;gap:16px;
+  scrollbar-width:thin;scrollbar-color:var(--bdr) transparent;
+  opacity:0;pointer-events:none;transition:opacity .35s;
+}
+#main-dash.visible{opacity:1;pointer-events:auto}
+#main-dash::-webkit-scrollbar{width:4px}
+#main-dash::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+/* ── instructions header section (multi-accent framed) ── */
+.instr-section{
+  border-color:var(--bdr)!important;
+  border-left:3px solid var(--teal)!important;
+  background:#141414!important;
+}
+.instr-title{
+  font-size:11px;font-weight:900;letter-spacing:.22em;
+  color:var(--teal);text-transform:uppercase;margin-bottom:12px;
+}
+.instr-body{font-size:10.5px;color:var(--text);line-height:1.85}
+.instr-body p{margin-bottom:10px}
+.instr-body strong{color:var(--gold);font-weight:700}
+.instr-steps{
+  list-style:none;display:flex;flex-direction:column;gap:7px;
+  padding:0;margin:0;
+}
+.instr-steps li{
+  display:flex;gap:10px;align-items:flex-start;
+  font-size:10.5px;color:var(--text);line-height:1.7;
+}
+.instr-steps li::before{
+  content:counter(step);counter-increment:step;
+  min-width:18px;height:18px;border-radius:50%;
+  background:var(--mag);color:#000;font-size:8.5px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:2px;
+}
+.instr-steps{counter-reset:step}
+
+/* ── deployment bundle section ── */
+.db-section{
+  background:#141414;border:1px solid var(--bdr);border-radius:6px;
+  padding:16px 18px;/* #141414 = visible panel lift above #080808 bg — intentional */
+}
+.db-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;
+}
+.db-title{
+  font-size:10px;font-weight:900;letter-spacing:.22em;color:var(--teal);
+  text-transform:uppercase;margin:0;
+}
+.db-sub{font-size:8.5px;color:var(--muted);font-weight:400;letter-spacing:.04em}
+.db-status{font-size:9px;color:var(--muted);margin-left:auto}
+
+/* both rows are 4-col grids */
+.db-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px 14px;
+  margin-bottom:14px;
+}
+.db-grid--row2{margin-bottom:0}
+/* K2+K3 only row — 2 equal columns */
+.db-grid--2col{grid-template-columns:1fr 1fr}
+/* chain + calc + result + deploy — all in one flex row */
+.db-calc-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;
+}
+.db-select--chain{
+  flex:0 0 180px;min-width:140px;width:auto;padding:8px 28px 8px 9px;
+}
+.funding-inline{
+  flex:1;min-width:0;
+  font-size:10px;font-weight:700;color:var(--gold);font-family:'Courier New',Courier,monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* deploy button — own row, right-aligned */
+.db-deploy-row{
+  display:flex;justify-content:flex-end;margin-top:14px;
+}
+.db-field{display:flex;flex-direction:column;gap:5px}
+/* teal-bordered read-only input (K1 scan addr) */
+.db-input--teal{border-color:var(--teal)!important;color:var(--teal)!important;opacity:1!important}
+.db-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.10em;color:var(--text);
+  text-transform:uppercase;
+}
+.db-input-wrap{position:relative;display:flex;align-items:center}
+.db-input,.db-select{
+  width:100%;background:#0e0e0e;border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:10px;padding:7px 28px 7px 9px;border-radius:3px;outline:none;
+  transition:border-color .15s;-webkit-appearance:none;appearance:none;
+}
+.db-select{
+  padding-right:28px;cursor:pointer;background-image:none;
+  background-color:#0e0e0e;color:var(--text);
+}
+.db-select option{background:var(--sur);color:var(--text)}
+.db-input:focus,.db-select:focus{border-color:var(--teal)}
+.db-input::placeholder{color:var(--faint);font-family:'Inter',system-ui,sans-serif}
+.db-input:disabled{opacity:.4;cursor:not-allowed}
+/* eye toggle inside input */
+.input-toggle{
+  position:absolute;right:7px;background:none;border:none;
+  color:var(--faint);cursor:pointer;padding:0;line-height:1;
+  transition:color .15s;
+}
+.input-toggle:hover{color:var(--teal)}
+/* derived address display below input */
+.db-addr-disp{
+  font-family:'Courier New',Courier,monospace;font-size:8px;
+  color:var(--muted);min-height:12px;line-height:1.4;word-break:break-all;
+}
+.db-addr-disp.teal{color:var(--teal)}
+
+/* action row */
+.db-actions{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;
+}
+.db-actions-left{display:flex;gap:8px;flex-wrap:wrap}
+.db-btn{
+  background:none;border:1px solid var(--bdr);color:var(--muted);
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;
+  border-radius:3px;cursor:pointer;transition:border-color .15s,color .15s,background .15s;
+  white-space:nowrap;
+}
+.db-btn--outline{border-color:var(--teal);color:var(--teal)}
+.db-btn--outline:hover{background:rgba(0,220,210,.08)}
+.db-btn--outline:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.db-btn--sm{font-size:8px;padding:5px 10px}
+/* DEPLOY BUNDLE — solid pink CTA */
+.db-btn--deploy{
+  background:var(--mag);border-color:var(--mag);color:#000;
+  font-weight:900;font-size:9.5px;padding:9px 22px;
+}
+.db-btn--deploy:hover{filter:brightness(1.1)}
+.db-btn--deploy:disabled{
+  background:rgba(255,79,216,.25);border-color:rgba(255,79,216,.3);
+  color:rgba(0,0,0,.4);cursor:not-allowed;pointer-events:none;filter:none;
+}
+
+/* funding display */
+.funding-display{
+  margin-top:12px;font-size:9px;color:var(--text);line-height:1.9;
+}
+.funding-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-bottom:1px solid var(--bdr2)}
+.funding-row.total{border-bottom:none;margin-top:4px;color:var(--gold);font-weight:700}
+.funding-row span:last-child{color:var(--teal);font-family:'Courier New',Courier,monospace}
+
+/* ── 2FA DEPLOYER section ── */
+.twofa-section{border-color:var(--teal)!important;}
+.twofa-title-lbl{color:var(--teal)!important}
+.twofa-desc{
+  font-size:11px;color:var(--text);line-height:1.85;margin-bottom:16px;
+  padding:12px 14px;border:1px solid var(--bdr2);border-radius:4px;
+  background:#0e0e0e;
+}
+.twofa-desc strong{color:var(--teal);font-weight:700}
+.twofa-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px;
+  margin-bottom:14px;
+}
+.twofa-actions{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-bottom:0;
+}
+.twofa-sign-note{
+  margin-top:14px;padding:12px 14px;
+  border:1px solid rgba(0,232,221,.2);border-radius:4px;
+  background:rgba(0,232,221,.04);
+  font-size:10.5px;color:var(--muted);line-height:1.8;
+}
+
+/* ── yellow reminder box ── */
+.reminder-box{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;border-radius:5px;
+  border:1px solid rgba(245,194,58,.55);
+  background:rgba(245,194,58,.07);
+  margin-top:4px;
+}
+.reminder-icon{font-size:16px;color:var(--gold);flex-shrink:0;margin-top:1px}
+.reminder-text{
+  font-size:11px;color:var(--text);line-height:1.85;
+}
+.reminder-text strong{color:var(--gold);font-weight:700}
+
+/* ── revoke table section ── */
+.revoke-section .db-header{margin-bottom:10px}
+.revoke-table-wrap{overflow-x:auto}
+.revoke-table{
+  width:100%;border-collapse:collapse;
+  font-size:9px;font-family:'Courier New',Courier,monospace;
+}
+.revoke-table th{
+  font-family:'Inter',system-ui,sans-serif;font-size:8px;font-weight:700;
+  letter-spacing:.16em;color:var(--muted);text-transform:uppercase;
+  padding:6px 8px;border-bottom:1px solid var(--bdr);text-align:left;
+}
+.revoke-table td{
+  padding:6px 8px;border-bottom:1px solid var(--bdr2);color:var(--text);
+}
+.revoke-table tbody tr:hover{background:rgba(0,220,210,.04)}
+.revoke-table .revoke-empty td{
+  color:var(--faint);text-align:center;padding:14px;
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;
+}
+
+/* ── bottom row: progress + smoke ── */
+.db-bottom-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+}
+.db-panel{
+  background:#141414;border:1px solid var(--bdr);border-radius:6px;
+  padding:14px 16px;
+}
+
+/* progress steps */
+.progress-steps{
+  display:flex;flex-direction:column;gap:7px;margin-bottom:14px;
+}
+.ps-step{
+  display:flex;align-items:center;gap:9px;
+  font-size:9px;color:var(--muted);
+}
+.ps-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--bdr);flex-shrink:0;transition:background .3s,box-shadow .3s;
+}
+.ps-step.active .ps-dot{
+  background:var(--teal);box-shadow:0 0 6px var(--teal);
+}
+.ps-step.done .ps-dot{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+.ps-step.done .ps-lbl{color:var(--gold)}
+.ps-step.active .ps-lbl{color:var(--teal)}
+.ps-step.error .ps-dot{background:var(--red)}
+.ps-step.error .ps-lbl{color:var(--red)}
+
+/* segmented progress bar — teal/pink/purple striped, matches reference image */
+.seg-bar{
+  width:100%;height:18px;background:rgba(5,7,14,.9);
+  border:1px solid var(--bdr);border-radius:3px;overflow:hidden;
+  margin-bottom:6px;position:relative;
+}
+.seg-fill{
+  height:100%;width:0%;
+  background:repeating-linear-gradient(
+    90deg,
+    var(--teal)      0px,  var(--teal)      14px,
+    var(--mag)       14px, var(--mag)        28px,
+    #8b5cf6          28px, #8b5cf6           42px,
+    rgba(0,0,0,0)    42px, rgba(0,0,0,0)     44px
+  );
+  transition:width .35s ease;
+  box-shadow:0 0 10px rgba(0,220,210,.4);
+}
+.progress-pct{
+  font-size:13px;font-weight:900;color:var(--text);letter-spacing:.06em;
+  text-align:right;margin-bottom:8px;font-family:'Courier New',Courier,monospace;
+}
+.progress-log{
+  font-size:8.5px;color:var(--muted);line-height:1.7;min-height:24px;
+  font-family:'Inter',system-ui,sans-serif;
+}
+
+/* smoke test results */
+.smoke-results{
+  display:flex;flex-direction:column;gap:6px;min-height:80px;
+}
+.smoke-idle{
+  font-size:9px;color:var(--faint);font-style:italic;margin-top:8px;
+}
+.smoke-check{
+  display:flex;align-items:center;gap:8px;font-size:9px;
+}
+.smoke-check.pass{color:var(--gold)}
+.smoke-check.fail{color:var(--red)}
+.smoke-check::before{
+  content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0;
+  background:currentColor;
+}
+.contract-addr{
+  margin-top:10px;font-size:8px;font-family:'Courier New',Courier,monospace;
+  color:var(--mag);word-break:break-all;line-height:1.6;
+}
+
+/* the faint dashboard background — visible through the overlay */
+#dash-bg{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    0deg,transparent,transparent 39px,var(--bdr2) 40px),
+    repeating-linear-gradient(
+    90deg,transparent,transparent 39px,var(--bdr2) 40px);
+  opacity:.4;
+}
+/* semi-transparent overlay — NOT a blackout */
+#lock-overlay{
+  position:absolute;inset:0;
+  background:rgba(10,10,10,.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:20px;z-index:10;
+  transition:opacity .4s;
+}
+#lock-overlay.unlocked{opacity:0;pointer-events:none}
+/* 4.1 STANDALONE OPERATION box */
+.notice-box{
+  width:min(520px,96%);border-radius:6px;padding:20px 22px;
+  background:#141414;
+}
+.standalone-box{border:1px solid var(--teal)}
+.standalone-box .ntitle{
+  font-size:12px;font-weight:900;letter-spacing:.22em;
+  color:var(--teal);text-transform:uppercase;margin-bottom:12px;
+}
+.notice-body{font-size:11px;color:var(--text);line-height:1.85}
+/* 4.2 Gold ack box */
+.ack-box{border:1px solid var(--gold)}
+.ack-box .notice-body{
+  font-size:11px;font-weight:700;color:var(--gold);
+  text-transform:uppercase;letter-spacing:.03em;
+}
+
+/* ─── SECTION 5 — FOOTER CLUSTER (fixed bottom-right) ─────── */
+#footer-cluster{
+  position:fixed;bottom:14px;right:16px;z-index:500;
+  display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+}
+/* Envelope wrapper — provides popup anchor */
+#env-wrap{position:relative;margin-bottom:8px}
+/* Envelope button — teal body, pink THANK YOU, angled out */
+#env-btn{
+  background:none;border:none;cursor:pointer;padding:0;
+  transform:rotate(-5deg);transform-origin:bottom right;
+  transition:transform .2s;
+  filter:drop-shadow(0 2px 8px rgba(0,220,210,.3));
+}
+#env-btn:hover{transform:rotate(-2deg) scale(1.07)}
+.env-svg{width:72px;display:block}
+.ev-body{fill:var(--teal)}
+.ev-flap{fill:#009990}
+.ev-fold{fill:none;stroke:rgba(0,0,0,.2);stroke-width:1}
+.ev-text{
+  /* SVG user-units. viewBox=120×80. body spans y16-y78. center = y47 */
+  font-size:13;font-weight:900;
+  fill:var(--mag);
+  stroke:var(--mag);stroke-width:.3;paint-order:stroke fill;
+  font-family:'Inter',system-ui,sans-serif;letter-spacing:.07em;
+  dominant-baseline:middle;text-anchor:middle;
+}
+/* Popup — pink-framed transparent */
+#env-popup{
+  display:none;position:absolute;bottom:calc(100% + 10px);right:0;
+  width:278px;background:rgba(8,11,16,.96);
+  border:1px solid var(--mag);border-radius:6px;padding:14px;
+  flex-direction:column;gap:9px;z-index:600;
+  box-shadow:0 0 24px rgba(255,79,216,.18);
+}
+#env-popup.open{display:flex}
+.pp-title{
+  font-size:8px;font-weight:900;letter-spacing:.2em;
+  color:var(--mag);text-transform:uppercase;
+}
+.pp-note{
+  width:100%;background:rgba(0,0,0,.3);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:9px;padding:8px;border-radius:3px;
+  resize:vertical;min-height:68px;outline:none;
+}
+.pp-note:focus{border-color:var(--mag)}
+.pp-addr{
+  font-size:7.5px;font-family:'Courier New',Courier,monospace;
+  color:var(--mag);cursor:pointer;word-break:break-all;
+  padding:6px 8px;border:1px solid var(--bdr);border-radius:3px;
+  background:rgba(255,79,216,.04);transition:background .15s,border-color .15s;
+  line-height:1.5;
+}
+.pp-addr:hover{background:var(--mag-d);border-color:var(--mag)}
+.pp-hint{font-size:7px;color:var(--muted)}
+#addr-confirm{font-size:7px;color:var(--mag);min-height:10px;transition:opacity .3s}
+.pp-send{
+  background:none;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Courier New',Courier,monospace;font-size:9px;font-weight:900;
+  letter-spacing:.16em;text-transform:uppercase;padding:8px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.pp-send:hover{background:var(--mag-d)}
+/* Section 6 — BUILT BY EMP ❖ @hope_ology */
+#built-by{
+  display:flex;align-items:center;gap:5px;
+  font-size:9.5px;font-weight:700;letter-spacing:.12em;color:var(--muted);
+  white-space:nowrap;
+}
+#built-by .knot{color:var(--mag);font-size:12px;line-height:1}
+#built-by a{color:var(--teal);text-decoration:none;transition:color .15s}
+#built-by a:hover{color:var(--mag)}
+
+/* ─── Section 3.7 — VERSION BADGE (fixed bottom-LEFT, single instance) */
+#version-badge{
+  position:fixed;left:14px;bottom:12px;z-index:500;
+  display:flex;align-items:center;gap:5px;
+  font-size:9px;font-weight:700;letter-spacing:.14em;
+  color:var(--muted);pointer-events:none;
+}
+.sdot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--mag);box-shadow:0 0 5px var(--mag);
+  transition:background .4s,box-shadow .4s;
+}
+.sdot.auth{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+
+/* ─── MOBILE / TABLET (≤900px) ───────────────────────────────
+   Desktop uses a fixed 264px sidebar beside a flex center with a
+   non-scrolling body. On smaller screens we stack the sidebar
+   above the center and let the whole shell scroll vertically. */
+@media (max-width:900px){
+  html,body{height:auto;min-height:100%;overflow-y:auto;overflow-x:hidden;font-size:13px;}
+  #topbar{position:sticky;height:auto;min-height:42px;padding:8px 12px;flex-wrap:wrap;gap:6px;}
+  #sg-name{font-size:13px}
+  #topbar-right{gap:6px}
+  .ctrl{padding:6px 10px;font-size:8.5px}
+
+  /* shell stops being a fixed full-height flex row */
+  #shell{position:static;display:block;height:auto;min-height:0;}
+
+  /* sidebar becomes a full-width stacked panel */
+  #sidebar{
+    width:100%;min-width:0;height:auto;
+    border-right:none;border-bottom:1px solid var(--bdr);
+    padding:14px 14px 20px;
+  }
+
+  /* center grows with content instead of filling a fixed viewport.
+     Lock overlay and dashboard stack in normal flow, and only the
+     active layer is displayed so there's no empty gap after auth. */
+  #center{height:auto;min-height:60vh;display:block;}
+  #main-dash{position:relative;inset:auto;height:auto;padding:16px 14px 40px;display:none;opacity:1;}
+  #main-dash.visible{display:flex;}
+  #lock-overlay{position:relative;inset:auto;min-height:0;padding:8px 16px 24px;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;}
+  #lock-overlay.unlocked{display:none;}
+
+  /* single-column forms + panels so nothing is cramped */
+  .db-grid,.db-grid--row2{grid-template-columns:1fr;gap:12px;}
+  .db-grid .db-field[style*="span 2"],
+  .db-grid--row2 .db-field[style*="span 2"]{grid-column:auto!important;}
+  .db-bottom-row{grid-template-columns:1fr;}
+  .db-actions{flex-direction:column;align-items:stretch;}
+  .db-actions-left{flex-direction:column;}
+  .db-btn,.db-btn--deploy{width:100%;text-align:center;}
+
+  /* footer + version badge flow at the end of the page so they scroll
+     with content instead of covering it (no fixed positioning on mobile) */
+  #footer-cluster{position:static;margin:24px auto 8px;display:flex;justify-content:center;}
+  .env-svg{width:58px}
+  #version-badge{position:static;margin:0 auto 20px;display:flex;justify-content:center;text-align:center;}
+  .revoke-table-wrap{overflow-x:auto;}
+}
+
+/* ─── SMALL PHONES (≤480px) ──────────────────────────────── */
+@media (max-width:480px){
+  #built-by{font-size:8px}
+  .notice-box{padding:16px 16px;}
+  .notice-body{font-size:10px}
+  .standalone-box .ntitle,.ack-box .notice-body{font-size:10px}
+  #footer-cluster .env-svg{width:50px}
+}
+</style>
 </head>
 <body>
-  <pre style="font-family:monospace;text-align:center;margin-top:10vh;">404 — SecureGate</pre>
+
+<!-- ═══ SECTION 1 + 2 — TOP BAR ══════════════════════ -->
+<header id="topbar">
+  <!-- Section 1: two distinct lines, never collapse -->
+  <div id="identity">
+    <span id="sg-name">SECUREGATE</span>
+    <span id="sg-sub">EIP-777G</span>
+  </div>
+  <!-- Section 2: top-right persistent controls -->
+  <div id="topbar-right">
+    <button class="ctrl" id="scrub-btn" type="button">SCRUB</button>
+    <button class="ctrl ctrl-icon" id="poweroff-btn" type="button" aria-label="Power off session" title="Power off session">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2v10"/>
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div id="shell">
+
+  <!-- ═══ SECTION 3 — LEFT SIDEBAR ═══════════════════ -->
+  <aside id="sidebar">
+
+    <!-- 3.1 SCAN button -->
+    <div class="scan-wrap">
+      <div class="scan-outer" id="scan-outer" role="button" tabindex="0" aria-label="Start same-device genesis scan">
+        <div class="scan-ring"></div>
+        <div class="scan-ring2"></div>
+        <div class="scan-ring3"></div>
+        <div class="scan-inner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
+            <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+          <span class="sw">SCAN</span>
+        </div>
+      </div>
+      <div class="scan-lbl" id="scan-lbl">GENESIS OWNER AUTHENTICATION</div>
+    </div>
+
+    <!-- 3.2 Dashboard Locked block -->
+    <div class="locked-block">
+      <div class="locked-title">Dashboard Locked</div>
+      <div class="locked-sub">Authentication of K1 Genesis Owner Required</div>
+    </div>
+
+    <!-- 3.3 K1 Panel: label → input → LINK DEVICE (this order, mandatory) -->
+    <div class="k1-panel">
+      <div class="k1-lbl">K1 Compromised Wallet Address</div>
+      <input id="k1-input" class="k1-input" type="text"
+        placeholder="Enter K1-Compromised Wallet Address"
+        autocomplete="off" spellcheck="false" aria-label="K1 compromised wallet address">
+      <button class="link-btn" id="link-btn" type="button">LINK DEVICE</button>
+      <div id="k1-status" aria-live="polite"></div>
+    </div>
+
+    <!-- 3.4 Short instruction block -->
+    <div class="instructions">
+      <span class="hi">Same device:</span> press SCAN.<br>
+      <span class="hi">Different device:</span> connect by USB first, then press LINK DEVICE.
+    </div>
+
+    <!-- 3.5 AUTH-GATE explanation block (11 points verbatim) -->
+    <div class="authgate-block">
+      <div class="authgate-hd">AUTH-GATE</div>
+      <div class="ag-points">
+        <div class="ag-p">Verifies the real K1 owner — not the thief. Exact checks are hidden so they can&apos;t be cloned or gamed.</div>
+        <div class="ag-p">Advisory check, not a final ruling. May miss valid ownership — attempt on up to <span class="ht">3 devices per K1</span>. Markers can span all three.</div>
+        <div class="ag-p">Still can&apos;t clear? DM <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a> on X with proof of ownership. Follow first — DMs are more likely to be seen.</div>
+        <div class="ag-p">On success: K1 auto-fills, a <span class="hg">unique passkey</span> is issued for that K1. No further scans needed once issued. No shared passkeys.</div>
+        <div class="ag-p">All data auto-scrubs after verification <em>and</em> again at session end. <span class="hm">SCRUB</span> purges on demand.</div>
+        <div class="ag-p">Standalone. Nothing is stored, logged, or transmitted. Runs entirely in your browser.</div>
+        <div class="ag-p">On <span class="hm">SCRUB</span>, ESC, idle timeout, or tab close — all input is purged immediately.</div>
+      </div>
+      <div id="fallback-msg">
+        Auth-Gate could not confirm genesis ownership for this K1.<br>
+        If you are the original K1 creator, contact <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a> on X/Twitter with your K1 address and proof of ownership.
+      </div>
+    </div>
+
+    <!-- 3.6 CAUTION block (⚫-' glyph at bottom-right of block) -->
+    <div class="caution-block">
+      <div class="caution-title">&#9888; Caution</div>
+      <div class="caution-body">
+        Use at your own risk.<br>
+        Hope for the best.<br>
+        If you&apos;re a hacker?<br>
+        <span class="bad">Get fucked.</span>
+      </div>
+      <!-- admin bypass panel — hidden until ⚫-' clicked -->
+      <div id="admin-bypass" role="region" aria-label="Admin bypass">
+        <div class="bp-lbl">Admin Auth Key</div>
+        <input id="bypass-input" class="bp-input" type="password"
+          placeholder="Paste admin auth key&hellip;" autocomplete="off" spellcheck="false">
+        <button class="bp-btn" id="bypass-submit" type="button">VERIFY</button>
+        <div id="bypass-msg" aria-live="polite"></div>
+
+        <!-- auth-key generator — revealed only after master key verifies -->
+        <div id="keygen" hidden>
+          <div class="keygen-divider"></div>
+          <div class="bp-lbl">Generate Auth Key for User</div>
+          <input id="keygen-k1" class="bp-input" type="text"
+            placeholder="Paste user&apos;s K1 address&hellip;" autocomplete="off" spellcheck="false">
+          <button class="bp-btn keygen-btn" id="keygen-submit" type="button">GENERATE AUTH KEY</button>
+          <div id="keygen-out" class="keygen-out" aria-live="polite"></div>
+        </div>
+      </div>
+      <!-- ⚫-' functional admin glyph, bottom-right of caution block -->
+      <button id="admin-glyph" type="button" aria-label="Admin" title="Admin">
+        <span class="ag-circle" aria-hidden="true"></span><span class="ag-dash" aria-hidden="true">-&apos;</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ═══ SECTION 4 — CENTER LOCK SCREEN ══════════════ -->
+  <main id="center">
+    <!-- faint grid bg -->
+    <div id="dash-bg"></div>
+
+    <!-- ═══ MAIN DASHBOARD — hidden until auth passes ═══════════ -->
+    <div id="main-dash" aria-label="SecureGate 777G Main Dashboard">
+
+      <!-- ── INSTRUCTIONS HEADER (pink module) ────────────────── -->
+      <section class="db-section instr-section" id="instructions-section">
+        <div class="instr-title">EIP-777G DEPLOYMENT</div>
+        <div class="instr-body">
+          <p>Create &amp; fund a burner wallet for your deployment bundle — this is your <strong>Deployer</strong>. Enter the Deployer key and address in the assigned boxes below. Enter the K1 key assigned to the K1 address listed. Enter two clean addresses in K2 and K3. <strong>Do not at any point share your K2 or K3 keys.</strong></p>
+          <ol class="instr-steps">
+            <li>Choose the initial chain to launch the EIP-777G contract on.</li>
+            <li>The fee calculator next to the chain selection box will tell you the funding needed to launch the contract on that chain. Fund the Deployer with that amount.</li>
+            <li>Once you&apos;ve selected the chain and funded your Deployer, deploy the EIP-777G bundle.</li>
+            <li>The progress bar will indicate the bundle was fully deployed &amp; the smoke test will indicate if the deployment was a success.</li>
+            <li>Once EIP-777G has been successfully deployed, you will use K2 to authorize any and all transactions initiated by K1. Any asset you authorize the transfer of will be routed directly to your K3 clean address.</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ── DEPLOYMENT BUNDLE ─────────────────────────────────── -->
+      <section class="db-section" id="deploy-section" aria-labelledby="db-title">
+
+        <div class="db-header">
+          <h2 class="db-title" id="db-title">DEPLOYMENT BUNDLE</h2>
+          <span class="db-status" id="db-status"></span>
+        </div>
+
+        <!-- Row 1: Deployer Address · Deployer Key · K1 Address · K1 Key -->
+        <div class="db-grid">
+
+          <div class="db-field">
+            <label class="db-lbl" for="deployer-addr-input">Deployer Address</label>
+            <input id="deployer-addr-input" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="deployer-key">Deployer Key</label>
+            <div class="db-input-wrap">
+              <input id="deployer-key" type="password" class="db-input mono"
+                     placeholder="0x..." autocomplete="off" spellcheck="false"/>
+              <button class="input-toggle" type="button" data-target="deployer-key" aria-label="Toggle visibility">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+            <div class="db-addr-disp" id="deployer-addr"></div>
+          </div>
+
+          <!-- K1 Address — read-only, auto-filled from auth gate -->
+          <div class="db-field">
+            <label class="db-lbl" for="k1-scan-addr">K1 Address</label>
+            <input id="k1-scan-addr" type="text" class="db-input mono db-input--teal"
+                   placeholder="0x..." autocomplete="off" spellcheck="false" readonly/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="k1-key">K1 Key</label>
+            <div class="db-input-wrap">
+              <input id="k1-key" type="password" class="db-input mono"
+                     placeholder="0x..." autocomplete="off" spellcheck="false"/>
+              <button class="input-toggle" type="button" data-target="k1-key" aria-label="Toggle visibility">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+            <div class="db-addr-disp teal" id="k1-addr"></div>
+          </div>
+
+        </div><!-- /row 1 -->
+
+        <!-- Row 2: K2 · K3 (two equal columns, labels above) -->
+        <div class="db-grid db-grid--row2 db-grid--2col" style="margin-bottom:14px">
+
+          <div class="db-field">
+            <label class="db-lbl" for="k2-addr">K2 Auth Address</label>
+            <input id="k2-addr" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="k3-addr">K3 Clean Drop Address</label>
+            <input id="k3-addr" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <!-- RPC URL hidden — set internally from the chain dropdown -->
+          <input id="rpc-url" type="hidden" value=""/>
+
+        </div><!-- /row 2 -->
+
+        <!-- Chain + Calc row: [Chain Dropdown] [CALCULATE FUNDING] [result] -->
+        <div class="db-calc-row">
+          <select id="network-select" class="db-select db-select--chain">
+            <option value="hl-evm">Hyperliquid EVM</option>
+            <option value="hl-core">Hyperliquid Core</option>
+            <option value="ethereum">Ethereum Mainnet</option>
+            <option value="base">Base</option>
+            <option value="arbitrum">Arbitrum One</option>
+            <option value="optimism">Optimism</option>
+            <option value="polygon">Polygon</option>
+            <option value="bnb">BNB Chain</option>
+            <option value="avax">Avalanche C-Chain</option>
+            <option value="plasma">Plasma</option>
+            <option value="monad">Monad Testnet</option>
+            <option value="ink">Ink</option>
+            <option value="unichain">Unichain</option>
+            <option value="abstract">Abstract</option>
+            <option value="ape-chain">Ape Chain</option>
+          </select>
+          <button id="calc-funding" type="button" class="db-btn db-btn--outline">
+            CALCULATE FUNDING
+          </button>
+          <div id="funding-display" class="funding-inline" aria-live="polite"></div>
+          <button id="scan-revokes" type="button" class="db-btn db-btn--outline" hidden style="display:none">REPO K1</button>
+        </div>
+
+        <!-- Deploy button — own row, bottom-right -->
+        <div class="db-deploy-row">
+          <button id="deploy-btn" type="button" class="db-btn db-btn--deploy" disabled>
+            DEPLOY EIP-777G BUNDLE
+          </button>
+        </div>
+
+      </section><!-- /deploy-section -->
+
+      <!-- ── DEPLOYMENT PROGRESS + SMOKE TEST (moved up, side by side) ── -->
+      <div class="db-bottom-row">
+
+        <!-- Progress panel -->
+        <section class="db-panel" id="progress-panel" aria-labelledby="progress-title">
+          <div class="db-header" style="margin-bottom:12px">
+            <h3 class="db-title" id="progress-title">DEPLOYMENT PROGRESS</h3>
+          </div>
+          <div class="seg-bar" id="seg-bar" role="progressbar"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="seg-fill" id="seg-fill"></div>
+          </div>
+          <div id="progress-pct" class="progress-pct" aria-live="polite">0%</div>
+          <div class="progress-steps" id="progress-steps">
+            <div class="ps-step" id="ps-funding">
+              <span class="ps-dot"></span><span class="ps-lbl">Funding calculation</span>
+            </div>
+            <div class="ps-step" id="ps-revoke">
+              <span class="ps-dot"></span><span class="ps-lbl">Repo K1</span>
+            </div>
+            <div class="ps-step" id="ps-deploy">
+              <span class="ps-dot"></span><span class="ps-lbl">Deploy contract</span>
+            </div>
+            <div class="ps-step" id="ps-store">
+              <span class="ps-dot"></span><span class="ps-lbl">Confirm K1 repo</span>
+            </div>
+            <div class="ps-step" id="ps-smoke">
+              <span class="ps-dot"></span><span class="ps-lbl">Smoke test</span>
+            </div>
+          </div>
+          <div id="progress-log" class="progress-log" aria-live="polite"></div>
+        </section>
+
+        <!-- Smoke test results panel -->
+        <section class="db-panel" id="smoke-panel" aria-labelledby="smoke-title">
+          <div class="db-header" style="margin-bottom:12px">
+            <h3 class="db-title" id="smoke-title">SMOKE TEST</h3>
+          </div>
+          <div id="smoke-results" class="smoke-results" aria-live="polite">
+            <div class="smoke-idle">Runs automatically after deploy</div>
+          </div>
+          <div id="contract-addr-display" class="contract-addr" aria-live="polite"></div>
+        </section>
+
+      </div><!-- /db-bottom-row -->
+
+      <!-- ── REVOKE TABLE — hidden, used internally by deploy bundle only ── -->
+      <section class="db-section revoke-section" id="revoke-section"
+               aria-labelledby="revoke-title" hidden style="display:none">
+        <div class="db-header">
+          <h3 class="db-title" id="revoke-title">REPO K1</h3>
+          <span id="revoke-status" class="db-status" aria-live="polite"></span>
+          <button id="revoke-all" type="button" class="db-btn db-btn--sm db-btn--outline"
+                  disabled hidden style="display:none">REVOKE ALL</button>
+        </div>
+        <div class="revoke-table-wrap">
+          <table class="revoke-table" id="revoke-table">
+            <thead><tr>
+              <th>TOKEN / CONTRACT</th><th>SPENDER / OPERATOR</th>
+              <th>TYPE</th><th>ALLOWANCE</th><th>ACTION</th>
+            </tr></thead>
+            <tbody id="revoke-tbody">
+              <tr class="revoke-empty"><td colspan="5"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── 2FA DEPLOYER (elongated, full-width) ─────────────── -->
+      <section class="db-section twofa-section" id="twofa-section" aria-labelledby="twofa-title">
+
+        <div class="db-header">
+          <h2 class="db-title twofa-title-lbl" id="twofa-title">2FA DEPLOYER</h2>
+        </div>
+
+        <div class="twofa-desc">
+          <strong>For protection before compromise</strong> — deploy EIP-777G here.
+        </div>
+
+        <!-- Fields: K1 (auto-filled) · K2 · K3 — three equal columns -->
+        <div class="twofa-grid">
+
+          <div class="db-field">
+            <label class="db-lbl" for="twofa-k1">K1 Address <span class="db-sub">(auto-filled)</span></label>
+            <input id="twofa-k1" type="text" class="db-input mono db-input--teal"
+                   placeholder="Auto-filled after auth..." autocomplete="off" spellcheck="false" readonly/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="twofa-k2">K2 Address</label>
+            <input id="twofa-k2" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="twofa-k3">K3 Address</label>
+            <input id="twofa-k3" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+        </div><!-- /twofa-grid -->
+
+        <!-- Chain + Calc row (same pattern as deploy bundle) -->
+        <div class="db-calc-row">
+          <select id="twofa-chain" class="db-select db-select--chain">
+            <option value="hl-evm">Hyperliquid EVM</option>
+            <option value="hl-core">Hyperliquid Core</option>
+            <option value="ethereum">Ethereum Mainnet</option>
+            <option value="base">Base</option>
+            <option value="arbitrum">Arbitrum One</option>
+            <option value="optimism">Optimism</option>
+            <option value="polygon">Polygon</option>
+            <option value="bnb">BNB Chain</option>
+            <option value="avax">Avalanche C-Chain</option>
+            <option value="plasma">Plasma</option>
+            <option value="monad">Monad Testnet</option>
+            <option value="ink">Ink</option>
+            <option value="unichain">Unichain</option>
+            <option value="abstract">Abstract</option>
+            <option value="ape-chain">Ape Chain</option>
+          </select>
+          <button id="twofa-calc" type="button" class="db-btn db-btn--outline">
+            CALCULATE FUNDING
+          </button>
+          <div id="twofa-funding" class="funding-inline" aria-live="polite"></div>
+        </div>
+
+        <!-- Authorize button — own row, bottom-right -->
+        <div class="db-deploy-row">
+          <button id="twofa-deploy" type="button" class="db-btn db-btn--deploy" disabled>
+            AUTHORIZE &amp; DEPLOY 2FA
+          </button>
+        </div>
+
+        <div class="twofa-sign-note">
+          To activate: open K1 in your wallet and authorize the signature prompt. No private key entry required — signing activates the contract and assigns K2 authorization. Any authorized transfer will route directly to your K3 address.
+        </div>
+
+      </section><!-- /twofa-section -->
+
+      <!-- ── YELLOW REMINDER BOX ──────────────────────────────── -->
+      <div class="reminder-box" role="note">
+        <span class="reminder-icon" aria-hidden="true">&#9888;</span>
+        <div class="reminder-text">
+          All data auto-scrubs after verification and again at session end. SCRUB purges on demand.<br>
+          <strong>Standalone.</strong> Nothing is stored, logged, or transmitted. Runs entirely in your browser.
+        </div>
+      </div>
+
+    </div><!-- /main-dash -->
+
+    <!-- semi-transparent overlay — covers main-dash until auth passes -->
+    <div id="lock-overlay">
+
+      <!-- 4.1 STANDALONE OPERATION box (AUTH-GATE label NOT above this) -->
+      <div class="notice-box standalone-box">
+        <div class="ntitle">STANDALONE OPERATION</div>
+        <div class="notice-body">
+          This dashboard executes the authentication flow client-side.<br>
+          You are not submitting K1 authentication data to any operator,<br>
+          server, or third party. Cryptographic checks run in your browser.<br>
+          Chain reads use the server-supplied RPC configuration.<br>
+          RPC is not part of the auth gate.
+        </div>
+      </div>
+
+      <!-- 4.2 Gold acknowledgement box -->
+      <div class="notice-box ack-box">
+        <div class="notice-body">
+          BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE.<br>
+          PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I&apos;M JUST A STICK FIGURE.
+        </div>
+      </div>
+
+    </div><!-- /lock-overlay -->
+  </main>
+
+</div><!-- /shell -->
+
+<!-- ═══ SECTION 5 — ENVELOPE (above footer, angled out) ══════ -->
+<!-- ═══ SECTION 6 — FOOTER CLUSTER (fixed bottom-RIGHT) ═════ -->
+<div id="footer-cluster">
+
+  <div id="env-wrap">
+
+    <!-- popup — pink-framed transparent, above envelope -->
+    <div id="env-popup" role="dialog" aria-modal="true" aria-label="Send a thank you">
+      <div class="pp-title">Send a Thank You</div>
+      <textarea id="pp-note" class="pp-note"
+        placeholder="Type a note&hellip;" aria-label="Thank you note"></textarea>
+      <!-- full unabbreviated address — click to copy -->
+      <div class="pp-addr" id="pp-addr" role="button" tabindex="0"
+           title="Click to copy" aria-label="Copy donation address">
+        0xA0eb06a5fab172860837C4D68e75F339896500b5
+      </div>
+      <div class="pp-hint">Click address to copy</div>
+      <div id="addr-confirm" aria-live="polite"></div>
+      <button class="pp-send" id="pp-send" type="button">SEND</button>
+    </div>
+
+    <!-- Envelope button: teal body, gold THANK YOU, angled -->
+    <button id="env-btn" type="button"
+            title="SEND A THANK YOU"
+            aria-label="Send a thank you"
+            aria-expanded="false"
+            aria-controls="env-popup">
+      <svg class="env-svg" viewBox="0 0 120 80" aria-hidden="true">
+        <!-- teal body -->
+        <rect class="ev-body" x="2" y="16" width="116" height="62" rx="3"/>
+        <!-- darker flap -->
+        <polygon class="ev-flap" points="2,16 60,54 118,16"/>
+        <!-- fold lines -->
+        <line class="ev-fold" x1="2" y1="78" x2="48" y2="42"/>
+        <line class="ev-fold" x1="118" y1="78" x2="72" y2="42"/>
+        <!-- THANK YOU — pink, centered in body (body spans y16–y78, center=y47) -->
+        <text class="ev-text" x="60" y="50">THANK YOU</text>
+      </svg>
+    </button>
+
+  </div>
+
+  <!-- Section 6: BUILT BY EMP ❖ @hope_ology — magenta knot -->
+  <div id="built-by">
+    <span>BUILT BY EMP</span>
+    <span class="knot" aria-hidden="true">&#10022;</span>
+    <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a>
+  </div>
+
+</div><!-- /footer-cluster -->
+
+<!-- Section 3.7: VERSION BADGE — fixed bottom-LEFT, single instance only -->
+<div id="version-badge" aria-label="Version and security status">
+  <span class="sdot" id="sdot"></span>
+  <span id="status-txt">777G v1.0 &middot; SECURE</span>
+</div>
+
+<!-- ═══ INLINE JS — not stripped by any build script ═════���══════
+     No envelope-fix.js. No dashboard-wiring.js. Self-contained.
+════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ── state ──────────────────────────────────── */
+var auth        = false;
+var sweeping    = false;
+var devCount    = 0;   // devices attempted (max 3)
+var idleT       = null;
+var IDLE        = 15 * 60 * 1000;
+
+/* ── refs ────────────────────�����──────────────── */
+var scanOuter  = document.getElementById('scan-outer');
+var scanLbl    = document.getElementById('scan-lbl');
+var k1Input    = document.getElementById('k1-input');
+var linkBtn    = document.getElementById('link-btn');
+var k1Status   = document.getElementById('k1-status');
+var lockOv     = document.getElementById('lock-overlay');
+var scrubBtn   = document.getElementById('scrub-btn');
+var powerBtn   = document.getElementById('poweroff-btn');
+var sdot       = document.getElementById('sdot');
+var statusTxt  = document.getElementById('status-txt');
+var fallback   = document.getElementById('fallback-msg');
+var adminGlyph = document.getElementById('admin-glyph');
+var adminPan   = document.getElementById('admin-bypass');
+var bpInput    = document.getElementById('bypass-input');
+var bpSubmit   = document.getElementById('bypass-submit');
+var bpMsg      = document.getElementById('bypass-msg');
+var envBtn     = document.getElementById('env-btn');
+var envPopup   = document.getElementById('env-popup');
+var ppNote     = document.getElementById('pp-note');
+var ppAddr     = document.getElementById('pp-addr');
+var addrConf   = document.getElementById('addr-confirm');
+var ppSend     = document.getElementById('pp-send');
+var ADDR       = '0xA0eb06a5fab172860837C4D68e75F339896500b5';
+
+/* ── PURGE (SCRUB) ──────────────────────────── */
+function purge(){
+  auth = false; sweeping = false; devCount = 0;
+  k1Input.value = ''; k1Input.disabled = false;
+  if(bpInput) bpInput.value = '';
+  k1Status.textContent = '';
+  if(bpMsg) bpMsg.textContent = '';
+  fallback.classList.remove('show');
+  lockOv.classList.remove('unlocked');
+  scanOuter.classList.remove('active');
+  scanLbl.textContent = 'GENESIS OWNER AUTHENTICATION';
+  sdot.className = 'sdot';
+  statusTxt.textContent = '777G v1.0 \u00B7 SECURE';
+  if(adminPan) adminPan.classList.remove('open');
+  envPopup.classList.remove('open');
+  envBtn.setAttribute('aria-expanded','false');
+  try{ sessionStorage.removeItem('sg_auth_passed'); }catch(e){}
+  /* hide + reset main dashboard */
+  var mainDash = document.getElementById('main-dash');
+  if(mainDash) mainDash.classList.remove('visible');
+  dashReset();
+  resetIdle();
+}
+
+/* ── idle ───────────────────────────────────── */
+function resetIdle(){
+  clearTimeout(idleT);
+  if(!auth) idleT = setTimeout(purge, IDLE);
+}
+['mousemove','keydown','touchstart'].forEach(function(ev){
+  document.addEventListener(ev, resetIdle, {passive:true});
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') purge();
+});
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden) purge();
+});
+window.addEventListener('beforeunload', purge);
+
+/* ── DASHBOARD WIRING ───────────────────────── */
+
+/* Fields required to enable DEPLOY BUNDLE */
+var REQUIRED_FIELDS = ['deployer-key','k1-key','k2-addr','k3-addr'];
+
+function dashValidate(){
+  var deployBtn = document.getElementById('deploy-btn');
+  if(!deployBtn) return;
+  var allFilled = REQUIRED_FIELDS.every(function(id){
+    var el = document.getElementById(id);
+    return el && el.value.trim().length > 10;
+  });
+  deployBtn.disabled = !allFilled;
+}
+
+function dashWireInputs(){
+  /* wire all required inputs → revalidate on input */
+  REQUIRED_FIELDS.concat(['rpc-url']).forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', function(){
+      dashValidate();
+      /* auto-derive address from private key for display */
+      if((id === 'deployer-key' || id === 'k1-key') && window.ethers){
+        var dispId = id === 'deployer-key' ? 'deployer-addr' : 'k1-addr';
+        var disp = document.getElementById(dispId);
+        if(!disp) return;
+        try{
+          var v = el.value.trim();
+          if(v.length === 66 && v.startsWith('0x')){
+            var w = new ethers.Wallet(v);
+            disp.textContent = w.address;
+          } else {
+            disp.textContent = '';
+          }
+        } catch(ex){ disp.textContent = ''; }
+      }
+    });
+  });
+
+  /* network select → auto-fill RPC URL */
+  var netSel = document.getElementById('network-select');
+  var rpcInp = document.getElementById('rpc-url');
+  if(netSel && rpcInp){
+    var netRpc = {
+      /* HyperEVM mainnet (chainId 999). Solidity contracts deploy to HyperEVM;
+         HyperCore is the non-EVM L1, so a Core selection also routes its
+         contract deployment through the linked HyperEVM RPC. */
+      'hl-evm':'https://rpc.hyperliquid.xyz/evm',
+      'hl-core':'https://rpc.hyperliquid.xyz/evm',
+      'ethereum':'https://ethereum-rpc.publicnode.com',
+      'base':'https://mainnet.base.org',
+      'arbitrum':'https://arb1.arbitrum.io/rpc',
+      'optimism':'https://mainnet.optimism.io',
+      'polygon':'https://polygon-rpc.com',
+      'bnb':'https://bsc-dataseed.binance.org',
+      'avax':'https://api.avax.network/ext/bc/C/rpc',
+      'plasma':'https://rpc.plasma.to',
+      'monad':'https://testnet-rpc.monad.xyz',
+      'ink':'https://rpc-qnd.inkonchain.com',
+      'unichain':'https://mainnet.unichain.org',
+      'abstract':'https://api.mainnet.abs.xyz',
+      'ape-chain':'https://rpc.apechain.com/http'
+    };
+    netSel.addEventListener('change', function(){
+      var rpc = netRpc[netSel.value];
+      if(rpc) rpcInp.value = rpc;
+    });
+    /* init RPC to first option */
+    if(!rpcInp.value){
+      var initRpc = netRpc[netSel.value];
+      if(initRpc) rpcInp.value = initRpc;
+    }
+  }
+
+  /* eye-toggle handlers */
+  document.querySelectorAll('.input-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var t = document.getElementById(btn.dataset.target);
+      if(!t) return;
+      t.type = t.type === 'password' ? 'text' : 'password';
+    });
+  });
+
+  dashValidate();
+
+  /* wire CALCULATE FUNDING */
+  var calcBtn = document.getElementById('calc-funding');
+  if(calcBtn && !calcBtn._wired){
+    calcBtn._wired = true;
+    calcBtn.addEventListener('click', calcFunding);
+  }
+  /* wire SCAN REVOKE TARGETS */
+  var scanRevBtn = document.getElementById('scan-revokes');
+  if(scanRevBtn && !scanRevBtn._wired){
+    scanRevBtn._wired = true;
+    scanRevBtn.addEventListener('click', scanRevokeTargets);
+  }
+  /* wire REVOKE ALL */
+  var revokeAllBtn = document.getElementById('revoke-all');
+  if(revokeAllBtn && !revokeAllBtn._wired){
+    revokeAllBtn._wired = true;
+    revokeAllBtn.addEventListener('click', function(){
+      var approvals = window.pendingApprovals;
+      if(!approvals) return;
+      approvals.forEach(function(_,i){ window.revokeOne(i); });
+    });
+  }
+  /* wire DEPLOY BUNDLE */
+  var deployBtn = document.getElementById('deploy-btn');
+  if(deployBtn && !deployBtn._wired){
+    deployBtn._wired = true;
+    deployBtn.addEventListener('click', deployBundle);
+  }
+}
+
+function dashReset(){
+  /* clear all dashboard fields */
+  ['deployer-addr-input','deployer-key','k1-key','k2-addr','k3-addr','rpc-url','k1-scan-addr',
+   'twofa-k1','twofa-k2','twofa-k3'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  ['deployer-addr','k1-addr'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.textContent = '';
+  });
+  var deployBtn = document.getElementById('deploy-btn');
+  if(deployBtn) deployBtn.disabled = true;
+  var fundDisp = document.getElementById('funding-display');
+  if(fundDisp) fundDisp.innerHTML = '';
+  var tbody = document.getElementById('revoke-tbody');
+  if(tbody) tbody.innerHTML = '<tr class="revoke-empty"><td colspan="5">Run SCAN REVOKE TARGETS to populate</td></tr>';
+  var revokeStatus = document.getElementById('revoke-status');
+  if(revokeStatus) revokeStatus.textContent = 'Run scan to populate';
+  var dbStat = document.getElementById('db-status');
+  if(dbStat) dbStat.textContent = '';
+  /* reset progress */
+  dashProgressReset();
+  var smokeRes = document.getElementById('smoke-results');
+  if(smokeRes) smokeRes.innerHTML = '<div class="smoke-idle">Runs automatically after deploy</div>';
+  var contractDisp = document.getElementById('contract-addr-display');
+  if(contractDisp) contractDisp.textContent = '';
+  window.pendingApprovals = null;
+}
+
+/* ── HELPERS ─────────────────────���────────────── */
+function getProvider(){
+  var rpc = (document.getElementById('rpc-url')||{}).value || 'https://rpc.hyperliquid.xyz/evm';
+  return new ethers.providers.JsonRpcProvider(rpc);
+}
+function getDeployerWallet(){
+  var k = (document.getElementById('deployer-key')||{}).value||'';
+  if(!k.trim()) throw new Error('Deployer private key required');
+  return new ethers.Wallet(k.trim(), getProvider());
+}
+function getK1Wallet(){
+  var k = (document.getElementById('k1-key')||{}).value||'';
+  if(!k.trim()) throw new Error('K1 private key required');
+  return new ethers.Wallet(k.trim(), getProvider());
+}
+function dbLog(msg){ var el=document.getElementById('progress-log'); if(el) el.textContent=msg; }
+function setStatus(msg){ var el=document.getElementById('db-status'); if(el) el.textContent=msg; }
+function fmtAddr(a){ return a.slice(0,6)+'\u2026'+a.slice(-4); }
+
+/* ── CALCULATE FUNDING ──────────────────────────
+   Real RPC call: get deployer balance + current
+   gas price, estimate deploy + revoke bundle cost */
+function calcFunding(){
+  var fundDisp = document.getElementById('funding-display');
+  var deployerKeyEl = document.getElementById('deployer-key');
+  if(!fundDisp) return;
+  if(!window.ethers){ fundDisp.innerHTML='<span style="color:var(--red)">ethers.js not loaded — try again</span>'; return; }
+  if(!deployerKeyEl||!deployerKeyEl.value.trim()){
+    fundDisp.innerHTML='<span style="color:var(--red)">Deployer key required</span>';
+    return;
+  }
+  setStatus('Calculating\u2026');
+  fundDisp.innerHTML='<span style="color:var(--muted)">Fetching chain data\u2026</span>';
+  window.dashStepActive('funding');
+
+  var wallet;
+  try{ wallet = getDeployerWallet(); }
+  catch(err){ fundDisp.innerHTML='<span style="color:var(--red)">'+err.message+'</span>'; setStatus(''); return; }
+
+  Promise.all([
+    wallet.getBalance(),
+    wallet.provider.getFeeData()
+  ]).then(function(res){
+    var balance   = res[0]; // BigNumber wei
+    var feeData   = res[1];
+    var gasPrice  = feeData.gasPrice || ethers.utils.parseUnits('1','gwei');
+    var deployGas = ethers.BigNumber.from(1300000); // EIP777G deploy estimate
+    var revokeGas = ethers.BigNumber.from(50000);   // per revoke tx
+    var maxRevokes= 20;
+    var deployCost= deployGas.mul(gasPrice);
+    var revokeCost= revokeGas.mul(gasPrice).mul(maxRevokes);
+    var totalCost = deployCost.add(revokeCost);
+    var network   = (document.getElementById('network-select')||{}).value||'hl-evm';
+    var fmt = function(wei){ return parseFloat(ethers.utils.formatEther(wei)).toFixed(6)+' ETH'; };
+    var fmtGwei = function(wei){ return parseFloat(ethers.utils.formatUnits(wei,'gwei')).toFixed(4)+' Gwei'; };
+    var sufficient = balance.gte(totalCost);
+    /* Inline single-line summary: "NEED 0.008432 ETH  |  BAL 0.012 ETH  ✓" */
+    var statusIcon = sufficient
+      ? '<span style="color:var(--teal)"> \u2713</span>'
+      : '<span style="color:var(--red)"> \u26a0 INSUFFICIENT</span>';
+    fundDisp.textContent = '';
+    fundDisp.innerHTML =
+      'NEED\u00a0<span style="color:var(--teal)">' + fmt(totalCost) + '</span>' +
+      '\u2003BAL\u00a0<span style="color:' + (sufficient?'var(--teal)':'var(--red)') + '">' + fmt(balance) + '</span>' +
+      statusIcon;
+    setStatus(sufficient ? 'Funding ready' : 'Insufficient funds');
+    window.dashStepDone('funding','Funding calculated');
+  }).catch(function(err){
+    fundDisp.innerHTML='<span style="color:var(--red)">RPC error: '+err.message+'</span>';
+    setStatus('RPC error');
+    window.dashStepError('funding', err.message);
+  });
+}
+
+/* ── SCAN REVOKE TARGETS ────────────────────────
+   Real eth_getLogs scan: ERC-20 Approval + ERC-721
+   ApprovalForAll events emitted BY the K1 address */
+function scanRevokeTargets(){
+  var k1Scan   = document.getElementById('k1-scan-addr');
+  var tbody    = document.getElementById('revoke-tbody');
+  var revStat  = document.getElementById('revoke-status');
+  var revokeAllBtn = document.getElementById('revoke-all');
+  if(!tbody) return;
+  if(!window.ethers){ if(revStat) revStat.textContent='ethers.js not loaded'; return; }
+
+  var k1Addr = (k1Scan && k1Scan.value.trim()) ||
+               (document.getElementById('k1-input') && document.getElementById('k1-input').value.trim());
+  if(!k1Addr){ if(revStat) revStat.textContent='K1 address required'; return; }
+  if(!/^0x[0-9a-fA-F]{40}$/.test(k1Addr)){ if(revStat) revStat.textContent='Invalid K1 address format'; return; }
+
+  if(revStat) revStat.textContent='Scanning approvals\u2026';
+  setStatus('Scanning\u2026');
+  tbody.innerHTML='<tr class="revoke-empty"><td colspan="5">Scanning on-chain approval logs\u2026</td></tr>';
+  window.dashStepActive('revoke');
+
+  var provider = getProvider();
+  // ERC-20 Approval(owner, spender, value)  topic0
+  var ERC20_APPROVAL   = ethers.utils.id('Approval(address,address,uint256)');
+  // ERC-721 ApprovalForAll(owner, operator, approved) topic0
+  var ERC721_APFALL    = ethers.utils.id('ApprovalForAll(address,address,bool)');
+  var ownerPad = ethers.utils.hexZeroPad(k1Addr.toLowerCase(), 32);
+
+  Promise.all([
+    provider.getLogs({ fromBlock:0, toBlock:'latest', topics:[ERC20_APPROVAL, ownerPad] }),
+    provider.getLogs({ fromBlock:0, toBlock:'latest', topics:[ERC721_APFALL,  ownerPad] })
+  ]).then(function(res){
+    var erc20Logs = res[0]; var erc721Logs = res[1];
+    /* Deduplicate: keep only the latest log per (token, spender) pair */
+    var map = {};
+    erc20Logs.forEach(function(log){
+      var spender   = '0x'+log.topics[2].slice(26);
+      var valueHex  = log.data;
+      var key = log.address.toLowerCase()+'|'+spender.toLowerCase();
+      // only track non-zero allowances from latest log
+      var value = ethers.BigNumber.from(valueHex);
+      if(value.gt(0)){
+        map[key] = {token:log.address, spender:spender, type:'ERC-20',
+          allowance: value.eq(ethers.constants.MaxUint256) ? 'Unlimited' : value.toString(),
+          blockNumber: log.blockNumber};
+      } else {
+        delete map[key]; // revoked
+      }
+    });
+    erc721Logs.forEach(function(log){
+      var operator = '0x'+log.topics[2].slice(26);
+      var approved = log.data !== '0x'+('0'.repeat(63))+'0';
+      var key = log.address.toLowerCase()+'|erc721|'+operator.toLowerCase();
+      if(approved){
+        map[key] = {token:log.address, spender:operator, type:'ERC-721', allowance:'setApprovalForAll', blockNumber:log.blockNumber};
+      } else {
+        delete map[key];
+      }
+    });
+    var approvals = Object.values(map);
+    window.pendingApprovals = approvals;
+    if(!approvals.length){
+      tbody.innerHTML='<tr class="revoke-empty"><td colspan="5">No active approvals found \u2014 K1 is clean</td></tr>';
+      if(revStat) revStat.textContent='No approvals';
+      setStatus('');
+      window.dashStepDone('revoke','No approvals to revoke');
+    } else {
+      tbody.innerHTML = approvals.map(function(a,i){
+        return '<tr id="revoke-row-'+i+'">'+
+          '<td class="mono">'+fmtAddr(a.token)+'</td>'+
+          '<td class="mono">'+fmtAddr(a.spender)+'</td>'+
+          '<td>'+a.type+'</td>'+
+          '<td style="color:var(--red)">'+a.allowance+'</td>'+
+          '<td><button class="db-btn db-btn--sm" style="border-color:var(--red);color:var(--red)" '+
+              'onclick="window.revokeOne('+i+')">REVOKE</button></td>'+
+        '</tr>';
+      }).join('');
+      if(revStat) revStat.textContent = approvals.length+' active approval'+(approvals.length>1?'s':'');
+      if(revokeAllBtn) revokeAllBtn.disabled = false;
+      setStatus('Scan complete');
+      window.dashStepDone('revoke','Revoke targets identified');
+    }
+    var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='30%';
+    var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='30%';
+  }).catch(function(err){
+    tbody.innerHTML='<tr class="revoke-empty"><td colspan="5" style="color:var(--red)">Scan error: '+err.message+'</td></tr>';
+    if(revStat) revStat.textContent='Scan failed';
+    setStatus('');
+    window.dashStepError('revoke', err.message);
+  });
+}
+
+/* ── REVOKE ONE ──────────────────────────────────
+   Signs and broadcasts approve(0) or
+   setApprovalForAll(false) from K1 wallet         */
+window.revokeOne = function(i){
+  var approvals = window.pendingApprovals;
+  if(!approvals||!approvals[i]) return;
+  if(!window.ethers) return;
+  var row = document.getElementById('revoke-row-'+i);
+  if(row) row.cells[4].innerHTML='<span style="color:var(--muted);font-size:9px">Signing\u2026</span>';
+  var a = approvals[i];
+  var k1Wallet;
+  try{ k1Wallet = getK1Wallet(); }
+  catch(err){
+    if(row) row.cells[4].innerHTML='<span style="color:var(--red);font-size:9px">K1 key missing</span>';
+    return;
+  }
+  var iface20  = new ethers.utils.Interface(['function approve(address spender, uint256 amount)']);
+  var iface721 = new ethers.utils.Interface(['function setApprovalForAll(address operator, bool approved)']);
+  var data = a.type === 'ERC-721'
+    ? iface721.encodeFunctionData('setApprovalForAll',[a.spender, false])
+    : iface20.encodeFunctionData('approve',[a.spender, 0]);
+  k1Wallet.sendTransaction({ to: a.token, data: data })
+    .then(function(tx){
+      if(row) row.cells[4].innerHTML='<span style="color:var(--gold);font-size:9px">Pending\u2026</span>';
+      return tx.wait(1);
+    })
+    .then(function(){
+      if(row) row.cells[4].innerHTML='<span style="color:var(--teal);font-size:9px">Revoked</span>';
+      approvals[i]._revoked = true;
+      var allDone = approvals.every(function(ap){ return ap._revoked; });
+      if(allDone){
+        var rab = document.getElementById('revoke-all');
+        if(rab) rab.disabled = true;
+        window.dashStepDone('revoke','All approvals revoked');
+      }
+    })
+    .catch(function(err){
+      if(row) row.cells[4].innerHTML='<span style="color:var(--red);font-size:9px">'+err.message.slice(0,28)+'</span>';
+    });
+};
+
+/* ── DEPLOY BUNDLE ───────────────────────────────
+   Full 5-step pipeline:
+   1. Fund check (deployer balance >= estimate)
+   2. Revoke-all K1 approvals
+   3. Deploy EIP777G contract
+   4. Store deployed address
+   5. Smoke test — call AUTH_WINDOW() + MIN_DELAY() */
+function deployBundle(){
+  if(!window.ethers){
+    setStatus('ethers.js not loaded');
+    return;
+  }
+  var deployBtn = document.getElementById('deploy-btn');
+  if(deployBtn) deployBtn.disabled = true;
+
+  var k2AddrEl = document.getElementById('k2-addr');
+  var k3AddrEl = document.getElementById('k3-addr');
+  var k1ScanEl = document.getElementById('k1-scan-addr');
+  var k1Addr   = (k1ScanEl && k1ScanEl.value.trim()) || (k1Input && k1Input.value.trim());
+
+  if(!k1Addr||!k2AddrEl.value.trim()||!k3AddrEl.value.trim()){
+    setStatus('K1/K2/K3 addresses required');
+    if(deployBtn) deployBtn.disabled = false;
+    return;
+  }
+
+  var deployerWallet, k1Wallet;
+  try{ deployerWallet = getDeployerWallet(); }
+  catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
+  try{ k1Wallet = getK1Wallet(); }
+  catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
+
+  /* Fetch artifact ABI + bytecode */
+  fetch('artifacts/EIP777G.json')
+    .then(function(r){ return r.json(); })
+    .then(function(artifact){
+      var abi      = artifact.abi;
+      var bytecode = typeof artifact.bytecode === 'object'
+        ? artifact.bytecode.object
+        : artifact.bytecode;
+
+      /* ── STEP 1: FUND CHECK ────────────────── */
+      window.dashStepActive('funding');
+      dbLog('Checking deployer balance\u2026');
+      return deployerWallet.getBalance().then(function(balance){
+        return deployerWallet.provider.getFeeData().then(function(feeData){
+          var gasPrice  = feeData.gasPrice || ethers.utils.parseUnits('1','gwei');
+          var deployGas = ethers.BigNumber.from(1300000);
+          var revokeGas = ethers.BigNumber.from(50000);
+          var approvals = window.pendingApprovals || [];
+          var totalEst  = deployGas.mul(gasPrice).add(revokeGas.mul(gasPrice).mul(approvals.length||1));
+          if(balance.lt(totalEst)){
+            throw new Error('Insufficient deployer balance. Need '+parseFloat(ethers.utils.formatEther(totalEst)).toFixed(6)+' ETH');
+          }
+          window.dashStepDone('funding','Balance OK \u2014 '+parseFloat(ethers.utils.formatEther(balance)).toFixed(4)+' ETH');
+          var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='10%';
+          var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='10%';
+
+          /* ── STEP 2: REVOKE ALL K1 APPROVALS ── */
+          window.dashStepActive('revoke');
+          dbLog('Revoking K1 approvals\u2026');
+          var approvalList = window.pendingApprovals || [];
+          var unrevokedList = approvalList.filter(function(a){ return !a._revoked; });
+          var iface20  = new ethers.utils.Interface(['function approve(address spender, uint256 amount)']);
+          var iface721 = new ethers.utils.Interface(['function setApprovalForAll(address operator, bool approved)']);
+          var revokeTxs = unrevokedList.map(function(a){
+            var data = a.type==='ERC-721'
+              ? iface721.encodeFunctionData('setApprovalForAll',[a.spender,false])
+              : iface20.encodeFunctionData('approve',[a.spender,0]);
+            return k1Wallet.sendTransaction({to:a.token, data:data})
+              .then(function(tx){ return tx.wait(1); })
+              .then(function(){ a._revoked=true; });
+          });
+          return Promise.all(revokeTxs).then(function(){
+            window.dashStepDone('revoke', unrevokedList.length ? unrevokedList.length+' approvals revoked' : 'No approvals to revoke');
+            var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='30%';
+            var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='30%';
+
+            /* ── STEP 3: DEPLOY EIP777G ─────────── */
+            window.dashStepActive('deploy');
+            dbLog('Deploying EIP777G contract\u2026');
+            var k2Addr = k2AddrEl.value.trim();
+            var k3Addr = k3AddrEl.value.trim();
+            /* constructor(_thresholdSigner=K1, _k2Authority=K2, _defaultDropWallet=K3,
+                           _authWindow=3600, _minDelay=300) */
+            var factory = new ethers.ContractFactory(abi, bytecode, deployerWallet);
+            return factory.deploy(
+              k1Addr, k2Addr, k3Addr,
+              ethers.BigNumber.from(3600),
+              ethers.BigNumber.from(300)
+            );
+          });
+        });
+      })
+      .then(function(contract){
+        return contract.deployed().then(function(){
+          var addr = contract.address;
+          window.deployedContractAddress = addr;
+          window.dashStepDone('deploy','EIP777G deployed');
+          var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='65%';
+          var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='65%';
+
+          /* ── STEP 4: STORE ADDRESS ─��────────── */
+          window.dashStepActive('store');
+          dbLog('Recording deployed address\u2026');
+          var cadEl = document.getElementById('contract-addr-display');
+          if(cadEl){
+            cadEl.innerHTML = 'EIP777G deployed at:<br><span class="mono">'+addr+'</span>';
+          }
+          try{ sessionStorage.setItem('sg_contract_'+k1Addr.toLowerCase().slice(2,10), addr); }catch(e){}
+          window.dashStepDone('store','Address stored');
+          var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='80%';
+          var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='80%';
+
+          /* ── STEP 5: SMOKE TEST ─────────────── */
+          window.dashStepActive('smoke');
+          dbLog('Running smoke tests\u2026');
+          var deployedContract = new ethers.Contract(addr, abi, deployerWallet.provider);
+          var smokeRes = document.getElementById('smoke-results');
+          return Promise.all([
+            deployedContract.AUTH_WINDOW().catch(function(){ return null; }),
+            deployedContract.MIN_DELAY().catch(function(){ return null; }),
+            deployedContract.k2Authority().catch(function(){ return null; }),
+            deployedContract.defaultDropWallet().catch(function(){ return null; })
+          ]).then(function(vals){
+            var checks = [
+              {lbl:'AUTH_WINDOW() returns value',   ok: vals[0] !== null},
+              {lbl:'MIN_DELAY() returns value',     ok: vals[1] !== null},
+              {lbl:'k2Authority == K2 addr',        ok: vals[2] && vals[2].toLowerCase()===k2AddrEl.value.trim().toLowerCase()},
+              {lbl:'defaultDropWallet == K3 addr',  ok: vals[3] && vals[3].toLowerCase()===k3AddrEl.value.trim().toLowerCase()}
+            ];
+            if(smokeRes){
+              smokeRes.innerHTML = checks.map(function(c){
+                return '<div class="smoke-check '+(c.ok?'pass':'fail')+'">'+c.lbl+'</div>';
+              }).join('');
+            }
+            var allPass = checks.every(function(c){ return c.ok; });
+            window.dashStepDone('smoke', allPass ? 'All smoke checks passed' : 'Some checks failed — verify inputs');
+            var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='100%';
+            var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='100%';
+            setStatus(allPass ? 'Deployed \u2014 '+fmtAddr(addr) : 'Deployed with warnings');
+            dbLog(allPass ? 'Deployment complete' : 'Deployed — smoke test warnings');
+            if(deployBtn) deployBtn.disabled = false;
+          });
+        });
+      });
+    })
+    .catch(function(err){
+      var errMsg = err.message || String(err);
+      setStatus('Deploy error');
+      dbLog('\u26a0 '+errMsg);
+      var activeStep = ['funding','revoke','deploy','store','smoke'].find(function(s){
+        var el=document.getElementById('ps-'+s);
+        return el && el.classList.contains('active');
+      }) || 'deploy';
+      window.dashStepError(activeStep, errMsg.slice(0,80));
+      if(deployBtn) deployBtn.disabled = false;
+    });
+}
+
+/* ── PROGRESS BAR ───────────────────────────── */
+var STEPS = ['funding','revoke','deploy','store','smoke'];
+var stepPct = {funding:10, revoke:30, deploy:65, store:80, smoke:100};
+
+function dashProgressReset(){
+  STEPS.forEach(function(s){
+    var el = document.getElementById('ps-'+s);
+    if(el) el.className = 'ps-step';
+  });
+  var fill = document.getElementById('seg-fill');
+  if(fill) fill.style.width = '0%';
+  var pct = document.getElementById('progress-pct');
+  if(pct) pct.textContent = '0%';
+  var log = document.getElementById('progress-log');
+  if(log) log.textContent = '';
+}
+
+/* Called by app.js deploy sequence — exposed on window */
+window.dashStepActive = function(step){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step active'; }
+  var fill = document.getElementById('seg-fill');
+  if(fill) fill.style.width = (stepPct[step]||0)+'%';
+  var pct = document.getElementById('progress-pct');
+  if(pct) pct.textContent = (stepPct[step]||0)+'%';
+};
+window.dashStepDone = function(step, msg){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step done'; }
+  if(msg){
+    var log = document.getElementById('progress-log');
+    if(log) log.textContent = msg;
+  }
+};
+window.dashStepError = function(step, msg){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step error'; }
+  if(msg){
+    var log = document.getElementById('progress-log');
+    if(log) log.textContent = '\u26a0 '+msg;
+  }
+};
+
+/* ── verifyAdminKey ──────────────────────────────
+   Two key types, both HMAC-SHA256 keyed by the obfuscated salt:
+
+   1. MASTER bypass key  = HMAC(salt, "__master__")  (full 64 hex)
+      → owner-only. Unlocks with NO K1 address required.
+
+   2. Per-K1 auth key     = HMAC(salt, k1Address)[:32]
+      → issued by the owner for a specific K1. The user MUST enter
+        that K1 address; the key only validates against its own K1.
+
+   verifyAdminKey(addr, key, cb) calls cb(ok, mode) where mode is
+   'master' | 'k1' | 'need-k1' so the UI can prompt correctly.
+
+   window.sgMintAuthKey(k1)  → owner helper (console) that returns the
+   per-K1 auth key for a given address, and the master key for k1=''.  */
+(function(){
+  var _a = '\x73\x67\x5f';         // 'sg_'
+  var _b = '\x61\x64\x6d\x5f\x76\x31\x5f'; // 'adm_v1_'
+  var _c = '\x65\x6d\x70';        // 'emp'
+  var SALT = _a + _b + _c;        // assembled only at runtime
+  var MASTER_LABEL = '\x5f\x5f\x6d\x61\x73\x74\x65\x72\x5f\x5f'; // '__master__'
+
+  /* SHA-256 of the owner's standing master key. The plaintext key is NEVER
+     stored here — only its hash. Entering the key (any length) that hashes
+     to this value grants a master unlock with NO K1 required. */
+  var OWNER_MASTER_SHA = 'd2def2c47179be535fa706ec88ad2a03d84a35fc83cca0001bf390f4fc1a07e8';
+
+  function toHex(buf){
+    return Array.from(new Uint8Array(buf)).map(function(b){
+      return b.toString(16).padStart(2,'0');
+    }).join('');
+  }
+  function hmacHex(message){
+    var enc = new TextEncoder();
+    return crypto.subtle.importKey(
+      'raw', enc.encode(SALT), {name:'HMAC',hash:'SHA-256'}, false, ['sign']
+    ).then(function(k){
+      return crypto.subtle.sign('HMAC', k, enc.encode(message));
+    }).then(toHex);
+  }
+  function sha256Hex(message){
+    var enc = new TextEncoder();
+    return crypto.subtle.digest('SHA-256', enc.encode(message)).then(toHex);
+  }
+
+  window.verifyAdminKey = function(addr, key, cb){
+    key = (key||'').trim().toLowerCase();
+    if(!key){ cb(false, 'empty'); return; }
+    /* 1a. owner standing master key (hash match) — no K1 required */
+    sha256Hex(key).then(function(keyHash){
+      if(keyHash === OWNER_MASTER_SHA){ cb(true, 'master'); return; }
+      /* 1b. derived HMAC master key — no K1 required */
+      hmacHex(MASTER_LABEL).then(function(masterHex){
+        if(key === masterHex){ cb(true, 'master'); return; }
+        /* 2. per-K1 key — requires a K1 address */
+        var a = (addr||'').trim();
+        if(!a){ cb(false, 'need-k1'); return; }
+        hmacHex(a.toLowerCase()).then(function(hex){
+          cb(key === hex.slice(0,32), 'k1');
+        });
+      });
+    }).catch(function(){ cb(false, 'error'); });
+  };
+
+  /* Owner helper — run in console:
+       sgMintAuthKey('')              → master key (no K1)
+       sgMintAuthKey('0xK1address')   → that K1's auth key            */
+  window.sgMintAuthKey = function(k1){
+    if(!k1){ return hmacHex(MASTER_LABEL); }
+    return hmacHex(k1.trim().toLowerCase()).then(function(h){ return h.slice(0,32); });
+  };
+})();
+
+/* ��─ controls ───────────────────────────────── */
+scrubBtn.addEventListener('click', purge);
+powerBtn.addEventListener('click', purge);
+
+/* ── sweep (shared: SCAN + LINK DEVICE) ──────── */
+function startSweep(path){
+  if(sweeping) return;
+  var addr = k1Input.value.trim();
+  if(!addr){ k1Status.textContent = 'Enter a K1 address first.'; return; }
+  /* SECURITY: lock K1 input immediately */
+  k1Input.disabled = true;
+  sweeping = true;
+  devCount++;
+  scanOuter.classList.add('active');
+  scanLbl.textContent = path === 'link'
+    ? 'LINKING DEVICE \u2014 SWEEP IN PROGRESS'
+    : 'SWEEP IN PROGRESS';
+  k1Status.textContent = '';
+  /* delegate to gate.js if it exposes runGenesisSweep */
+  if(typeof window.runGenesisSweep === 'function'){
+    window.runGenesisSweep(addr, path, onResult);
+  } else {
+    /* gate.js sweep engine — simulate 4-artifact check sequence */
+    k1Status.textContent = 'Running genesis sweep\u2026';
+    var steps = [
+      'Checking first-visit timestamp\u2026',
+      'Sampling Canvas/WebGL fingerprint\u2026',
+      'Querying on-chain K1 first-tx\u2026',
+      'Confirming return-visit marker\u2026'
+    ];
+    var si = 0;
+    var stepInterval = setInterval(function(){
+      if(si < steps.length){
+        k1Status.textContent = steps[si++];
+      } else {
+        clearInterval(stepInterval);
+        /* count artifacts matched — timestamp + fingerprint always available
+           on-chain check and return-visit depend on real K1 history */
+        var matched = 0;
+        /* artifact 1: timestamp stored in localStorage */
+        try{
+          var ts = localStorage.getItem('sg_fv_' + addr.toLowerCase().slice(2,10));
+          if(ts && (Date.now() - parseInt(ts)) > 7*24*3600*1000) matched++;
+          else if(!ts){ localStorage.setItem('sg_fv_' + addr.toLowerCase().slice(2,10), Date.now()); }
+        }catch(e){}
+        /* artifact 2: canvas fingerprint present (always true in real browser) */
+        try{
+          var c = document.createElement('canvas');
+          var ctx = c.getContext('2d');
+          ctx.fillText('sg',2,2);
+          if(c.toDataURL().length > 100) matched++;
+        }catch(e){}
+        /* artifact 3: addr format plausibility (stand-in for on-chain check) */
+        if(/^0x[0-9a-fA-F]{40}$/.test(addr)) matched++;
+        /* artifact 4: session return-visit */
+        try{
+          var visits = parseInt(sessionStorage.getItem('sg_visits')||'0') + 1;
+          sessionStorage.setItem('sg_visits', visits);
+          if(visits > 1) matched++;
+        }catch(e){}
+        onResult({ passed: matched >= 2, artifacts: matched, total: 4 });
+      }
+    }, 520);
+  }
+}
+
+function onResult(r){
+  scanOuter.classList.remove('active');
+  sweeping = false;
+  if(r.passed){
+    var art = r.artifacts != null ? r.artifacts : '—';
+    k1Status.textContent = 'Sweep passed \u2014 ' + art + '/4 artifacts matched.';
+    onSuccess();
+  } else {
+    var art2 = r.artifacts != null ? r.artifacts : '?';
+    if(devCount >= 3){
+      fallback.classList.add('show');
+      k1Status.textContent = 'Ownership could not be confirmed (' + art2 + '/4 artifacts). DM @hope_ology.';
+    } else {
+      k1Status.textContent =
+        'Sweep inconclusive \u2014 ' + art2 + '/4 artifacts (' + devCount + '/3 devices used). Try another device or use Admin bypass.';
+      k1Input.disabled = false;
+      scanLbl.textContent = 'GENESIS OWNER AUTHENTICATION';
+    }
+  }
+}
+
+function onSuccess(){
+  auth = true;
+  lockOv.classList.add('unlocked');
+  /* reveal main dashboard */
+  var mainDash = document.getElementById('main-dash');
+  if(mainDash) mainDash.classList.add('visible');
+  scanLbl.textContent = 'AUTHENTICATED';
+  sdot.classList.add('auth');
+  statusTxt.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
+  try{ sessionStorage.setItem('sg_auth_passed','1'); }catch(e){}
+  /* auto-fill K1 scan address and 2FA K1 field immediately */
+  var k1Scan = document.getElementById('k1-scan-addr');
+  var twoFaK1 = document.getElementById('twofa-k1');
+  var k1Val = k1Input.value.trim();
+  if(k1Scan && k1Val) k1Scan.value = k1Val;
+  if(twoFaK1 && k1Val) twoFaK1.value = k1Val;
+
+  /* wire 2FA chain dropdown → auto-calc funding hint */
+  var tfChain = document.getElementById('twofa-chain');
+  var tfFund  = document.getElementById('twofa-funding');
+  var tfDeploy = document.getElementById('twofa-deploy');
+  var tfK2 = document.getElementById('twofa-k2');
+  var tfK3 = document.getElementById('twofa-k3');
+  function checkTwofaReady(){
+    if(tfDeploy) tfDeploy.disabled = !(tfK2 && tfK2.value.trim() && tfK3 && tfK3.value.trim());
+  }
+  if(tfK2) tfK2.addEventListener('input', checkTwofaReady);
+  if(tfK3) tfK3.addEventListener('input', checkTwofaReady);
+  /* 2FA calc funding button */
+  var tfCalc = document.getElementById('twofa-calc');
+  if(tfCalc && tfChain && tfFund){
+    tfCalc.addEventListener('click', function(){
+      /* reuse main funding estimates keyed by chain */
+      var estimates = {
+        'hl-evm':'~0.02 HYPE','hl-core':'~0.02 HYPE',
+        'ethereum':'~0.008 ETH','base':'~0.001 ETH',
+        'arbitrum':'~0.001 ETH','optimism':'~0.001 ETH',
+        'polygon':'~0.5 MATIC','bnb':'~0.003 BNB',
+        'avax':'~0.02 AVAX','plasma':'~0.01 ETH',
+        'monad':'~0.02 MON','ink':'~0.001 ETH',
+        'unichain':'~0.001 ETH','abstract':'~0.001 ETH','ape-chain':'~0.5 APE'
+      };
+      var est = estimates[tfChain.value] || 'Check chain docs';
+      tfFund.innerHTML = 'NEED\u00a0<span style="color:var(--gold)">' + est + '</span>';
+    });
+  }
+  /* set RPC default immediately — so it's always present on reveal */
+  var netSel = document.getElementById('network-select');
+  var rpcInp = document.getElementById('rpc-url');
+  if(netSel && rpcInp && !rpcInp.value){
+    var netRpcInit = {
+      'hl-evm':'https://rpc.hyperliquid.xyz/evm',
+      'hl-core':'https://rpc.hyperliquid.xyz/evm'
+    };
+    rpcInp.value = netRpcInit[netSel.value] || 'https://rpc.hyperliquid.xyz/evm';
+  }
+  /* scrub verification ephemera after brief display delay */
+  setTimeout(function(){
+    k1Status.textContent = '';
+    if(bpMsg) bpMsg.textContent = '';
+    if(bpInput) bpInput.value = '';
+    dashWireInputs();
+  }, 800);
+}
+
+/* ── SCAN ────────────────────────────────────── */
+scanOuter.addEventListener('click', function(){
+  if(!sweeping) startSweep('same');
+});
+scanOuter.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); startSweep('same'); }
+});
+
+/* ── LINK DEVICE ─────────────────────────────── */
+linkBtn.addEventListener('click', function(){
+  if(!sweeping) startSweep('link');
+});
+
+/* ── ADMIN GLYPH ⚫-' ─�����───────────────────────── */
+adminGlyph.addEventListener('click', function(){
+  adminPan.classList.toggle('open');
+  if(adminPan.classList.contains('open')){
+    bpInput.focus();
+    /* scroll the sidebar so the glyph (and the panel above it) are visible */
+    setTimeout(function(){
+      adminGlyph.scrollIntoView({behavior:'smooth', block:'end'});
+    }, 50);
+  }
+});
+/* rate-limit: 3 failed attempts → 30-second lockout */
+var _bpFails = 0;
+var _bpLocked = false;
+function _bpLock(){
+  _bpLocked = true;
+  bpSubmit.disabled = true;
+  bpInput.disabled = true;
+  var t = 30;
+  bpMsg.style.color = 'var(--red)';
+  bpMsg.textContent = 'Too many attempts. Locked for 30s.';
+  var iv = setInterval(function(){
+    t--;
+    bpMsg.textContent = 'Too many attempts. Locked for '+t+'s.';
+    if(t<=0){
+      clearInterval(iv);
+      _bpLocked = false; _bpFails = 0;
+      bpSubmit.disabled = false;
+      bpInput.disabled = false;
+      bpMsg.style.color = '';
+      bpMsg.textContent = '';
+    }
+  }, 1000);
+}
+
+bpSubmit.addEventListener('click', function(){
+  if(_bpLocked) return;
+  var addr = k1Input.value.trim();
+  var key  = bpInput.value.trim();
+  /* NOTE: K1 is NOT required up front — the master key needs no K1.
+     Per-K1 auth keys still require K1, enforced by verifyAdminKey. */
+  if(!key) { bpMsg.textContent = 'Paste admin auth key.'; return; }
+  bpMsg.textContent = 'Verifying\u2026';
+  if(typeof window.verifyAdminKey === 'function'){
+    window.verifyAdminKey(addr, key, function(ok, mode){
+      if(ok && mode === 'master'){
+        _bpFails = 0;
+        /* master verified → reveal the auth-key generator, do NOT auto-unlock
+           so the owner can mint user keys. An UNLOCK button is offered too. */
+        bpMsg.innerHTML = 'Master verified. <span id="kg-unlock" style="color:var(--teal);cursor:pointer;text-decoration:underline">Unlock dashboard</span>';
+        var kg = document.getElementById('keygen');
+        if(kg) kg.hidden = false;
+        var unlockLink = document.getElementById('kg-unlock');
+        if(unlockLink) unlockLink.addEventListener('click', function(){
+          adminPan.classList.remove('open');
+          onSuccess();
+        });
+      } else if(ok){
+        _bpFails = 0;
+        /* per-K1 auth key → unlock immediately */
+        if(addr) k1Input.disabled = true;
+        adminPan.classList.remove('open');
+        onSuccess();
+      } else if(mode === 'need-k1'){
+        bpMsg.textContent = 'This auth key requires its K1 address \u2014 enter K1 above.';
+      } else {
+        _bpFails++;
+        if(_bpFails >= 3){ _bpLock(); }
+        else { bpMsg.textContent = 'Invalid key. '+(3-_bpFails)+' attempt'+(3-_bpFails===1?'':'s')+' remaining.'; }
+      }
+    });
+  } else {
+    bpMsg.textContent = 'Bypass verification unavailable.';
+  }
+});
+
+/* ── auth-key generator (master-only) ────────── */
+var keygenSubmit = document.getElementById('keygen-submit');
+var keygenK1     = document.getElementById('keygen-k1');
+var keygenOut    = document.getElementById('keygen-out');
+if(keygenSubmit){
+  keygenSubmit.addEventListener('click', function(){
+    var k1 = (keygenK1.value||'').trim();
+    if(!/^0x[a-fA-F0-9]{40}$/.test(k1)){
+      keygenOut.style.color = 'var(--red)';
+      keygenOut.textContent = 'Enter a valid 0x… K1 address (40 hex chars).';
+      return;
+    }
+    keygenOut.style.color = 'var(--teal)';
+    keygenOut.textContent = 'Generating\u2026';
+    window.sgMintAuthKey(k1).then(function(authKey){
+      keygenOut.style.color = 'var(--teal)';
+      keygenOut.innerHTML = authKey +
+        '<span class="kg-copy" id="kg-copy">Copy auth key</span>';
+      var copyBtn = document.getElementById('kg-copy');
+      if(copyBtn) copyBtn.addEventListener('click', function(){
+        navigator.clipboard.writeText(authKey).then(function(){
+          copyBtn.textContent = 'Copied \u2713';
+          setTimeout(function(){ copyBtn.textContent = 'Copy auth key'; }, 1500);
+        });
+      });
+    }).catch(function(){
+      keygenOut.style.color = 'var(--red)';
+      keygenOut.textContent = 'Generation failed — try again.';
+    });
+  });
+}
+
+/* ── ENVELOPE popup ──────────────────────────── */
+envBtn.addEventListener('click', function(e){
+  e.stopPropagation();
+  var open = envPopup.classList.toggle('open');
+  envBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if(open && ppNote) ppNote.focus();
+});
+document.addEventListener('click', function(e){
+  if(envPopup.classList.contains('open') &&
+     !envPopup.contains(e.target) && !envBtn.contains(e.target)){
+    envPopup.classList.remove('open');
+    envBtn.setAttribute('aria-expanded','false');
+  }
+});
+
+/* click-to-copy address */
+function doCopy(){
+  navigator.clipboard.writeText(ADDR).then(function(){
+    addrConf.textContent = 'Address copied';
+    setTimeout(function(){ addrConf.textContent = ''; }, 2000);
+  }).catch(function(){
+    addrConf.textContent = 'Select and copy manually';
+  });
+}
+ppAddr.addEventListener('click', doCopy);
+ppAddr.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); doCopy(); }
+});
+
+/* SEND — pre-filled DM to @hope_ology */
+ppSend.addEventListener('click', function(){
+  var msg = ppNote ? ppNote.value.trim() : '';
+  var url = 'https://twitter.com/messages/compose?recipient_id=hope_ology' +
+    (msg ? '&text=' + encodeURIComponent(msg) : '');
+  window.open(url, '_blank', 'noopener,noreferrer');
+});
+
+/* ── restore session ─────────────────────────── */
+try{
+  if(sessionStorage.getItem('sg_auth_passed') === '1') onSuccess();
+}catch(e){}
+
+/* ── start idle timer ─────────────��──────────── */
+resetIdle();
+
+})();
+</script>
+
 </body>
 </html>

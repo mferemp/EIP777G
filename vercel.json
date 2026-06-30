@@ -39,10 +39,4 @@
     { "source": "/abi.json",                    "destination": "/", "permanent": false },
     { "source": "/bytecode.txt",                "destination": "/", "permanent": false }
   ],
-  "rewrites": [
-    {
-      "source": "/((?!vendor|api).*)",
-      "destination": "/index.html"
-    }
-  ]
 }
