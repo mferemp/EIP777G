@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import crypto from 'crypto';
 
 let kv = null;
 
@@ -20,12 +21,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Expected { token }' });
   }
 
-  const operatorAddr = process.env.OPERATOR_ADDRESS;
-
-  if (!operatorAddr || !ethers.isAddress(operatorAddr)) {
-    return res.status(500).json({ error: 'operator address not configured' });
-  }
-
   let payload;
 
   try {
@@ -34,9 +29,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'malformed token' });
   }
 
-  const { k1, nonce, exp, sig } = payload || {};
+  const { k1, nonce, exp, hmac } = payload || {};
 
-  if (!k1 || !nonce || !exp || !sig) {
+  if (!k1 || !nonce || !exp || !hmac) {
     return res.status(400).json({ error: 'incomplete token' });
   }
 
@@ -50,18 +45,19 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'token not bound to this K1' });
   }
 
-  const digest = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify({ k1, nonce, exp })));
-
-  let signer;
-
-  try {
-    signer = ethers.verifyMessage(ethers.getBytes(digest), sig);
-  } catch (_) {
-    return res.status(403).json({ error: 'bad signature' });
+  // Validate HMAC (token issued by admin via master passkey, not operator-signed)
+  const adminSecret = process.env.ADMIN_TOKEN_SECRET;
+  if (!adminSecret) {
+    return res.status(500).json({ error: 'admin token secret not configured' });
   }
 
-  if (ethers.getAddress(signer) !== ethers.getAddress(operatorAddr)) {
-    return res.status(403).json({ error: 'not operator-signed' });
+  const expectedHmac = crypto
+    .createHmac('sha256', adminSecret)
+    .update(JSON.stringify({ k1, nonce, exp }))
+    .digest('hex');
+
+  if (hmac !== expectedHmac) {
+    return res.status(403).json({ error: 'invalid token hmac' });
   }
 
   if (kv) {

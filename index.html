@@ -1,2596 +1,1373 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-<meta name="securegate-build" content="6231ae838467-20260621193929">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SECUREGATE — EIP-777G</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+<title>SecureGate EIP-777G</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root {
-    --black:    #000000;
-    --bg:       #080808;
-    --surface:  #0f0f0f;
-    --surface2: #141414;
-    --surface3: #1a1a1a;
-    --border:   #222222;
-    --teal:     #00e5d1;
-    --teal2:    #00b8a9;
-    --magenta:  #ff2d78;
-    --magenta2: #c4005f;
-    --gold:     #ffd700;
-    --gold2:    #b89a00;
-    --grey:     #444444;
-    --grey2:    #2a2a2a;
-    --text:     #e8e8e8;
-    --muted:    #888888;
-    --faint:    #444444;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { height: 100%; }
-
-  body {
-    font-family: 'Satoshi', 'Inter', sans-serif;
-    background: var(--black);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    font-size: 13px;
-  }
-
-  /* TOPBAR */
-  .topbar {
-    background: #050505;
-    border-bottom: 1px solid #1a1a1a;
-    padding: 6px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    height: 38px;
-  }
-  .topbar-brand { display: flex; flex-direction: column; line-height: 1; }
-  .brand-main {
-    font-size: 15px; font-weight: 900; letter-spacing: 0.08em;
-    background: linear-gradient(90deg, var(--teal), var(--magenta));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .brand-sub {
-    font-size: 9px; letter-spacing: 0.2em; color: var(--gold); font-weight: 500;
-    text-transform: uppercase;
-  }
-  .topbar-right { display: flex; gap: 8px; align-items: center; }
-  .scrub-btn {
-    background: var(--magenta);
-    color: #fff;
-    border: none;
-    padding: 5px 18px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    cursor: pointer;
-    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
-    transition: background 0.15s, transform 0.1s;
-  }
-  .scrub-btn:hover { background: #ff0066; transform: scale(1.04); }
-  .power-btn {
-    width: 28px; height: 28px; border-radius: 50%;
-    border: 2px solid var(--gold);
-    background: transparent;
-    color: var(--gold);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
-  .power-btn:hover { background: var(--gold); color: #000; }
-
-  /* MAIN LAYOUT */
-  .layout {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 220px 1fr;
-    grid-template-rows: 1fr;
-    overflow: hidden;
-  }
-
-  /* LEFT SIDEBAR */
-  .sidebar {
-    background: #050505;
-    border-right: 1px solid #1a1a1a;
-    display: flex;
-    flex-direction: column;
-    padding: 14px 12px;
-    overflow-y: auto;
-    gap: 12px;
-  }
-
-  /* SCAN BUTTON */
-  .scan-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  .scan-btn-outer {
-    position: relative;
-    width: 100px; height: 100px;
-    cursor: pointer;
-  }
-  .scan-ring {
-    position: absolute; inset: 0;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    background: conic-gradient(var(--teal), var(--magenta), var(--teal)) border-box;
-    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: destination-out;
-    mask-composite: exclude;
-    animation: spin-ring 2s linear infinite;
-  }
-  @keyframes spin-ring { to { transform: rotate(360deg); } }
-  .scan-ring2 {
-    position: absolute; inset: 8px;
-    border-radius: 50%;
-    border: 1px solid var(--teal);
-    opacity: 0.3;
-    animation: pulse-ring 1.5s ease-in-out infinite;
-  }
-  @keyframes pulse-ring { 0%,100%{opacity:0.15;transform:scale(0.95)} 50%{opacity:0.6;transform:scale(1.02)} }
-  .scan-inner {
-    position: absolute; inset: 14px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #001a18 0%, #000 100%);
-    border: 1px solid #0a3a35;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2px;
-    transition: background 0.2s;
-  }
-  .scan-inner:hover { background: radial-gradient(circle, #002f2a 0%, #000 100%); }
-  .scan-inner svg { color: var(--teal); }
-  .scan-inner span { font-size: 8px; font-weight: 700; letter-spacing: 0.15em; color: var(--gold); }
-  .scan-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
-    color: var(--gold); text-align: center; text-transform: uppercase;
-  }
-  .scan-sublabel {
-    font-size: 10px; color: var(--muted); text-align: center; line-height: 1.4;
-  }
-
-  /* K1 VERIFY PANEL */
-  .genesis-k1-verify-panel {
-    margin-top: 10px;
-    background: rgba(5,5,5,0.92);
-    border: 1px solid #1a1a1a;
-    border-radius: 6px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .genesis-k1-verify-panel .panel-title {
-    color: var(--gold);
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-  }
-  .verify-k1-addr {
-    width: 100%;
-    background: #050505;
-    border: 1px solid #222;
-    border-radius: 4px;
-    color: var(--teal);
-    font-family: monospace;
-    font-size: 11px;
-    padding: 7px 8px;
-  }
-  .verify-k1-addr::placeholder {
-    color: #555;
-  }
-  .verify-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-  .verify-scan-btn,
-  .verify-qr-btn {
-    font-size: 8px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 7px 6px;
-    border-radius: 3px;
-  }
-  .verify-scan-btn {
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-  }
-  .verify-qr-btn {
-    background: transparent;
-    border: 1px solid var(--teal);
-    color: var(--teal);
-  }
-  .verify-scan-btn:disabled,
-  .verify-qr-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-  .verify-status {
-    min-height: 12px;
-    font-size: 8px;
-    color: var(--teal);
-    text-align: center;
-  }
-  .verify-directions {
-    color: var(--muted);
-    font-size: 10px;
-    line-height: 1.45;
-    text-align: left;
-  }
-  .verify-directions strong {
-    color: var(--gold);
-  }
-
-  /* SIDEBAR SECTIONS */
-  .sidebar-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border), transparent);
-  }
-  .sidebar-section-title {
-    font-size: 8px; font-weight: 700; letter-spacing: 0.25em;
-    color: var(--gold); text-transform: uppercase; margin-bottom: 4px;
-  }
-  .sidebar-body {
-    font-size: 11.5px; color: var(--muted); line-height: 1.65;
-  }
-  .sidebar-body strong { color: var(--teal); }
-  .sidebar-body .mag { color: var(--magenta); }
-
-  /* STANDALONE OPERATION BOX */
-  .standalone-operation-box {
-    width: min(92%, 420px);
-    margin: 12px auto 0;
-    padding: 12px 14px;
-    border: 1px solid var(--teal);
-    background: rgba(0, 220, 210, 0.08);
-    border-radius: 8px;
-    text-align: center;
-  }
-  .standalone-operation-title {
-    color: var(--magenta);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin-bottom: 7px;
-  }
-  .standalone-operation-copy {
-    color: var(--text);
-    font-size: 11.5px;
-    line-height: 1.45;
-  }
-
-  /* CAUTION BLOCK */
-  .caution-block {
-    position: relative;
-    margin-top: auto;
-    border: 1px solid #2a1a00;
-    background: #0d0800;
-    border-radius: 4px;
-    padding: 10px;
-  }
-  .caution-title {
-    font-size: 8px; font-weight: 700; letter-spacing: 0.2em;
-    color: var(--gold); text-transform: uppercase; margin-bottom: 4px;
-  }
-  .caution-body {
-    font-size: 10px; color: #886600; line-height: 1.5;
-  }
-  .sig { display: none; }
-
-  /* STATUSBAR / FOOTER */
-  .built-by {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transform: rotate(1deg);
-  }
-
-  /* MAIN PANEL */
-  .main-panel {
-    position: relative;
-    background: var(--black);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* LOCK OVERLAY */
-  .lock-overlay {
-    position: absolute; inset: 0;
-    background: rgba(0,0,0,0.82);
-    backdrop-filter: blur(3px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-    transition: opacity 0.6s, visibility 0.6s;
-  }
-  .lock-overlay.unlocked { opacity: 0; visibility: hidden; pointer-events: none; }
-
-  /* DISCLAIMER OVERLAY */
-  .lock-warning {
-    position: relative;
-    background: #1a1400;
-    border: 1px solid #3a2a00;
-    border-radius: 8px;
-    padding: 32px 40px;
-    max-width: 520px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 0 42px rgba(201,162,39,0.18);
-  }
-  .disclaimer-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 60;
-    background: rgba(0,0,0,0.92);
-    backdrop-filter: blur(4px);
-    border-radius: 8px;
-  }
-  .disclaimer-frame {
-    max-width: 480px;
-    width: 90%;
-    border: 2px solid #c9a227;
-    border-radius: 8px;
-    background: rgba(12,8,0,0.95);
-    box-shadow: 0 0 30px rgba(201,162,39,0.25);
-    padding: 24px 20px;
-    font-family: monospace;
-    text-align: center;
-  }
-  .disclaimer-text {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: #c9a227;
-    line-height: 1.6;
-    font-family: monospace;
-  }
-
-  .lock-warning h2 {
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    color: var(--gold);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .lock-warning .lock-subtitle {
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 20px;
-  }
-  .lock-warning .warning-body {
-    font-size: 9px;
-    color: var(--muted);
-    line-height: 1.7;
-    text-align: left;
-  }
-  .lock-warning .warning-body strong {
-    color: var(--gold);
-  }
-  .lock-warning .warning-body .teal {
-    color: var(--teal);
-  }
-  .lock-warning .warning-body .mag {
-    color: var(--magenta);
-  }
-
-  /* DASHBOARD CONTENT */
-  .dashboard {
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    overflow-y: auto;
-    flex: 1;
-  }
-
-  .section-title {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.25em;
-    color: var(--teal); text-transform: uppercase; margin-bottom: 8px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .section-title::after {
-    content: ''; flex: 1; height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
-
-  /* FORM GRID */
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-  }
-  .form-group { display: flex; flex-direction: column; gap: 4px; }
-  .form-group.span2 { grid-column: span 2; }
-  .form-label {
-    font-size: 8px; font-weight: 700; letter-spacing: 0.2em;
-    color: var(--gold); text-transform: uppercase;
-  }
-  .form-input {
-    background: #0a0a0a;
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 7px 10px;
-    font-size: 11px;
-    font-family: 'Satoshi', monospace;
-    border-radius: 3px;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    width: 100%;
-  }
-  .form-input:focus {
-    border-color: var(--teal);
-    box-shadow: 0 0 0 2px rgba(0,229,209,0.08);
-  }
-  .form-input::placeholder { color: var(--faint); }
-  .input-wrap { position: relative; }
-  .input-eye {
-    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-    color: var(--faint); cursor: pointer; background: none; border: none;
-    transition: color 0.15s;
-  }
-  .input-eye:hover { color: var(--teal); }
-
-  /* RPC ROW */
-  .rpc-row {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 10px;
-    align-items: end;
-  }
-  .chain-select {
-    background: #0a0a0a;
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 7px 10px;
-    font-size: 11px;
-    font-family: 'Satoshi', sans-serif;
-    border-radius: 3px;
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.15s;
-    width: 100%;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23444'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-  }
-  .chain-select:focus { border-color: var(--teal); }
-  .chain-select option { background: #0f0f0f; color: var(--text); }
-  optgroup { color: var(--gold); font-size: 10px; }
-
-  /* ACTION BUTTONS */
-  .action-row {
-    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-  }
-  .btn {
-    padding: 8px 18px;
-    font-size: 10px; font-weight: 700; letter-spacing: 0.15em;
-    text-transform: uppercase; cursor: pointer;
-    border: none; border-radius: 2px;
-    transition: all 0.15s;
-    clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
-  }
-  .btn-teal {
-    background: transparent;
-    border: 1px solid var(--teal);
-    color: var(--teal);
-  }
-  .btn-teal:hover { background: rgba(0,229,209,0.08); box-shadow: 0 0 12px rgba(0,229,209,0.2); }
-  .btn-deploy {
-    background: var(--magenta);
-    color: #fff;
-    margin-left: auto;
-    padding: 9px 28px;
-    font-size: 11px;
-  }
-  .btn-deploy:hover { background: #ff0066; box-shadow: 0 0 20px rgba(255,45,120,0.3); }
-  .btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
-
-  /* PROGRESS BAR */
-  .progress-wrap { display: flex; flex-direction: column; gap: 4px; }
-  .progress-label {
-    display: flex; justify-content: space-between;
-    font-size: 9px; color: var(--muted); letter-spacing: 0.1em;
-  }
-  .progress-track {
-    height: 6px;
-    background: #111;
-    border-radius: 3px;
-    overflow: hidden;
-    border: 1px solid #1a1a1a;
-  }
-  .progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--teal), #a855f7, var(--magenta));
-    background-size: 200% 100%;
-    border-radius: 3px;
-    animation: progress-shimmer 2s linear infinite;
-    transition: width 0.4s ease;
-  }
-  @keyframes progress-shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-  .progress-steps {
-    display: flex; gap: 4px; margin-top: 2px;
-  }
-  .progress-step {
-    flex: 1; height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    transition: background 0.3s;
-  }
-  .progress-step.active { background: var(--teal); }
-  .progress-step.done { background: var(--magenta); }
-
-  /* BOTTOM ROW */
-  .bottom-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .info-box {
-    background: #050505;
-    border: 1px solid #1a1a1a;
-    border-radius: 4px;
-    padding: 12px;
-  }
-  .info-box-title {
-    font-size: 8px; font-weight: 700; letter-spacing: 0.2em;
-    color: var(--teal); text-transform: uppercase; margin-bottom: 8px;
-  }
-  .info-box-body {
-    font-size: 9px; color: var(--muted); line-height: 1.7;
-  }
-  .info-box-body strong { color: var(--text); }
-  .info-box-body .teal { color: var(--teal); }
-  .info-box-body .mag { color: var(--magenta); }
-  .info-box-body .gold { color: var(--gold); }
-  .step-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
-  .step-list li { display: flex; gap: 6px; align-items: baseline; }
-  .step-num {
-    min-width: 14px; height: 14px;
-    background: var(--surface3);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    font-size: 8px; font-weight: 700; color: var(--teal);
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  /* SMOKE / STATUS BOX */
-  .smoke-box {
-    background: #050505;
-    border: 1px solid #1a1a1a;
-    border-radius: 4px;
-    padding: 10px 12px;
-    min-height: 60px;
-    font-size: 9px;
-    color: var(--muted);
-    font-family: 'Courier New', monospace;
-    line-height: 1.8;
-  }
-  .smoke-pass { color: var(--teal); }
-  .smoke-fail { color: var(--magenta); }
-
-  /* STATUS RIGHT / FOOTER BRANDING */
-  .statusbar {
-    position: relative;
-    z-index: 10;
-  }
-  .status-right {
-    position: relative;
-    right: auto;
-    bottom: auto;
-    z-index: 1;
-    max-width: calc(100vw - 32px);
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    pointer-events: auto;
-  }
-  .thank-you-envelope {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: var(--teal);
-    transform: rotate(-7deg);
-    transition: transform 0.2s;
-    padding: 0;
-  }
-  .thank-you-envelope:hover {
-    transform: rotate(-7deg) scale(1.05);
-  }
-  .envelope-icon {
-    stroke: var(--teal);
-    width: 17px;
-    height: 17px;
-    stroke-width: 2;
-    transform: rotate(-14deg);
-  }
-  .thank-you-envelope span {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
-    color: var(--teal);
-  }
-  .built-by {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transform: rotate(1deg);
-  }
-  .built-by span,
-  .built-by a {
-    color: var(--gold);
-    font-size: 8.5px;
-    font-weight: 700;
-    letter-spacing: 0.07em;
-    text-decoration: none;
-  }
-  .trinity-knot {
-    stroke: var(--magenta);
-    fill: none;
-    stroke-width: 1.5;
-    width: 13px;
-    height: 13px;
-  }
-  .built-by a:hover {
-    text-decoration: none;
-  }
-
-  /* Hidden utility */
-  .hidden { display: none !important; }
-
-  /* SCAN ANIMATION GLOW */
-  .statusbar {
-    position: relative;
-    z-index: 10;
-    background: #030303;
-    border-top: 1px solid #111;
-    padding: 2px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 8px;
-    color: var(--faint);
-    letter-spacing: 0.12em;
-    flex-shrink: 0;
-    height: 18px;
-    overflow: visible;
-  }
-  .status-dot {
-    width: 5px; height: 5px; border-radius: 50%;
-    display: inline-block; margin-right: 5px;
-  }
-  .dot-secure { background: var(--teal); box-shadow: 0 0 4px var(--teal); }
-  .dot-warn { background: var(--gold); }
-  .dot-lock { background: var(--magenta); }
-
-  /* Guard against oversized warning/fav-icon SVGs */
-  body > svg:not([data-allow-fullscreen]),
-  body > svg.warning-icon,
-  body > svg.alert-icon,
-  body > svg.caution-icon,
-  .lock-warning svg,
-  .locked-warning svg {
-    max-width: 42px !important;
-    max-height: 42px !important;
-    width: auto !important;
-    height: auto !important;
-  }
-  .lock-warning .warning-symbol,
-  .caution-icon::before {
-    font-size: 28px !important;
-    line-height: 1 !important;
-  }
-
-  /* SCAN ANIMATION GLOW */
-  @keyframes scan-pulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(0,229,209,0); }
-    50% { box-shadow: 0 0 18px 4px rgba(0,229,209,0.25); }
-  }
-  .scan-btn-outer:hover .scan-inner {
-    animation: scan-pulse 1s ease-in-out infinite;
-  }
-  .scanning .scan-ring { animation: spin-ring 0.5s linear infinite; }
-  .scanning .scan-inner { background: radial-gradient(circle, #003d38 0%, #000 100%) !important; }
-
-  /* =========================================================
-     SIDEBAR FIRST-SCREEN VISIBILITY PATCH
-     Goal: caution + standalone box visible pre-auth
-     without being pushed below the fold.
-     ========================================================= */
-
-  /* Sidebar must remain visible pre-auth and scroll only if lower text overflows */
-  .sidebar {
-    display: flex !important;
-    flex-direction: column !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    gap: 9px !important;
-    padding-bottom: 96px !important; /* keeps footer from covering bottom content */
-  }
-
-  /* Force priority order in the left column */
-  .sidebar .scan-wrap {
-    order: 1 !important;
-    flex: 0 0 auto !important;
-  }
-
-  .sidebar #genesis-k1-verify-panel,
-  .sidebar .genesis-k1-verify-panel {
-    order: 2 !important;
-    flex: 0 0 auto !important;
-  }
-
-  /* Put the gold/caution box immediately after K1 panel */
-  .sidebar .caution-block {
-    order: 3 !important;
-    flex: 0 0 auto !important;
-    margin-top: 8px !important;       /* IMPORTANT: kills margin-top:auto pushdown */
-    margin-bottom: 0 !important;
-    padding: 9px 38px 9px 10px !important;
-    min-height: unset !important;
-  }
-
-  /* Put standalone teal box directly under gold/caution box */
-  .sidebar .standalone-operation-box {
-    order: 4 !important;
-    flex: 0 0 auto !important;
-    width: min(94%, 420px) !important;
-    margin: 7px auto 10px !important;
-    padding: 9px 11px !important;
-  }
-
-  /* Make standalone box compact enough to fit first screen */
-  .sidebar .standalone-operation-title {
-    font-size: 11px !important;
-    line-height: 1.2 !important;
-    margin-bottom: 5px !important;
-    color: var(--magenta) !important;
-    text-transform: uppercase !important;
-  }
-
-  .sidebar .standalone-operation-copy {
-    font-size: 10.5px !important;
-    line-height: 1.38 !important;
-  }
-
-  /* Push verbose explanatory sections below the critical controls */
-  .sidebar .sidebar-divider,
-  .sidebar .sidebar-section-title,
-  .sidebar .sidebar-body,
-  .sidebar .verify-directions {
-    order: 10 !important;
-  }
-
-  /* Also push the wrapper divs that contain the text sections */
-  .sidebar > div:has(.sidebar-section-title),
-  .sidebar > div:has(.sidebar-body) {
-    order: 10 !important;
-    flex: 0 0 auto !important;
-  }
-
-  /* Compact the verbose sections so they do not dominate the sidebar */
-  .sidebar .sidebar-divider {
-    margin: 4px 0 !important;
-    flex: 0 0 auto !important;
-  }
-
-  .sidebar .sidebar-section-title {
-    font-size: 8px !important;
-    margin-bottom: 2px !important;
-    flex: 0 0 auto !important;
-  }
-
-  .sidebar .sidebar-body,
-  .sidebar .verify-directions,
-  .sidebar .scan-sublabel {
-    font-size: 10.5px !important;
-    line-height: 1.42 !important;
-  }
-
-  /* Compact K1 panel slightly */
-  .sidebar .genesis-k1-verify-panel {
-    margin-top: 8px !important;
-    padding: 8px !important;
-    gap: 6px !important;
-  }
-
-  .sidebar .verify-k1-addr {
-    font-size: 10.5px !important;
-    padding: 6px 7px !important;
-  }
-
-  .sidebar .verify-scan-btn,
-  .sidebar .verify-qr-btn {
-    font-size: 7.5px !important;
-    padding: 6px 5px !important;
-  }
-
-  /* Do not let old glyphs reappear */
-  .sidebar .sig,
-  .sidebar .signature,
-  .sidebar .signature-glyph,
-  .sidebar .admin-glyph,
-  .sidebar .bypass-symbol {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-  }
-
-  /* On short screens, make it even tighter */
-  @media (max-height: 820px) {
-    .sidebar {
-      gap: 7px !important;
-    }
-
-    .sidebar .scan-wrap {
-      transform: scale(0.92) !important;
-      transform-origin: top center !important;
-      margin-bottom: -8px !important;
-    }
-
-    .sidebar .caution-block {
-      padding-top: 8px !important;
-      padding-bottom: 8px !important;
-    }
-
-    .sidebar .caution-body {
-      font-size: 10px !important;
-      line-height: 1.32 !important;
-    }
-
-    .sidebar .standalone-operation-box {
-      padding: 8px 10px !important;
-    }
-
-    .sidebar .standalone-operation-copy {
-      font-size: 10px !important;
-      line-height: 1.32 !important;
-    }
-  }
-
-/* =========================================================
-   FINAL BRANDING / ADMIN / LINK PATCH
-   UI ONLY — DO NOT TOUCH CONTRACTS, RELAY, ROUTES, AUTH LOGIC
-   ========================================================= */
-
-:root {
-  --sg-teal: var(--teal, #00dcd2);
-  --sg-pink: var(--magenta, #ff4fd8);
-  --sg-gold: var(--gold, #c9a227);
-  --sg-text: var(--text, #e8e0ff);
-}
-
-/* Remove legacy admin visuals completely */
-.legacy-admin-trigger,
-.legacy-admin-icon {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-/* Exact admin button requested: ⚫-' */
-.admin-stick-button {
-  position: absolute !important;
-  right: 8px !important;
-  bottom: 7px !important;
-  width: auto !important;
-  min-width: 28px !important;
-  height: 18px !important;
-  border: 0 !important;
-  background: transparent !important;
-  color: var(--sg-teal) !important;
-  font-family: monospace !important;
-  font-size: 14px !important;
-  font-weight: 900 !important;
-  line-height: 1 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  cursor: pointer !important;
-  opacity: 0.92 !important;
-  z-index: 6 !important;
-  text-shadow: 0 0 8px rgba(0, 220, 210, 0.7) !important;
-}
-
-.admin-stick-button:hover {
-  opacity: 1 !important;
-  color: var(--sg-pink) !important;
-  text-shadow: 0 0 9px rgba(255, 79, 216, 0.75) !important;
-}
-
-/* Hide old glyph fragments if any remain */
-.sig,
-.signature,
-.signature-glyph,
-.admin-glyph,
-.bypass-symbol,
-.caution-block .sig,
-.caution-block .signature,
-.caution-block .glyph {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-/* K1 panel: only LINK DEVICE visible under K1 address */
-.verify-actions-link-only {
-  display: block !important;
-}
-
-.verify-actions-link-only .verify-scan-btn,
-.verify-scan-btn.hidden {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-.verify-link-only,
-.verify-actions-link-only .verify-qr-btn {
-  width: 100% !important;
-  display: block !important;
-  border: 1px solid var(--sg-teal) !important;
-  color: var(--sg-teal) !important;
-  background: transparent !important;
-  font-size: 9px !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-  padding: 8px 7px !important;
-  border-radius: 4px !important;
-  text-align: center !important;
-}
-
-.verify-link-only:hover,
-.verify-actions-link-only .verify-qr-btn:hover {
-  background: rgba(0, 220, 210, 0.08) !important;
-}
-
-/* Bottom-right branding: envelope above straight-line BUILT BY row */
-.securegate-footer-branding,
-.status-right {
-  position: fixed !important;
-  right: max(16px, env(safe-area-inset-right)) !important;
-  bottom: max(14px, env(safe-area-inset-bottom)) !important;
-  z-index: 90 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-end !important;
-  justify-content: flex-end !important;
-  gap: 5px !important;
-  max-width: calc(100vw - 32px) !important;
-  overflow: visible !important;
-  transform: none !important;
-  pointer-events: auto !important;
-}
-
-/* Larger teal envelope angled to the RIGHT */
-.thank-you-envelope {
-  position: relative !important;
-  width: 112px !important;
-  height: 70px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: 0 !important;
-  background: transparent !important;
-  padding: 0 !important;
-  margin: 0 0 0 auto !important;
-  cursor: pointer !important;
-  color: var(--sg-teal) !important;
-  transform: rotate(7deg) !important;
-  filter: drop-shadow(0 0 10px rgba(0, 220, 210, 0.42)) !important;
-}
-
-.thank-you-envelope:hover {
-  transform: rotate(7deg) scale(1.04) !important;
-}
-
-.envelope-icon {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 112px !important;
-  height: 70px !important;
-  stroke: var(--sg-teal) !important;
-  fill: rgba(0, 220, 210, 0.07) !important;
-  stroke-width: 4 !important;
-  overflow: visible !important;
-}
-
-.envelope-body,
-.envelope-flap,
-.envelope-fold-left,
-.envelope-fold-right {
-  vector-effect: non-scaling-stroke !important;
-}
-
-.thank-you-on-envelope {
-  position: relative !important;
-  z-index: 2 !important;
-  color: var(--sg-teal) !important;
-  font-size: 12px !important;
-  font-weight: 950 !important;
-  letter-spacing: 0.12em !important;
-  text-transform: uppercase !important;
-  text-shadow: 0 0 8px rgba(0, 220, 210, 0.8) !important;
-  pointer-events: none !important;
-  transform: translateY(2px) !important;
-  white-space: nowrap !important;
-}
-
-/* Straight line under envelope */
-.built-by-line {
-  display: inline-flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 7px !important;
-  color: var(--sg-gold) !important;
-  font-size: 9px !important;
-  font-weight: 850 !important;
-  letter-spacing: 0.07em !important;
-  white-space: nowrap !important;
-  line-height: 1 !important;
-  transform: none !important;
-}
-
-.built-by-line span,
-.built-by-line a {
-  color: var(--sg-gold) !important;
-  text-decoration: none !important;
-}
-
-.built-by-line a:hover {
-  color: var(--sg-pink) !important;
-  text-shadow: 0 0 7px rgba(255, 79, 216, 0.65) !important;
-}
-
-.trinity-knot {
-  width: 14px !important;
-  height: 14px !important;
-  stroke: var(--sg-pink) !important;
-  fill: none !important;
-  stroke-width: 1.7 !important;
-  flex: 0 0 auto !important;
-  filter: drop-shadow(0 0 5px rgba(255, 79, 216, 0.6)) !important;
-}
-
-/* Transparent pink note popup */
-.thank-you-popover {
-  position: absolute !important;
-  right: 0 !important;
-  bottom: 88px !important;
-  width: min(320px, calc(100vw - 32px)) !important;
-  border: 1px solid var(--sg-pink) !important;
-  background: rgba(10, 0, 14, 0.62) !important;
-  backdrop-filter: blur(7px) !important;
-  box-shadow: 0 0 22px rgba(255, 79, 216, 0.28) !important;
-  border-radius: 10px !important;
-  padding: 12px !important;
-  color: var(--sg-pink) !important;
-  font-family: monospace !important;
-  text-align: left !important;
-}
-
-.thank-you-popover[hidden] {
-  display: none !important;
-}
-
-.thank-you-popover-title {
-  color: var(--sg-pink) !important;
-  font-size: 12px !important;
-  font-weight: 950 !important;
-  letter-spacing: 0.13em !important;
-  text-transform: uppercase !important;
-  margin-bottom: 9px !important;
-}
-
-.thank-you-note {
-  width: 100% !important;
-  resize: vertical !important;
-  min-height: 66px !important;
-  background: rgba(255, 79, 216, 0.035) !important;
-  border: 1px solid rgba(255, 79, 216, 0.62) !important;
-  color: var(--sg-pink) !important;
-  border-radius: 6px !important;
-  padding: 8px 9px !important;
-  font-family: monospace !important;
-  font-size: 11px !important;
-  line-height: 1.35 !important;
-  outline: none !important;
-}
-
-.thank-you-note::placeholder {
-  color: rgba(255, 79, 216, 0.58) !important;
-}
-
-.thank-you-note:focus {
-  border-color: var(--sg-pink) !important;
-  box-shadow: 0 0 10px rgba(255, 79, 216, 0.3) !important;
-}
-
-/* Full 0x...b5 address at bottom, click-to-copy */
-.thank-you-address {
-  width: 100% !important;
-  display: block !important;
-  margin-top: 9px !important;
-  background: rgba(255, 79, 216, 0.055) !important;
-  border: 1px solid rgba(255, 79, 216, 0.62) !important;
-  color: var(--sg-pink) !important;
-  border-radius: 6px !important;
-  padding: 7px 8px !important;
-  font-family: monospace !important;
-  font-size: 10px !important;
-  line-height: 1.35 !important;
-  word-break: break-all !important;
-  cursor: pointer !important;
-  text-align: left !important;
-}
-
-.thank-you-address:hover {
-  background: rgba(255, 79, 216, 0.13) !important;
-}
-
-.thank-you-popover-hint {
-  color: rgba(255, 79, 216, 0.76) !important;
-  font-size: 9px !important;
-  margin-top: 6px !important;
-}
-
-@media (max-width: 760px), (max-height: 760px) {
-  .securegate-footer-branding,
-  .status-right {
-    right: 14px !important;
-    bottom: 14px !important;
-    width: 220px !important;
-    transform: scale(0.86) !important;
-    transform-origin: bottom right !important;
-  }
-
-  .securegate-footer-branding .thank-you-popover,
-#thank-you-popover {
-  bottom: 108px !important;
-  }
-}
-
-    .session-termination-block {
-      margin-top: 10px !important;
-    }
-
-    /* =========================================================
-       CENTER NOTICE BOXES
-       ========================================================= */
-
-    .center-notice-box {
-      position: relative;
-      z-index: 60;
-      width: 100%;
-      max-width: 760px;
-      margin: 0 auto 14px auto;
-      padding: 12px 16px;
-      border-radius: 10px;
-      text-align: center;
-      box-sizing: border-box;
-    }
-
-    .standalone-operation-box {
-      border: 1px solid rgba(0, 220, 210, 0.45);
-      background: rgba(0, 220, 210, 0.08);
-      box-shadow: 0 0 18px rgba(0, 220, 210, 0.12);
-    }
-
-    .standalone-operation-box .center-notice-title {
-      color: var(--magenta);
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .standalone-operation-box .center-notice-body {
-      color: var(--text);
-      font-size: 11px;
-      line-height: 1.55;
-    }
-
-    .securegate-ack-box {
-      border: 1px solid rgba(255, 215, 0, 0.45);
-      background: rgba(255, 215, 0, 0.10);
-      box-shadow: 0 0 18px rgba(255, 215, 0, 0.12);
-    }
-
-    .securegate-ack-box .center-notice-body {
-      color: var(--gold);
-      font-size: 11px;
-      font-weight: 800;
-      line-height: 1.55;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    /* =========================================================
-       LEFT COLUMN ORDER ONLY — DO NOT TOUCH BOTTOM-RIGHT
-       ========================================================= */
-
-    .sidebar .scan-wrap {
-      order: 1 !important;
-    }
-
-    .sidebar .auth-mechanism-block {
-      order: 2 !important;
-    }
-
-    .sidebar #genesis-k1-verify-panel,
-    .sidebar .genesis-k1-verify-panel {
-      order: 3 !important;
-    }
-
-    .sidebar .standalone-operation-box {
-      order: 4 !important;
-    }
-
-    .sidebar .caution-block {
-      order: 5 !important;
-    }
-
-    /* K1 panel: only LINK DEVICE visible under K1 address */
-    .verify-actions-link-only .verify-scan-btn,
-    .verify-scan-btn.hidden {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-    }
-
-    .verify-link-copy {
-      margin-top: 7px !important;
-      color: var(--teal) !important;
-      font-size: 9.5px !important;
-      font-weight: 800 !important;
-      letter-spacing: 0.08em !important;
-      line-height: 1.35 !important;
-      text-transform: uppercase !important;
-      text-align: center !important;
-    }
-
-    .artifact-sweep-list {
-      margin-top: 7px !important;
-      margin-bottom: 7px !important;
-      color: var(--text) !important;
-      font-size: 10.5px !important;
-      line-height: 1.55 !important;
-    }
-
-    .verify-directions-copy {
-      color: var(--muted) !important;
-      font-size: 10.5px !important;
-      line-height: 1.45 !important;
-    }
-
-    .session-termination-block {
-      margin-top: 10px !important;
-    }
-
-    /* =========================================================
-       FINAL BOTTOM-RIGHT FOOTER OVERRIDE
-       Fixes envelope visibility, size, angle, and footer line.
-       UI ONLY.
-       DO NOT TOUCH BOTTOM-RIGHT. OVERRIDE ONLY.
-
-/* Stop the old statusbar from clipping the bottom-right branding */
-.statusbar {
-position: static !important;
-height: 0 !important;
-min-height: 0 !important;
-max-height: 0 !important;
-overflow: visible !important;
-z-index: auto !important;
-pointer-events: none !important;
-}
-
-/* The actual bottom-right branding group */
-.status-right.securegate-footer-branding,
-.securegate-footer-branding {
-position: fixed !important;
-right: 28px !important;
-bottom: 26px !important;
-width: 250px !important;
-max-width: calc(100vw - 56px) !important;
-height: auto !important;
-min-height: 116px !important;
-z-index: 9999 !important;
-
-display: flex !important;
-flex-direction: column !important;
-align-items: flex-end !important;
-justify-content: flex-end !important;
-gap: 8px !important;
-
-overflow: visible !important;
-pointer-events: auto !important;
-transform: none !important;
-opacity: 1 !important;
-visibility: visible !important;
-}
-
-/* BIG teal envelope angled to the RIGHT */
-.securegate-footer-branding .thank-you-envelope,
-#thank-you-envelope.thank-you-envelope {
-position: relative !important;
-display: block !important;
-
-width: 142px !important;
-height: 92px !important;
-min-width: 142px !important;
-min-height: 92px !important;
-
-margin: 0 0 2px auto !important;
-padding: 0 !important;
-border: 0 !important;
-background: transparent !important;
-
-color: var(--teal) !important;
-cursor: pointer !important;
-
-transform: rotate(8deg) !important;
-transform-origin: center center !important;
-
-opacity: 1 !important;
-visibility: visible !important;
-overflow: visible !important;
-z-index: 10000 !important;
-
-filter: drop-shadow(0 0 12px rgba(0, 220, 210, 0.55)) !important;
-}
-
-.securegate-footer-branding .thank-you-envelope:hover,
-#thank-you-envelope.thank-you-envelope:hover {
-transform: rotate(8deg) scale(1.04) !important;
-}
-
-/* Envelope drawing */
-.securegate-footer-branding .envelope-icon,
-#thank-you-envelope .envelope-icon {
-position: absolute !important;
-inset: 0 !important;
-
-width: 142px !important;
-height: 92px !important;
-max-width: none !important;
-max-height: none !important;
-
-display: block !important;
-overflow: visible !important;
-
-stroke: var(--teal) !important;
-fill: rgba(0, 220, 210, 0.10) !important;
-stroke-width: 4 !important;
-
-opacity: 1 !important;
-visibility: visible !important;
-z-index: 1 !important;
-}
-
-.securegate-footer-branding .envelope-icon path,
-#thank-you-envelope .envelope-icon path {
-stroke: var(--teal) !important;
-fill: rgba(0, 220, 210, 0.10) !important;
-vector-effect: non-scaling-stroke !important;
-}
-
-/* THANK YOU written ON the envelope */
-.securegate-footer-branding .thank-you-on-envelope,
-#thank-you-envelope .thank-you-on-envelope {
-position: absolute !important;
-left: 50% !important;
-top: 52% !important;
-transform: translate(-50%, -50%) !important;
-
-z-index: 2 !important;
-display: block !important;
-
-color: var(--teal) !important;
-font-size: 13px !important;
-font-weight: 950 !important;
-letter-spacing: 0.12em !important;
-text-transform: uppercase !important;
-white-space: nowrap !important;
-line-height: 1 !important;
-text-align: center !important;
-
-text-shadow: 0 0 9px rgba(0, 220, 210, 0.9) !important;
-pointer-events: none !important;
-opacity: 1 !important;
-visibility: visible !important;
-}
-
-/* Straight line BELOW envelope */
-.securegate-footer-branding .built-by-line {
-display: flex !important;
-flex-direction: row !important;
-align-items: center !important;
-justify-content: flex-end !important;
-
-gap: 7px !important;
-width: auto !important;
-max-width: 250px !important;
-
-white-space: nowrap !important;
-line-height: 1 !important;
-
-color: var(--gold) !important;
-font-size: 9px !important;
-font-weight: 850 !important;
-letter-spacing: 0.07em !important;
-
-opacity: 1 !important;
-visibility: visible !important;
-transform: none !important;
-overflow: visible !important;
-}
-
-/* Kill old .built-by layout if it conflicts */
-.securegate-footer-branding .built-by,
-.status-right .built-by {
-display: none !important;
-}
-
-.securegate-footer-branding .built-by-line span,
-.securegate-footer-branding .built-by-line a {
-color: var(--gold) !important;
-text-decoration: none !important;
-white-space: nowrap !important;
-}
-
-.securegate-footer-branding .built-by-line a:hover {
-color: var(--magenta) !important;
-text-shadow: 0 0 8px rgba(255, 79, 216, 0.7) !important;
-}
-
-/* Tiny pink Celtic trinity knot */
-.securegate-footer-branding .trinity-knot {
-display: block !important;
-width: 14px !important;
-height: 14px !important;
-min-width: 14px !important;
-min-height: 14px !important;
-
-stroke: var(--magenta) !important;
-fill: none !important;
-stroke-width: 1.7 !important;
-
-opacity: 1 !important;
-visibility: visible !important;
-filter: drop-shadow(0 0 5px rgba(255, 79, 216, 0.65)) !important;
-}
-
-.securegate-footer-branding .trinity-knot path {
-stroke: var(--magenta) !important;
-fill: none !important;
-}
-
-/* Pink transparent note popup */
-.securegate-footer-branding .thank-you-popover,
-#thank-you-popover {
-position: absolute !important;
-right: 0 !important;
-bottom: 114px !important;
-
-width: min(330px, calc(100vw - 44px)) !important;
-min-height: 150px !important;
-
-border: 1px solid var(--magenta) !important;
-background: rgba(10, 0, 14, 0.66) !important;
-backdrop-filter: blur(7px) !important;
-box-shadow: 0 0 24px rgba(255, 79, 216, 0.32) !important;
-border-radius: 10px !important;
-
-padding: 12px !important;
-color: var(--magenta) !important;
-font-family: monospace !important;
-text-align: left !important;
-
-z-index: 10001 !important;
-overflow: visible !important;
-}
-
-#thank-you-popover[hidden],
-.thank-you-popover[hidden] {
-display: none !important;
-}
-
-.thank-you-popover-title {
-color: var(--magenta) !important;
-font-size: 12px !important;
-font-weight: 950 !important;
-letter-spacing: 0.13em !important;
-text-transform: uppercase !important;
-margin-bottom: 9px !important;
-}
-
-.thank-you-note {
-width: 100% !important;
-min-height: 66px !important;
-resize: vertical !important;
-
-background: rgba(255, 79, 216, 0.04) !important;
-border: 1px solid rgba(255, 79, 216, 0.65) !important;
-color: var(--magenta) !important;
-
-border-radius: 6px !important;
-padding: 8px 9px !important;
-font-family: monospace !important;
-font-size: 11px !important;
-line-height: 1.35 !important;
-outline: none !important;
-}
-
-.thank-you-note::placeholder {
-color: rgba(255, 79, 216, 0.6) !important;
-}
-
-.thank-you-address {
-width: 100% !important;
-display: block !important;
-margin-top: 9px !important;
-
-background: rgba(255, 79, 216, 0.06) !important;
-border: 1px solid rgba(255, 79, 216, 0.65) !important;
-color: var(--magenta) !important;
-
-border-radius: 6px !important;
-padding: 7px 8px !important;
-font-family: monospace !important;
-font-size: 10px !important;
-line-height: 1.35 !important;
-word-break: break-all !important;
-cursor: pointer !important;
-text-align: left !important;
-}
-
-.thank-you-address:hover {
-background: rgba(255, 79, 216, 0.14) !important;
-}
-
-.thank-you-popover-hint {
-color: rgba(255, 79, 216, 0.76) !important;
-font-size: 9px !important;
-margin-top: 6px !important;
-}
-
-/* Small viewport: keep everything in frame */
-@media (max-width: 900px), (max-height: 800px) {
-.status-right.securegate-footer-branding,
-.securegate-footer-branding {
-  right: 14px !important;
-  bottom: 14px !important;
-  width: 220px !important;
-  transform: scale(0.86) !important;
-  transform-origin: bottom right !important;
-}
-
-.securegate-footer-branding .thank-you-popover,
-#thank-you-popover {
-  bottom: 108px !important;
-}
-}
-
-
-/* =========================================================
-   CENTER NOTICE BOXES
-   ========================================================= */
-
-.center-notice-box {
-  position: relative;
-  z-index: 60;
-  width: 100%;
-  max-width: 760px;
-  margin: 0 auto 14px auto;
-  padding: 12px 16px;
-  border-radius: 10px;
-  text-align: center;
-  box-sizing: border-box;
-}
-
-.standalone-operation-box {
-  border: 1px solid rgba(0, 220, 210, 0.45);
-  background: rgba(0, 220, 210, 0.08);
-  box-shadow: 0 0 18px rgba(0, 220, 210, 0.12);
-}
-
-.standalone-operation-box .center-notice-title {
-  color: var(--magenta);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.standalone-operation-box .center-notice-body {
-  color: var(--text);
-  font-size: 11px;
-  line-height: 1.55;
-}
-
-.securegate-ack-box {
-  border: 1px solid rgba(255, 215, 0, 0.45);
-  background: rgba(255, 215, 0, 0.10);
-  box-shadow: 0 0 18px rgba(255, 215, 0, 0.12);
-}
-
-.securegate-ack-box .center-notice-body {
-  color: var(--gold);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.55;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-/* =========================================================
-   LEFT COLUMN ORDER ONLY — DO NOT TOUCH BOTTOM-RIGHT
-   ========================================================= */
-
-.sidebar .scan-wrap {
-  order: 1 !important;
-}
-
-.sidebar .auth-mechanism-block {
-  order: 2 !important;
-}
-
-.sidebar #genesis-k1-verify-panel,
-.sidebar .genesis-k1-verify-panel {
-  order: 3 !important;
-}
-
-.sidebar .standalone-operation-box {
-  order: 4 !important;
-}
-
-.sidebar .caution-block {
-  order: 5 !important;
-}
-
-/* K1 panel: only LINK DEVICE visible under K1 address */
-.verify-actions-link-only .verify-scan-btn,
-.verify-scan-btn.hidden {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-.verify-link-copy {
-  margin-top: 7px !important;
-  color: var(--teal) !important;
-  font-size: 9.5px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.08em !important;
-  line-height: 1.35 !important;
-  text-transform: uppercase !important;
-  text-align: center !important;
-}
-
-.artifact-sweep-list {
-  margin-top: 7px !important;
-  margin-bottom: 7px !important;
-  color: var(--text) !important;
-  font-size: 10.5px !important;
-  line-height: 1.55 !important;
-}
-
-.verify-directions-copy {
-  color: var(--muted) !important;
-  font-size: 10.5px !important;
-  line-height: 1.45 !important;
-}
-
-.session-termination-block {
-  margin-top: 10px !important;
-}
-
-/* =========================================================
-   FINAL BOTTOM-RIGHT FOOTER OVERRIDE
-   Fixes envelope visibility, size, angle, and footer line.
-   UI ONLY.
-   DO NOT TOUCH BOTTOM-RIGHT. OVERRIDE ONLY.
-   ========================================================= */
-
-/* Stop the old statusbar from clipping the bottom-right branding */
-.statusbar {
-  position: static !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  max-height: 0 !important;
-  overflow: visible !important;
-  z-index: auto !important;
-  pointer-events: none !important;
-}
-
-/* The actual bottom-right branding group */
-.status-right.securegate-footer-branding,
-.securegate-footer-branding {
-  position: fixed !important;
-  right: 28px !important;
-  bottom: 26px !important;
-  width: 250px !important;
-  max-width: calc(100vw - 56px) !important;
-  height: auto !important;
-  min-height: 116px !important;
-  z-index: 9999 !important;
-
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-end !important;
-  justify-content: flex-end !important;
-  gap: 8px !important;
-
-  overflow: visible !important;
-  pointer-events: auto !important;
-  transform: none !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* BIG teal envelope angled to the RIGHT */
-.securegate-footer-branding .thank-you-envelope,
-#thank-you-envelope.thank-you-envelope {
-  position: relative !important;
-  display: block !important;
-
-  width: 142px !important;
-  height: 92px !important;
-  min-width: 142px !important;
-  min-height: 92px !important;
-
-  margin: 0 0 2px auto !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-
-  color: var(--teal) !important;
-  cursor: pointer !important;
-
-  transform: rotate(8deg) !important;
-  transform-origin: center center !important;
-
-  opacity: 1 !important;
-  visibility: visible !important;
-  overflow: visible !important;
-  z-index: 10000 !important;
-
-  filter: drop-shadow(0 0 12px rgba(0, 220, 210, 0.55)) !important;
-}
-
-.securegate-footer-branding .thank-you-envelope:hover,
-#thank-you-envelope.thank-you-envelope:hover {
-  transform: rotate(8deg) scale(1.04) !important;
-}
-
-/* Envelope drawing */
-.securegate-footer-branding .envelope-icon,
-#thank-you-envelope .envelope-icon {
-  position: absolute !important;
-  inset: 0 !important;
-
-  width: 142px !important;
-  height: 92px !important;
-  max-width: none !important;
-  max-height: none !important;
-
-  display: block !important;
-  overflow: visible !important;
-
-  stroke: var(--teal) !important;
-  fill: rgba(0, 220, 210, 0.10) !important;
-  stroke-width: 4 !important;
-}
-
-/* Envelope flap lines */
-.securegate-footer-branding .envelope-flap,
-#thank-you-envelope .envelope-flap {
-  stroke: var(--teal) !important;
-  stroke-width: 2.5 !important;
-  fill: none !important;
-  opacity: 0.5 !important;
-}
-
-/* Envelope highlight */
-.securegate-footer-branding .envelope-highlight,
-#thank-you-envelope .envelope-highlight {
-  stroke: var(--teal) !important;
-  stroke-width: 1.5 !important;
-  fill: none !important;
-  opacity: 0.25 !important;
-}
-
-/* =========================================================
-   THANK-YOU POPOVER
-   ========================================================= */
-
-.thank-you-popover {
-  position: absolute !important;
-  right: 0 !important;
-  bottom: 110px !important;
-  width: 260px !important;
-  background: rgba(255, 79, 216, 0.92) !important;
-  border: 1px solid rgba(255, 79, 216, 0.9) !important;
-  border-radius: 6px !important;
-  padding: 10px 12px !important;
-  box-shadow: 0 0 18px rgba(255, 79, 216, 0.25) !important;
-  z-index: 99999 !important;
-  text-align: center !important;
-}
-
-.thank-you-popover::before {
-  content: '' !important;
-  position: absolute !important;
-  bottom: -6px !important;
-  right: 20px !important;
-  width: 0 !important;
-  height: 0 !important;
-  border-left: 6px solid transparent !important;
-  border-right: 6px solid transparent !important;
-  border-top: 6px solid rgba(255, 79, 216, 0.92) !important;
-}
-
-.thank-you-address {
-  display: block !important;
-  word-break: break-all !important;
-  color: var(--magenta) !important;
-  font-family: monospace !important;
-  font-size: 10px !important;
-  line-height: 1.35 !important;
-  padding: 4px 6px !important;
-  margin-bottom: 6px !important;
-  background: rgba(0, 0, 0, 0.4) !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  text-align: left !important;
-}
-
-.thank-you-address:hover {
-  background: rgba(255, 79, 216, 0.14) !important;
-}
-
-.thank-you-popover-hint {
-  color: rgba(255, 79, 216, 0.76) !important;
-  font-size: 9px !important;
-  margin-top: 6px !important;
-}
-
-  /* === SECUREGATE UI REPAIR START === */
-  .sidebar {
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  .sidebar .scan-wrap {
-    order: 1 !important;
-  }
-
-  .sidebar .auth-mechanism-block {
-    order: 2 !important;
-  }
-
-  .sidebar #genesis-k1-verify-panel,
-  .sidebar .genesis-k1-verify-panel {
-    order: 3 !important;
-  }
-
-  .sidebar .session-termination-block {
-    order: 4 !important;
-  }
-
-  .sidebar .caution-block {
-    order: 998 !important;
-  }
-
-  .sidebar .sidebar-version-badge {
-    order: 999 !important;
-    margin-top: auto !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    color: var(--faint) !important;
-    font-size: 8px !important;
-    letter-spacing: 0.12em !important;
-    line-height: 1 !important;
-    padding-top: 8px !important;
-    padding-bottom: 4px !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-              position: fixed !important;
-              right: 18px !important;
-              bottom: 18px !important;
-              z-index: 9999 !important;
-              background: rgba(5,5,5,0.92) !important;
-              border: 1px solid #222 !important;
-              border-radius: 4px !important;
-              padding: 4px 10px !important;
-              pointer-events: none !important;
-  }
-
-  .dashboard {
-    position: relative !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-  }
-
-  .center-notice-box {
-    position: relative !important;
-    z-index: 10 !important;
-    pointer-events: auto !important;
-  }
-
-  .verify-link-copy#scan-status {
-    margin-top: 7px !important;
-    color: var(--teal) !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.08em !important;
-    line-height: 1.35 !important;
-    text-transform: uppercase !important;
-    text-align: center !important;
-  }
-
-  .sidebar .standalone-operation-box {
-    order: unset !important;
-  }
-  /* === SECUREGATE UI REPAIR END === */
-
-
-  /* === SG FINAL SIDEBAR + ENVELOPE FIX START === */
-
-  /* Sidebar must remain a vertical ordered column */
-  .sidebar {
-    position: relative !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    height: calc(100vh - 48px) !important;
-    max-height: calc(100vh - 48px) !important;
-    padding-bottom: 42px !important;
-  }
-
-  .sidebar .scan-wrap {
-    order: 1 !important;
-    flex: 0 0 auto !important;
-  }
-
-  .sidebar .auth-mechanism-block {
-    order: 2 !important;
-    flex: 0 0 auto !important;
-  }
-
-  .sidebar #genesis-k1-verify-panel,
-  .sidebar .genesis-k1-verify-panel {
-    order: 3 !important;
-    flex: 0 0 auto !important;
-  }
-
-  .sidebar .session-termination-block {
-    order: 4 !important;
-    flex: 0 0 auto !important;
-  }
-
-  .sidebar .standalone-operation-box {
-    display: none !important;
-  }
-
-  .sidebar .caution-block {
-    order: 998 !important;
-    flex: 0 0 auto !important;
-  }
-
-  .sidebar .sidebar-version-badge {
-    order: 999 !important;
-    position: sticky !important;
-    bottom: 0 !important;
-    margin-top: 10px !important;
-    padding: 8px 0 5px !important;
-    background: linear-gradient(to top, #000 70%, rgba(0,0,0,0)) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    color: var(--faint) !important;
-    font-size: 8px !important;
-    letter-spacing: 0.12em !important;
-    line-height: 1 !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    z-index: 999 !important;
-  }
-
-  #scan-status.verify-link-copy {
-    display: block !important;
-    margin-top: 9px !important;
-    color: var(--teal) !important;
-    font-size: 9.5px !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.08em !important;
-    line-height: 1.35 !important;
-    text-transform: uppercase !important;
-    text-align: center !important;
-  }
-
-  /* Envelope click repair */
-  .sg-envelope-root {
-    position: fixed !important;
-    right: 18px !important;
-    bottom: 14px !important;
-    z-index: 2147483647 !important;
-    pointer-events: auto !important;
-    cursor: pointer !important;
-  }
-
-  .sg-envelope-root,
-  .sg-envelope-root * {
-    pointer-events: auto !important;
-  }
-
-  .sg-envelope-root .thank-you-popover {
-    position: absolute !important;
-    right: 0 !important;
-    bottom: calc(100% + 12px) !important;
-    min-width: 220px !important;
-    max-width: 280px !important;
-    padding: 12px 14px !important;
-    border: 1px solid var(--teal) !important;
-    background: rgba(0, 0, 0, 0.94) !important;
-    color: var(--text) !important;
-    font-size: 11px !important;
-    line-height: 1.45 !important;
-    text-align: center !important;
-    box-shadow: 0 0 24px rgba(0, 229, 209, 0.35) !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    transform: translateY(8px) !important;
-    transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease !important;
-  }
-
-  .sg-envelope-root.sg-envelope-open .thank-you-popover {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateY(0) !important;
-  }
-
-  /* === SG FINAL SIDEBAR + ENVELOPE FIX END === */
-
-.sidebar-version-badge { position: fixed !important; right: 18px !important; bottom: 18px !important; z-index: 9999 !important; display: flex !important; align-items: center !important; gap: 8px !important; pointer-events: none !important; background: rgba(5,5,5,0.85) !important; padding: 4px 10px !important; border-radius: 4px !important; border: 1px solid #1a1a1a !important; } </style>
+/* ─── RESET ──────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ─── DESIGN TOKENS ──────────────────────── */
+:root{
+  --bg:       #080b10;
+  --sur:      #0d1018;
+  --bdr:      #1e2438;
+  --bdr2:     #131826;
+  --teal:     #00e8dd;
+  --teal-d:   rgba(0,232,221,.12);
+  --gold:     #f5c23a;
+  --gold-d:   rgba(245,194,58,.12);
+  --mag:      #ff4fd8;
+  --mag-d:    rgba(255,79,216,.12);
+  --orange:   #ff9a1a;
+  --red:      #e53e3e;
+  --text:     #dde3ee;
+  --muted:    #7a8499;
+  --faint:    #2e3650;
+  --sw:       264px;
+}
+
+/* ─── BASE ───────────────────────────────── */
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:12px;
+  -webkit-font-smoothing:antialiased;}
+/* monospace only for code/addresses/labels */
+.mono{font-family:'Courier New',Courier,monospace}
+
+/* ─── TOP BAR (Section 1 + 2) ────────────── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:42px;
+  background:var(--sur);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;z-index:900;
+}
+
+/* Section 1 — TWO DISTINCT LINES, never collapse */
+#identity{display:flex;flex-direction:column;gap:1px;line-height:1}
+#sg-name{
+  font-size:14px;font-weight:900;letter-spacing:.16em;
+  /* teal → pink gradient on SECUREGATE wordmark */
+  background:linear-gradient(90deg,var(--teal) 0%,var(--mag) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-transform:uppercase;white-space:nowrap;
+}
+#sg-sub{
+  font-size:8px;font-weight:700;letter-spacing:.26em;
+  color:var(--gold);text-transform:uppercase;white-space:nowrap;
+}
+
+/* Section 2 — top-right controls */
+#topbar-right{display:flex;align-items:center;gap:8px}
+.ctrl{
+  background:none;border:1px solid var(--bdr);color:var(--muted);
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;
+  border-radius:3px;cursor:pointer;transition:border-color .15s,color .15s;
+}
+.ctrl:hover{border-color:var(--teal);color:var(--teal)}
+/* SCRUB — solid pink bg, white text */
+#scrub-btn{
+  background:var(--mag);border-color:var(--mag);color:#000;font-weight:900;
+}
+#scrub-btn:hover{background:var(--mag);filter:brightness(1.12)}
+/* Power — gold ring */
+#poweroff-btn{border-color:var(--gold);color:var(--gold)}
+#poweroff-btn:hover{background:var(--gold-d)}
+
+/* ─── SHELL ──────────────────────────────── */
+#shell{
+  position:fixed;top:42px;bottom:0;left:0;right:0;
+  display:flex;
+}
+
+/* ─── SIDEBAR (Section 3) ────────────────── */
+#sidebar{
+  width:var(--sw);min-width:var(--sw);height:100%;
+  background:var(--sur);border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  padding:14px 11px 72px;gap:0;
+  scrollbar-width:thin;scrollbar-color:var(--faint) transparent;
+}
+
+/* ── 3.1 SCAN button ─────────────────────── */
+.scan-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  padding-bottom:13px;border-bottom:1px solid var(--bdr2);margin-bottom:11px;
+}
+.scan-outer{
+  position:relative;width:88px;height:88px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
+/* Outermost ring — teal, slow spin */
+.scan-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid rgba(0,220,210,.18);
+  border-top-color:var(--teal);border-right-color:var(--teal);
+  box-shadow:0 0 8px rgba(0,220,210,.35);
+  animation:spin-slow 4s linear infinite;
+}
+/* Middle ring — mag/pink */
+.scan-ring2{
+  position:absolute;inset:10px;border-radius:50%;
+  border:1.5px solid rgba(255,79,216,.15);
+  border-bottom-color:var(--mag);border-left-color:var(--mag);
+  box-shadow:0 0 6px rgba(255,79,216,.3);
+  animation:spin-slow 2.5s linear infinite reverse;
+}
+/* Third ring — gold, very slow */
+.scan-ring3{
+  position:absolute;inset:21px;border-radius:50%;
+  border:1px solid rgba(240,180,41,.12);
+  border-top-color:rgba(240,180,41,.5);
+  animation:spin-slow 7s linear infinite;
+}
+@keyframes spin-slow{to{transform:rotate(360deg)}}
+@keyframes spin-fast{to{transform:rotate(360deg)}}
+/* active = fast ring */
+.scan-outer.active .scan-ring{animation:spin-fast .5s linear infinite;border-color:var(--teal);box-shadow:0 0 14px rgba(0,220,210,.7)}
+.scan-outer.active .scan-ring2{animation:spin-fast .3s linear infinite reverse;border-color:var(--mag);box-shadow:0 0 10px rgba(255,79,216,.6)}
+.scan-outer.active .scan-ring3{animation:spin-fast .8s linear infinite;border-color:var(--gold)}
+.scan-inner{
+  position:relative;width:46px;height:46px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,40,120,.9) 0%,rgba(2,4,12,.97) 100%);
+  border:1px solid var(--mag);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  z-index:1;
+  box-shadow:inset 0 0 14px rgba(0,80,200,.5),0 0 8px rgba(255,79,216,.25);
+}
+.scan-inner svg{color:var(--mag)}
+.scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--mag)}
+.scan-lbl{
+  font-size:8.5px;font-weight:700;letter-spacing:.12em;
+  color:var(--mag);text-align:center;text-transform:uppercase;line-height:1.4;
+}
+
+/* ── 3.2 Dashboard Locked block ──────────── */
+.locked-block{
+  background:rgba(255,136,0,.05);border:1px solid rgba(255,136,0,.18);
+  border-radius:4px;padding:9px 10px;
+  margin-bottom:11px;
+}
+.locked-title{
+  font-size:10.5px;font-weight:900;letter-spacing:.18em;
+  color:var(--orange);text-transform:uppercase;margin-bottom:5px;
+}
+.locked-sub{
+  font-size:9px;font-weight:700;letter-spacing:.10em;
+  color:var(--text);text-transform:uppercase;line-height:1.5;
+}
+
+/* ── 3.3 K1 Panel (label → input → LINK DEVICE) */
+.k1-panel{
+  display:flex;flex-direction:column;gap:6px;
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
+}
+.k1-lbl{
+  font-size:9px;font-weight:900;letter-spacing:.16em;
+  color:var(--gold);text-transform:uppercase;
+}
+.k1-input{
+  width:100%;background:var(--bg);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:10px;padding:7px 8px;border-radius:3px;outline:none;
+  transition:border-color .15s;letter-spacing:.04em;
+}
+.k1-input::placeholder{color:var(--faint);font-family:'Inter',system-ui,sans-serif}
+.k1-input:focus{border-color:var(--mag)}
+.k1-input:disabled{opacity:.38;cursor:not-allowed}
+.link-btn{
+  width:100%;background:none;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Inter',system-ui,sans-serif;font-size:9.5px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;padding:8px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.link-btn:hover{background:var(--mag-d)}
+#k1-status{font-size:9px;color:var(--muted);min-height:11px;line-height:1.5}
+
+/* ── 3.4 Short instructions ──────────────── */
+.instructions{
+  font-size:9px;color:var(--text);line-height:1.7;
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
+}
+.instructions .hi{color:var(--mag);font-weight:700}
+
+/* ── 3.5 AUTH-GATE block ─────────────────── */
+.authgate-block{
+  padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
+}
+.authgate-hd{
+  font-size:9.5px;font-weight:900;letter-spacing:.24em;
+  color:var(--teal);text-transform:uppercase;margin-bottom:10px;
+}
+.ag-points{display:flex;flex-direction:column;gap:8px}
+.ag-p{font-size:9px;color:var(--text);line-height:1.7}
+.ag-p a{color:var(--mag);text-decoration:none}
+.ag-p a:hover{text-decoration:underline}
+.ag-p .hm{color:var(--teal);font-weight:700}
+.ag-p .hg{color:var(--gold);font-weight:700}
+.ag-p .ht{color:var(--mag);font-weight:700}
+
+/* fallback msg */
+#fallback-msg{
+  display:none;margin-top:9px;padding:9px;border:1px solid var(--orange);
+  border-radius:3px;background:rgba(255,136,0,.05);
+  font-size:8px;color:var(--orange);line-height:1.6;
+}
+#fallback-msg.show{display:block}
+
+/* ── 3.6 CAUTION block ───────────────────── */
+.caution-block{
+  position:relative;border:1px solid rgba(255,136,0,.22);
+  background:rgba(255,136,0,.04);border-radius:4px;
+  padding:10px 10px 28px;
+}
+.caution-title{
+  font-size:9.5px;font-weight:900;letter-spacing:.18em;
+  color:var(--orange);text-transform:uppercase;margin-bottom:7px;
+}
+.caution-body{font-size:9px;color:var(--text);line-height:1.75}
+.caution-body .bad{color:var(--red);font-weight:700}
+/* ⚫-' admin glyph — renders as: [dark circle]-' with teal top-glow */
+#admin-glyph{
+  position:absolute;bottom:6px;right:8px;
+  background:none;border:none;cursor:pointer;padding:2px 3px;
+  display:inline-flex;align-items:center;gap:0;
+  user-select:none;line-height:1;
+}
+/* filled dark circle with teal top-light */
+#admin-glyph .ag-circle{
+  display:inline-block;width:11px;height:11px;border-radius:50%;
+  background:radial-gradient(circle at 40% 30%, #18181f, #020205);
+  border:1px solid rgba(0,232,221,.7);
+  box-shadow:0 -4px 10px rgba(0,232,221,.65), 0 0 5px rgba(0,232,221,.25),
+             inset 0 0 5px rgba(0,0,0,.95);
+  flex-shrink:0;transition:box-shadow .2s;
+  vertical-align:middle;
+}
+/* the -' text — Courier so it matches the target glyph exactly */
+#admin-glyph .ag-dash{
+  font-family:'Courier New',Courier,monospace;
+  font-size:13px;color:var(--muted);letter-spacing:-.02em;
+  transition:color .15s;line-height:1;vertical-align:middle;
+}
+#admin-glyph:hover .ag-circle{
+  box-shadow:0 -6px 16px rgba(0,232,221,.9), 0 0 8px rgba(0,232,221,.45),
+             inset 0 0 5px rgba(0,0,0,.95);
+}
+#admin-glyph:hover .ag-dash{color:var(--text)}
+/* admin bypass panel */
+#admin-bypass{
+  display:none;flex-direction:column;gap:6px;
+  margin-top:10px;padding:10px;
+  border:1px solid var(--bdr);border-radius:3px;background:var(--bg);
+}
+#admin-bypass.open{display:flex}
+.bp-lbl{font-size:7.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.bp-input{
+  width:100%;background:var(--bg);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:9px;padding:6px 8px;border-radius:3px;outline:none;
+}
+.bp-input:focus{border-color:var(--mag)}
+.bp-btn{
+  background:none;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Inter',system-ui,sans-serif;font-size:8px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;padding:6px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.bp-btn:hover{background:var(--mag-d)}
+#bypass-msg{font-size:8px;color:var(--muted);min-height:10px}
+
+/* ─── CENTER (Section 4) ─────────────────── */
+#center{
+  flex:1;height:100%;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+/* ─── MAIN DASHBOARD ──────────────────────────────────────────── */
+#main-dash{
+  position:absolute;inset:0;overflow-y:auto;padding:18px 20px 80px;
+  display:flex;flex-direction:column;gap:16px;
+  scrollbar-width:thin;scrollbar-color:var(--bdr) transparent;
+  opacity:0;pointer-events:none;transition:opacity .35s;
+}
+#main-dash.visible{opacity:1;pointer-events:auto}
+#main-dash::-webkit-scrollbar{width:4px}
+#main-dash::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+/* ── deployment bundle section ── */
+.db-section{
+  background:rgba(8,11,20,.82);border:1px solid var(--bdr);border-radius:6px;
+  padding:16px 18px;
+}
+.db-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;
+}
+.db-title{
+  font-size:10px;font-weight:900;letter-spacing:.22em;color:var(--teal);
+  text-transform:uppercase;margin:0;
+}
+.db-sub{font-size:8.5px;color:var(--muted);font-weight:400;letter-spacing:.04em}
+.db-status{font-size:9px;color:var(--muted);margin-left:auto}
+
+/* 3-col grid for deployment fields */
+.db-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px;
+  margin-bottom:14px;
+}
+.db-field{display:flex;flex-direction:column;gap:5px}
+.db-field--rpc{grid-column:span 1}
+.db-lbl{
+  font-size:8.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);
+  text-transform:uppercase;
+}
+.db-input-wrap{position:relative;display:flex;align-items:center}
+.db-input,.db-select{
+  width:100%;background:rgba(5,7,14,.9);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:10px;padding:7px 28px 7px 9px;border-radius:3px;outline:none;
+  transition:border-color .15s;-webkit-appearance:none;appearance:none;
+}
+.db-select{padding-right:28px;cursor:pointer;background-image:none}
+.db-input:focus,.db-select:focus{border-color:var(--teal)}
+.db-input::placeholder{color:var(--faint);font-family:'Inter',system-ui,sans-serif}
+.db-input:disabled{opacity:.4;cursor:not-allowed}
+/* eye toggle inside input */
+.input-toggle{
+  position:absolute;right:7px;background:none;border:none;
+  color:var(--faint);cursor:pointer;padding:0;line-height:1;
+  transition:color .15s;
+}
+.input-toggle:hover{color:var(--teal)}
+/* derived address display below input */
+.db-addr-disp{
+  font-family:'Courier New',Courier,monospace;font-size:8px;
+  color:var(--muted);min-height:12px;line-height:1.4;word-break:break-all;
+}
+.db-addr-disp.teal{color:var(--teal)}
+
+/* action row */
+.db-actions{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;
+}
+.db-actions-left{display:flex;gap:8px;flex-wrap:wrap}
+.db-btn{
+  background:none;border:1px solid var(--bdr);color:var(--muted);
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;
+  border-radius:3px;cursor:pointer;transition:border-color .15s,color .15s,background .15s;
+  white-space:nowrap;
+}
+.db-btn--outline{border-color:var(--teal);color:var(--teal)}
+.db-btn--outline:hover{background:rgba(0,220,210,.08)}
+.db-btn--outline:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.db-btn--sm{font-size:8px;padding:5px 10px}
+/* DEPLOY BUNDLE — solid pink CTA */
+.db-btn--deploy{
+  background:var(--mag);border-color:var(--mag);color:#000;
+  font-weight:900;font-size:9.5px;padding:9px 22px;
+}
+.db-btn--deploy:hover{filter:brightness(1.1)}
+.db-btn--deploy:disabled{
+  background:rgba(255,79,216,.25);border-color:rgba(255,79,216,.3);
+  color:rgba(0,0,0,.4);cursor:not-allowed;pointer-events:none;filter:none;
+}
+
+/* funding display */
+.funding-display{
+  margin-top:12px;font-size:9px;color:var(--text);line-height:1.9;
+}
+.funding-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-bottom:1px solid var(--bdr2)}
+.funding-row.total{border-bottom:none;margin-top:4px;color:var(--gold);font-weight:700}
+.funding-row span:last-child{color:var(--teal);font-family:'Courier New',Courier,monospace}
+
+/* ── revoke table section ── */
+.revoke-section .db-header{margin-bottom:10px}
+.revoke-table-wrap{overflow-x:auto}
+.revoke-table{
+  width:100%;border-collapse:collapse;
+  font-size:9px;font-family:'Courier New',Courier,monospace;
+}
+.revoke-table th{
+  font-family:'Inter',system-ui,sans-serif;font-size:8px;font-weight:700;
+  letter-spacing:.16em;color:var(--muted);text-transform:uppercase;
+  padding:6px 8px;border-bottom:1px solid var(--bdr);text-align:left;
+}
+.revoke-table td{
+  padding:6px 8px;border-bottom:1px solid var(--bdr2);color:var(--text);
+}
+.revoke-table tbody tr:hover{background:rgba(0,220,210,.04)}
+.revoke-table .revoke-empty td{
+  color:var(--faint);text-align:center;padding:14px;
+  font-family:'Inter',system-ui,sans-serif;font-size:9px;
+}
+
+/* ── bottom row: progress + smoke ── */
+.db-bottom-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+}
+.db-panel{
+  background:rgba(8,11,20,.82);border:1px solid var(--bdr);border-radius:6px;
+  padding:14px 16px;
+}
+
+/* progress steps */
+.progress-steps{
+  display:flex;flex-direction:column;gap:7px;margin-bottom:14px;
+}
+.ps-step{
+  display:flex;align-items:center;gap:9px;
+  font-size:9px;color:var(--muted);
+}
+.ps-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--bdr);flex-shrink:0;transition:background .3s,box-shadow .3s;
+}
+.ps-step.active .ps-dot{
+  background:var(--teal);box-shadow:0 0 6px var(--teal);
+}
+.ps-step.done .ps-dot{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+.ps-step.done .ps-lbl{color:var(--gold)}
+.ps-step.active .ps-lbl{color:var(--teal)}
+.ps-step.error .ps-dot{background:var(--red)}
+.ps-step.error .ps-lbl{color:var(--red)}
+
+/* segmented progress bar — teal/pink/purple striped, matches reference image */
+.seg-bar{
+  width:100%;height:18px;background:rgba(5,7,14,.9);
+  border:1px solid var(--bdr);border-radius:3px;overflow:hidden;
+  margin-bottom:6px;position:relative;
+}
+.seg-fill{
+  height:100%;width:0%;
+  background:repeating-linear-gradient(
+    90deg,
+    var(--teal)      0px,  var(--teal)      14px,
+    var(--mag)       14px, var(--mag)        28px,
+    #8b5cf6          28px, #8b5cf6           42px,
+    rgba(0,0,0,0)    42px, rgba(0,0,0,0)     44px
+  );
+  transition:width .35s ease;
+  box-shadow:0 0 10px rgba(0,220,210,.4);
+}
+.progress-pct{
+  font-size:13px;font-weight:900;color:var(--text);letter-spacing:.06em;
+  text-align:right;margin-bottom:8px;font-family:'Courier New',Courier,monospace;
+}
+.progress-log{
+  font-size:8.5px;color:var(--muted);line-height:1.7;min-height:24px;
+  font-family:'Inter',system-ui,sans-serif;
+}
+
+/* smoke test results */
+.smoke-results{
+  display:flex;flex-direction:column;gap:6px;min-height:80px;
+}
+.smoke-idle{
+  font-size:9px;color:var(--faint);font-style:italic;margin-top:8px;
+}
+.smoke-check{
+  display:flex;align-items:center;gap:8px;font-size:9px;
+}
+.smoke-check.pass{color:var(--gold)}
+.smoke-check.fail{color:var(--red)}
+.smoke-check::before{
+  content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0;
+  background:currentColor;
+}
+.contract-addr{
+  margin-top:10px;font-size:8px;font-family:'Courier New',Courier,monospace;
+  color:var(--mag);word-break:break-all;line-height:1.6;
+}
+
+/* the faint dashboard background — visible through the overlay */
+#dash-bg{
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    0deg,transparent,transparent 39px,var(--bdr2) 40px),
+    repeating-linear-gradient(
+    90deg,transparent,transparent 39px,var(--bdr2) 40px);
+  opacity:.4;
+}
+/* semi-transparent overlay — NOT a blackout */
+#lock-overlay{
+  position:absolute;inset:0;
+  background:rgba(8,11,16,.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:20px;z-index:10;
+  transition:opacity .4s;
+}
+#lock-overlay.unlocked{opacity:0;pointer-events:none}
+/* 4.1 STANDALONE OPERATION box */
+.notice-box{
+  width:min(520px,96%);border-radius:6px;padding:20px 22px;
+  background:rgba(13,16,24,.96);
+}
+.standalone-box{border:1px solid var(--teal)}
+.standalone-box .ntitle{
+  font-size:12px;font-weight:900;letter-spacing:.22em;
+  color:var(--teal);text-transform:uppercase;margin-bottom:12px;
+}
+.notice-body{font-size:11px;color:var(--text);line-height:1.85}
+/* 4.2 Gold ack box */
+.ack-box{border:1px solid var(--gold)}
+.ack-box .notice-body{
+  font-size:11px;font-weight:700;color:var(--gold);
+  text-transform:uppercase;letter-spacing:.03em;
+}
+
+/* ─── SECTION 5 — FOOTER CLUSTER (fixed bottom-right) ─────── */
+#footer-cluster{
+  position:fixed;bottom:14px;right:16px;z-index:500;
+  display:flex;flex-direction:column;align-items:flex-end;gap:4px;
+}
+/* Envelope wrapper — provides popup anchor */
+#env-wrap{position:relative;margin-bottom:8px}
+/* Envelope button — teal body, pink THANK YOU, angled out */
+#env-btn{
+  background:none;border:none;cursor:pointer;padding:0;
+  transform:rotate(-5deg);transform-origin:bottom right;
+  transition:transform .2s;
+  filter:drop-shadow(0 2px 8px rgba(0,220,210,.3));
+}
+#env-btn:hover{transform:rotate(-2deg) scale(1.07)}
+.env-svg{width:72px;display:block}
+.ev-body{fill:var(--teal)}
+.ev-flap{fill:#009990}
+.ev-fold{fill:none;stroke:rgba(0,0,0,.2);stroke-width:1}
+.ev-text{
+  /* SVG user-units. viewBox=120×80. body spans y16-y78. center = y47 */
+  font-size:13;font-weight:900;
+  fill:var(--mag);
+  stroke:var(--mag);stroke-width:.3;paint-order:stroke fill;
+  font-family:'Inter',system-ui,sans-serif;letter-spacing:.07em;
+  dominant-baseline:middle;text-anchor:middle;
+}
+/* Popup — pink-framed transparent */
+#env-popup{
+  display:none;position:absolute;bottom:calc(100% + 10px);right:0;
+  width:278px;background:rgba(8,11,16,.96);
+  border:1px solid var(--mag);border-radius:6px;padding:14px;
+  flex-direction:column;gap:9px;z-index:600;
+  box-shadow:0 0 24px rgba(255,79,216,.18);
+}
+#env-popup.open{display:flex}
+.pp-title{
+  font-size:8px;font-weight:900;letter-spacing:.2em;
+  color:var(--mag);text-transform:uppercase;
+}
+.pp-note{
+  width:100%;background:rgba(0,0,0,.3);border:1px solid var(--bdr);
+  color:var(--text);font-family:'Courier New',Courier,monospace;
+  font-size:9px;padding:8px;border-radius:3px;
+  resize:vertical;min-height:68px;outline:none;
+}
+.pp-note:focus{border-color:var(--mag)}
+.pp-addr{
+  font-size:7.5px;font-family:'Courier New',Courier,monospace;
+  color:var(--mag);cursor:pointer;word-break:break-all;
+  padding:6px 8px;border:1px solid var(--bdr);border-radius:3px;
+  background:rgba(255,79,216,.04);transition:background .15s,border-color .15s;
+  line-height:1.5;
+}
+.pp-addr:hover{background:var(--mag-d);border-color:var(--mag)}
+.pp-hint{font-size:7px;color:var(--muted)}
+#addr-confirm{font-size:7px;color:var(--mag);min-height:10px;transition:opacity .3s}
+.pp-send{
+  background:none;border:1px solid var(--mag);color:var(--mag);
+  font-family:'Courier New',Courier,monospace;font-size:9px;font-weight:900;
+  letter-spacing:.16em;text-transform:uppercase;padding:8px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.pp-send:hover{background:var(--mag-d)}
+/* Section 6 — BUILT BY EMP ❖ @hope_ology */
+#built-by{
+  display:flex;align-items:center;gap:5px;
+  font-size:9.5px;font-weight:700;letter-spacing:.12em;color:var(--muted);
+  white-space:nowrap;
+}
+#built-by .knot{color:var(--mag);font-size:12px;line-height:1}
+#built-by a{color:var(--teal);text-decoration:none;transition:color .15s}
+#built-by a:hover{color:var(--mag)}
+
+/* ─── Section 3.7 — VERSION BADGE (fixed bottom-LEFT, single instance) */
+#version-badge{
+  position:fixed;left:14px;bottom:12px;z-index:500;
+  display:flex;align-items:center;gap:5px;
+  font-size:9px;font-weight:700;letter-spacing:.14em;
+  color:var(--muted);pointer-events:none;
+}
+.sdot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--mag);box-shadow:0 0 5px var(--mag);
+  transition:background .4s,box-shadow .4s;
+}
+.sdot.auth{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+</style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="topbar-brand">
-    <span class="brand-main">SECUREGATE</span>
-    <span class="brand-sub">EIP-777G</span>
+<!-- ═══ SECTION 1 + 2 — TOP BAR ══════════════════════ -->
+<header id="topbar">
+  <!-- Section 1: two distinct lines, never collapse -->
+  <div id="identity">
+    <span id="sg-name">SECUREGATE</span>
+    <span id="sg-sub">EIP-777G</span>
   </div>
-  <div class="topbar-right">
-    <button class="scrub-btn" id="scrub-btn" onclick="wipeSession()">SCRUB</button>
-    <button class="power-btn" onclick="wipeSession()" aria-label="Power off session">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/><line x1="12" y1="2" x2="12" y2="12"/>
-      </svg>
-    </button>
+  <!-- Section 2: top-right persistent controls -->
+  <div id="topbar-right">
+    <button class="ctrl" id="scrub-btn" type="button">SCRUB</button>
+    <button class="ctrl" id="poweroff-btn" type="button">Power off session</button>
   </div>
-</div>
+</header>
 
-<!-- LAYOUT -->
-<div class="layout">
+<div id="shell">
 
-  <!-- LEFT SIDEBAR -->
-  <div class="sidebar">
+  <!-- ═══ SECTION 3 — LEFT SIDEBAR ═══════════════════ -->
+  <aside id="sidebar">
 
-      <!-- SCAN BUTTON -->
-      <div class="scan-wrap">
-        <div class="scan-btn-outer" id="scan-btn-outer" onclick="startScan()">
-          <div class="scan-ring" id="scan-ring"></div>
-          <div class="scan-ring2"></div>
-          <div class="scan-inner" id="scan-inner">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
-              <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
-              <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
-            </svg>
-            <span>SCAN</span>
-          </div>
-        </div>
-        <div class="scan-label">Dashboard Locked</div>
-
-      <!-- AUTHENTICATION MECHANISM MOVED BELOW SCAN BUTTON -->
-      <div class="sidebar-section auth-mechanism-block">
-        <div class="sidebar-section-title">Authentication Mechanism</div>
-        <div class="sidebar-body">
-          Enter Genesis K1 public address.<br>
-          Run <strong>SCAN</strong> or <strong>LINK DEVICE</strong>. Keys stay local. Session-bound until SCRUB.
+    <!-- 3.1 SCAN button -->
+    <div class="scan-wrap">
+      <div class="scan-outer" id="scan-outer" role="button" tabindex="0" aria-label="Start same-device genesis scan">
+        <div class="scan-ring"></div>
+        <div class="scan-ring2"></div>
+        <div class="scan-ring3"></div>
+        <div class="scan-inner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
+            <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+          <span class="sw">SCAN</span>
         </div>
       </div>
+      <div class="scan-lbl" id="scan-lbl">GENESIS OWNER AUTHENTICATION</div>
+    </div>
 
-      <!-- K1 Compromised Wallet Address PANEL -->
-      <div id="genesis-k1-verify-panel" class="genesis-k1-verify-panel">
-        <div class="panel-title">K1 Compromised Wallet Address</div>
-        <input type="text" id="verify-k1-addr" class="verify-k1-addr" placeholder="0x... K1 PUBLIC ADDRESS" autocomplete="off" spellcheck="false">
+    <!-- 3.2 Dashboard Locked block -->
+    <div class="locked-block">
+      <div class="locked-title">Dashboard Locked</div>
+      <div class="locked-sub">Authentication of K1 Genesis Owner Required</div>
+    </div>
 
-        <!-- ONLY LINK DEVICE SHOULD BE VISIBLE HERE -->
-        <div class="verify-actions verify-actions-link-only">
-          <button id="verify-scan-btn" class="verify-scan-btn hidden" disabled hidden>SCAN</button>
-          <button id="verify-qr-btn" class="verify-qr-btn verify-link-only" disabled>LINK DEVICE</button>
-        </div>
-          <div class="verify-link-copy scan-sublabel" id="scan-status">
-            Enter K1 compromised wallet address<br>
-        
-          </div>
+    <!-- 3.3 K1 Panel: label → input → LINK DEVICE (this order, mandatory) -->
+    <div class="k1-panel">
+      <div class="k1-lbl">K1 Compromised Wallet Address</div>
+      <input id="k1-input" class="k1-input" type="text"
+        placeholder="Enter K1-Compromised Wallet Address"
+        autocomplete="off" spellcheck="false" aria-label="K1 compromised wallet address">
+      <button class="link-btn" id="link-btn" type="button">LINK DEVICE</button>
+      <div id="k1-status" aria-live="polite"></div>
+    </div>
 
+    <!-- 3.4 Short instruction block -->
+    <div class="instructions">
+      <span class="hi">Same device:</span> press SCAN.<br>
+      <span class="hi">Different device:</span> connect by USB first, then press LINK DEVICE.
+    </div>
 
-        
-
-        <div id="verify-status" class="verify-status"></div>
-
-        <div class="verify-directions">
-          <div class="verify-directions-title">Auth-Gate</div>
-          <div class="artifact-sweep-list">
-                <div class="verify-directions-copy">
-                  Genesis ownership of the K1 compromised wallet must pass a narrow local marker sweep before the full SecureGate dashboard opens.<br><br>
-                  The exact marker set is hidden for anti-cloning. The gate checks only limited transaction-, device-, and blockchain-linked surface pings. The operator cannot see returned markers, and marker data is scrubbed after verification.<br><br>
-                  If enough expected pings return, the dashboard unlocks. This is an advisory owner-filter, not proof of ownership.
-                </div>
-
-                <div class="verify-directions-title" style="margin-top:12px;">Set-Up</div>
-                <div class="verify-directions-copy">
-                  If using the device most historically associated with K1, press <strong>SCAN</strong> to trigger Auth-Gate.<br><br>
-                  If using a separate device, press <strong>LINK DEVICE</strong> and complete the linked-device check, then press <strong>SCAN</strong>.
-                </div>
-
-                <div class="verify-directions-title" style="margin-top:12px;">Scan</div>
-                <div class="verify-directions-copy">
-                  Auth-Gate pings local historical markers associated with K1 activity. If enough expected pings return, the dashboard unlocks. Marker data is scrubbed after the sweep.<br><br>
-                  You may try up to 3 devices before lockout. Contact the operator for manual review if denied.
-                </div>
-
-                <div class="verify-directions-title" style="margin-top:12px;">Note</div>
-                <div class="verify-directions-copy">
-                  After verification starts, K1 is hard-bound to this session and cannot be changed without <strong>SCRUB</strong>.<br><br>
-                  Approved K1 will auto-populate in applicable SecureGate fields to reduce K1 swapping risk.
-                </div>
-              </div>
-        </div>
-
-        
-
+    <!-- 3.5 AUTH-GATE explanation block (11 points verbatim) -->
+    <div class="authgate-block">
+      <div class="authgate-hd">AUTH-GATE</div>
+      <div class="ag-points">
+        <div class="ag-p">Verifies the real K1 owner — not the thief. Exact checks are hidden so they can&apos;t be cloned or gamed.</div>
+        <div class="ag-p">Advisory check, not a final ruling. May miss valid ownership — attempt on up to <span class="ht">3 devices per K1</span>. Markers can span all three.</div>
+        <div class="ag-p">Still can&apos;t clear? DM <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a> on X with proof of ownership. Follow first — DMs are more likely to be seen.</div>
+        <div class="ag-p">On success: K1 auto-fills, a <span class="hg">unique passkey</span> is issued for that K1. No further scans needed once issued. No shared passkeys.</div>
+        <div class="ag-p">All data auto-scrubs after verification <em>and</em> again at session end. <span class="hm">SCRUB</span> purges on demand.</div>
+        <div class="ag-p">Standalone. Nothing is stored, logged, or transmitted. Runs entirely in your browser.</div>
+        <div class="ag-p">On <span class="hm">SCRUB</span>, ESC, idle timeout, or tab close — all input is purged immediately.</div>
       </div>
-<div class="session-termination-block">
-          <div class="sidebar-section-title">Session Termination</div>
-          <div class="sidebar-body">
-            The <span class="mag">SCRUB</span> button terminates the authenticated link and <strong>immediately deletes</strong> all verification data from memory.<br><br>
-            On session end — by SCRUB, ESC, idle timeout (5 min), or tab close — <strong>all operator input is purged</strong>. No keys, addresses, or credentials are ever stored, logged, or transmitted to any server.
-          </div>
-        </div>
-
-
-      <div class="caution-block">
-        <div class="caution-title">⚠ Caution</div>
-        <div class="caution-body">
-          Use at your own risk.<br>
-          Hope for the best.<br>
-          If you're a hacker?<br>
-          <strong style="color:#664400;">Get fucked.</strong>
-        </div>
-        <button id="auth-bypass-trigger" class="admin-stick-button" aria-label="Admin" title="Admin" type="button">⚫-'</button>
-      </div>
-
-      
-
-        <div class="sidebar-version-badge">
-        <span class="status-dot dot-secure"></span>
-        <span id="status-text">777G v1.0 · SECURE</span>
-      </div>
-  </div>
-
-
-  <!-- MAIN PANEL -->
-  <div class="main-panel">
-
-    <div class="center-notice-box standalone-operation-box">
-      <div class="center-notice-title">STANDALONE OPERATION</div>
-      <div class="center-notice-body">
-        This dashboard executes the authentication flow client-side. You are not submitting K1 authentication data to any operator, server, or third party. Cryptographic checks run in your browser. Chain reads use the server-supplied RPC configuration. RPC is not part of the auth gate.
+      <div id="fallback-msg">
+        Auth-Gate could not confirm genesis ownership for this K1.<br>
+        If you are the original K1 creator, contact <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a> on X/Twitter with your K1 address and proof of ownership.
       </div>
     </div>
 
-    <div class="center-notice-box securegate-ack-box">
-      <div class="center-notice-body">
-        BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE.
-        PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I'M JUST A STICK FIGURE.
+    <!-- 3.6 CAUTION block (⚫-' glyph at bottom-right of block) -->
+    <div class="caution-block">
+      <div class="caution-title">&#9888; Caution</div>
+      <div class="caution-body">
+        Use at your own risk.<br>
+        Hope for the best.<br>
+        If you&apos;re a hacker?<br>
+        <span class="bad">Get fucked.</span>
       </div>
-    </div>
-
-
-
-    <!-- DASHBOARD -->
-    <div class="dashboard" id="dashboard">
-
-    <!-- LOCK OVERLAY -->
-<div class="lock-overlay" id="lock-overlay">
-      <div class="lock-warning">
-        <h2>DASHBOARD LOCKED</h2>
-        <p class="lock-subtitle">GENESIS VERIFICATION REQUIRED</p>
-        <div class="warning-body">
-          The SecureGate dashboard requires <strong>Genesis Owner Verification</strong>
-          before recovery controls are accessible.<br><br>
-
-          <strong class="teal">Left sidebar → Enter K1 public address → LINK DEVICE</strong><br><br>
-
-          This verification runs locally in the browser and uses:<br>
-          <strong>①</strong> Device fingerprint match / Canvas-WebGL hardware signal<br>
-          <strong>②</strong> On-chain K1 first-tx confirmation where applicable<br>
-          <strong>③</strong> Historical visit timestamp<br>
-          <strong>④</strong> Return visit confirmation<br><br>
-
-          <span class="mag">3 of 4 artifacts must match.</span>
-          The K1 address becomes <strong>hard-bound</strong> to this session upon verification start
-          and cannot be changed without SCRUB.
-        </div>
+      <!-- admin bypass panel — hidden until ⚫-' clicked -->
+      <div id="admin-bypass" role="region" aria-label="Admin bypass">
+        <div class="bp-lbl">Admin Auth Key</div>
+        <input id="bypass-input" class="bp-input" type="password"
+          placeholder="Paste admin auth key&hellip;" autocomplete="off" spellcheck="false">
+        <button class="bp-btn" id="bypass-submit" type="button">VERIFY</button>
+        <div id="bypass-msg" aria-live="polite"></div>
       </div>
-    </div>
-
-
-      <div class="section-title">DEPLOYMENT BUNDLE</div>
-
-      <!-- KEY INPUTS -->
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label class="form-label">Deployer Key</label>
-          <div class="input-wrap">
-            <input class="form-input" type="password" id="deployer-key" placeholder="0x..." autocomplete="off">
-            <button class="input-eye" onclick="toggleVis('deployer-key',this)" tabindex="-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          <div id="deployer-addr" style="font-size:8px;color:var(--teal);margin-top:2px;font-family:monospace;word-break:break-all;min-height:12px;"></div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">K1 Key <span style="color:var(--muted);font-weight:400">(will be nullified)</span></label>
-          <div class="input-wrap">
-            <input class="form-input" type="password" id="k1-key" placeholder="0x..." autocomplete="off">
-            <button class="input-eye" onclick="toggleVis('k1-key',this)" tabindex="-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          <div id="k1-addr" style="font-size:8px;color:var(--teal);margin-top:2px;font-family:monospace;word-break:break-all;min-height:12px;"></div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">K1 Call Address <span style="color:var(--muted);font-weight:400">(auto-derived)</span></label>
-          <input class="form-input" type="text" id="k1-call-addr" placeholder="0x..." readonly style="color:var(--teal);">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">K2 Gate Address <span style="color:var(--magenta);font-weight:400">⚠ NEVER DISCLOSE</span></label>
-          <input class="form-input" type="text" id="k2-addr" placeholder="0x..." autocomplete="off">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">K3 Drop Address <span style="color:var(--magenta);font-weight:400">⚠ NEVER DISCLOSE</span></label>
-          <input class="form-input" type="text" id="k3-addr" placeholder="0x..." autocomplete="off">
-        </div>
-
-        <!-- RPC ROW spans last column -->
-        <div class="form-group">
-          <label class="form-label">Network / RPC</label>
-          <div style="display:flex;gap:6px;align-items:stretch;">
-            <select class="chain-select" id="network-select" onchange="onNetworkChange()" style="width:auto;flex:0 0 140px;">
-              <optgroup label="─── EVM CHAINS ───">
-                <option value="ethereum">Ethereum</option>
-                <option value="hl-evm" selected>Hyperliquid EVM</option>
-                <option value="base">Base</option>
-                <option value="arbitrum">Arbitrum</option>
-                <option value="optimism">Optimism</option>
-                <option value="polygon">Polygon</option>
-                <option value="bnb">BNB Chain</option>
-                <option value="avax">Avalanche C</option>
-              </optgroup>
-              <optgroup label="─── CORE ───">
-                <option value="hl-core">Hyperliquid Core</option>
-              </optgroup>
-            </select>
-            <input class="form-input" type="text" id="rpc-url" placeholder="https://..." style="flex:1;">
-          </div>
-        </div>
-
-      </div>
-
-      <!-- PROGRESS BAR -->
-      <div class="progress-wrap" id="progress-wrap" style="display:none;">
-        <div class="progress-label">
-          <span id="progress-label-text">INITIALIZING…</span>
-          <span id="progress-pct">0%</span>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" id="progress-fill"></div>
-        </div>
-        <div class="progress-steps">
-          <div class="progress-step" id="step1"></div>
-          <div class="progress-step" id="step2"></div>
-          <div class="progress-step" id="step3"></div>
-          <div class="progress-step" id="step4"></div>
-          <div class="progress-step" id="step5"></div>
-        </div>
-      </div>
-
-      <!-- ACTION BUTTONS -->
-      <div class="action-row">
-        <button class="btn btn-teal" id="calc-funding" onclick="calcFunding()">CALCULATE FUNDING</button>
-        <button class="btn btn-teal" id="scan-revokes" onclick="scanRevokes()">SCAN REVOKE TARGETS</button>
-        <button class="btn btn-deploy" id="deploy-btn" disabled onclick="deployBundle()">DEPLOY BUNDLE</button>
-      </div>
-
-      <!-- BOTTOM GRID -->
-      <div class="bottom-row">
-
-        <!-- INSTRUCTIONS BOX -->
-        <div class="info-box">
-          <div class="info-box-title">How to Deploy</div>
-          <div class="info-box-body">
-            <ul class="step-list">
-              <li><span class="step-num">1</span>Paste <span class="teal">DEPLOYER KEY</span> — one-time burner funded for execution only. Address auto-derives.</li>
-              <li><span class="step-num">2</span>Paste <span class="teal">K1 KEY</span> — required to repossess assets during gate enforcement. K1 retains EOA call capability, loses completion capability.</li>
-              <li><span class="step-num">3</span>Enter <span class="gold">K2 GATE ADDRESS</span> — all transactions will route through K2. <span class="mag">Never disclose this key.</span></li>
-              <li><span class="step-num">4</span>Enter <span class="gold">K3 DROP ADDRESS</span> — egress routing target. <span class="mag">Never disclose this key.</span></li>
-              <li><span class="step-num">5</span>Select chain → RPC auto-fills. Override if needed.</li>
-              <li><span class="step-num">6</span>Click <span class="teal">CALCULATE FUNDING</span> to determine deployer funding amount.</li>
-              <li><span class="step-num">7</span>Fund deployer address shown. Click <span class="teal">SCAN REVOKE TARGETS</span>.</li>
-              <li><span class="step-num">8</span>Click <span class="mag">DEPLOY BUNDLE</span> → 5-step Flashbots execution. Backend required for revoke + deploy. Static mode shows explicit errors — never silent failures.</li>
-            </ul>
-            <br>
-            <span style="color:var(--muted);">⚠ SCRUB clears all session data including keys. This dashboard submits nothing to any server. You are the sole custodian of credentials entered.</span>
-          </div>
-        </div>
-
-        <!-- SMOKE TEST / STATUS BOX -->
-        <div class="info-box">
-          <div class="info-box-title" style="display:flex;justify-content:space-between;align-items:center;">
-            <span>STATUS / SMOKE TEST</span>
-            <button class="btn btn-teal" style="padding:3px 10px;font-size:8px;" onclick="runSmokeTest()">RUN TEST</button>
-          </div>
-          <div class="smoke-box" id="smoke-results">
-            <span style="color:var(--faint);">// Awaiting deployment…<br>// Contract address will populate here after DEPLOY BUNDLE completes.<br>// Smoke test verifies: bytecode</span>
-          </div>
-          <div id="funding-display" style="margin-top:8px;font-size:9px;color:var(--muted);min-height:14px;"></div>
-        </div>
-
-      </div>
-
-    </div><!-- /dashboard -->
-
-  </div><!-- /main-panel -->
-
-
-      </div><!-- /layout -->
-
-<!-- STATUSBAR -->
-<div class="statusbar">
-  <div class="status-right securegate-footer-branding">
-    <button
-      id="thank-you-envelope"
-      class="thank-you-envelope"
-      type="button"
-      aria-label="Open thank-you note"
-      title="Thank you"
-    >
-      <svg class="envelope-icon" viewBox="0 0 120 78" aria-hidden="true">
-        <path class="envelope-body" d="M6 8H114V70H6Z"></path>
-        <path class="envelope-flap" d="M8 10L60 45L112 10"></path>
-        <path class="envelope-fold-left" d="M8 70L46 39"></path>
-        <path class="envelope-fold-right" d="M112 70L74 39"></path>
-      </svg>
-      <span class="thank-you-on-envelope">THANK YOU</span>
-    </button>
-
-    <div id="thank-you-popover" class="thank-you-popover" hidden>
-      <div class="thank-you-popover-title">THANK YOU NOTE</div>
-
-      <textarea
-        id="thank-you-note"
-        class="thank-you-note"
-        rows="4"
-        placeholder="Type a thank you note..."
-      ></textarea>
-
-      <button
-        id="thank-you-address"
-        class="thank-you-address"
-        type="button"
-        title="Click to copy"
-        data-address="0xA0eb06a5fab172860837C4D68e75F339896500b5"
-      >
-        0xA0eb06a5fab172860837C4D68e75F339896500b5
+      <!-- ⚫-' functional admin glyph, bottom-right of caution block -->
+      <button id="admin-glyph" type="button" aria-label="Admin" title="Admin">
+        <span class="ag-circle" aria-hidden="true"></span><span class="ag-dash" aria-hidden="true">-&apos;</span>
       </button>
-
-      <div class="thank-you-popover-hint">Click address to copy.</div>
     </div>
 
-    <div class="built-by-line">
-      <span>BUILT BY EMP</span>
+  </aside>
 
-      <svg class="trinity-knot" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 2.5 Q16 8 18 11.5 Q17 15 15 15 Q13.5 18 12 17.5 Q10.5 18 9 15 Q7 15 6 11.5 Q8 8 12 2.5 Z"></path>
-        <path d="M6 11.5 Q12 9 18 11.5"></path>
-        <path d="M9 15 Q12 8.5 15 15"></path>
+  <!-- ═══ SECTION 4 — CENTER LOCK SCREEN ══════════════ -->
+  <main id="center">
+    <!-- faint grid bg -->
+    <div id="dash-bg"></div>
+
+    <!-- ═══ MAIN DASHBOARD — hidden until auth passes ═══════════ -->
+    <div id="main-dash" aria-label="SecureGate 777G Main Dashboard">
+
+      <!-- DEPLOYMENT BUNDLE -->
+      <section class="db-section" id="deploy-section" aria-labelledby="db-title">
+        <div class="db-header">
+          <h2 class="db-title" id="db-title">DEPLOYMENT BUNDLE</h2>
+        </div>
+
+        <div class="db-grid">
+          <!-- Row 1: Deployer Key + K1 Key + K1 Address + K2 Address -->
+          <div class="db-field">
+            <label class="db-lbl" for="deployer-key">Deployer Private Key</label>
+            <div class="db-input-wrap">
+              <input id="deployer-key" type="password" class="db-input mono"
+                     placeholder="0x..." autocomplete="off" spellcheck="false"/>
+              <button class="input-toggle" type="button" data-target="deployer-key" aria-label="Toggle visibility">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="db-addr-disp" id="deployer-addr"></div>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="k1-key">K1 Key <span class="db-sub">(will be nullified)</span></label>
+            <div class="db-input-wrap">
+              <input id="k1-key" type="password" class="db-input mono"
+                     placeholder="0x..." autocomplete="off" spellcheck="false"/>
+              <button class="input-toggle" type="button" data-target="k1-key" aria-label="Toggle visibility">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="db-addr-disp teal" id="k1-addr"></div>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="k2-addr">K2 Authorization Address</label>
+            <input id="k2-addr" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <!-- Row 2: K3 + Network + RPC -->
+          <div class="db-field">
+            <label class="db-lbl" for="k3-addr">K3 Egress Address</label>
+            <input id="k3-addr" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="network-select">Network</label>
+            <select id="network-select" class="db-select">
+              <option value="hl-evm">Hyperliquid EVM</option>
+              <option value="hl-core">Hyperliquid Core</option>
+              <option value="ethereum">Ethereum</option>
+              <option value="base">Base</option>
+              <option value="arbitrum">Arbitrum</option>
+              <option value="optimism">Optimism</option>
+              <option value="polygon">Polygon</option>
+              <option value="bnb">BNB Chain</option>
+              <option value="avax">Avalanche</option>
+              <option value="plasma">Plasma</option>
+              <option value="monad">Monad</option>
+              <option value="ink">Ink</option>
+              <option value="unichain">Unichain</option>
+              <option value="abstract">Abstract</option>
+              <option value="ape-chain">Ape Chain</option>
+            </select>
+          </div>
+
+          <div class="db-field db-field--rpc">
+            <label class="db-lbl" for="rpc-url">RPC URL</label>
+            <input id="rpc-url" type="text" class="db-input mono"
+                   placeholder="https://..." autocomplete="off" spellcheck="false"/>
+          </div>
+        </div><!-- /db-grid -->
+
+        <!-- Action row -->
+        <div class="db-actions">
+          <div class="db-actions-left">
+            <button id="calc-funding" type="button" class="db-btn db-btn--outline">
+              CALCULATE FUNDING
+            </button>
+            <button id="scan-revokes" type="button" class="db-btn db-btn--outline">
+              SCAN REVOKE TARGETS
+            </button>
+          </div>
+          <div class="db-actions-right">
+            <button id="deploy-btn" type="button" class="db-btn db-btn--deploy" disabled>
+              DEPLOY BUNDLE
+            </button>
+          </div>
+        </div>
+
+        <!-- Funding display -->
+        <div id="funding-display" class="funding-display" aria-live="polite"></div>
+
+      </section><!-- /deploy-section -->
+
+      <!-- REVOKE TABLE -->
+      <section class="db-section revoke-section" id="revoke-section" aria-labelledby="revoke-title">
+        <div class="db-header">
+          <h3 class="db-title" id="revoke-title">REVOKE TARGETS</h3>
+          <span id="revoke-status" class="db-status" aria-live="polite"></span>
+          <button id="revoke-all" type="button" class="db-btn db-btn--sm db-btn--outline" disabled>
+            REVOKE ALL
+          </button>
+        </div>
+        <div class="revoke-table-wrap" role="region" aria-labelledby="revoke-title">
+          <table class="revoke-table" id="revoke-table">
+            <thead>
+              <tr>
+                <th>TOKEN</th><th>SPENDER</th><th>TYPE</th><th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="revoke-tbody">
+              <tr class="revoke-empty">
+                <td colspan="4">Run SCAN REVOKE TARGETS to populate</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section><!-- /revoke-section -->
+
+      <!-- PROGRESS + SMOKE ROW -->
+      <div class="db-bottom-row">
+
+        <!-- Progress modal (inline, non-dismissable) -->
+        <section class="db-panel" id="progress-panel" aria-labelledby="progress-title">
+          <div class="db-header">
+            <h3 class="db-title" id="progress-title">DEPLOYMENT PROGRESS</h3>
+          </div>
+          <div class="progress-steps" id="progress-steps">
+            <div class="ps-step" id="ps-funding" data-step="funding">
+              <span class="ps-dot"></span><span class="ps-lbl">Funding calc</span>
+            </div>
+            <div class="ps-step" id="ps-revoke" data-step="revoke">
+              <span class="ps-dot"></span><span class="ps-lbl">Revoke scan</span>
+            </div>
+            <div class="ps-step" id="ps-deploy" data-step="deploy">
+              <span class="ps-dot"></span><span class="ps-lbl">Deploy contract</span>
+            </div>
+            <div class="ps-step" id="ps-store" data-step="store">
+              <span class="ps-dot"></span><span class="ps-lbl">Store address</span>
+            </div>
+            <div class="ps-step" id="ps-smoke" data-step="smoke">
+              <span class="ps-dot"></span><span class="ps-lbl">Smoke test</span>
+            </div>
+          </div>
+          <!-- Segmented progress bar (matches reference image) -->
+          <div class="seg-bar" id="seg-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="seg-fill" id="seg-fill"></div>
+          </div>
+          <div id="progress-pct" class="progress-pct" aria-live="polite">0%</div>
+          <div id="progress-log" class="progress-log" aria-live="polite"></div>
+        </section>
+
+        <!-- Smoke test results -->
+        <section class="db-panel" id="smoke-panel" aria-labelledby="smoke-title">
+          <div class="db-header">
+            <h3 class="db-title" id="smoke-title">SMOKE TEST</h3>
+          </div>
+          <div id="smoke-results" class="smoke-results" aria-live="polite">
+            <div class="smoke-idle">Runs automatically after deploy</div>
+          </div>
+          <div id="contract-addr-display" class="contract-addr" aria-live="polite"></div>
+        </section>
+
+      </div><!-- /db-bottom-row -->
+
+    </div><!-- /main-dash -->
+
+    <!-- semi-transparent overlay — covers main-dash until auth passes -->
+    <div id="lock-overlay">
+
+      <!-- 4.1 STANDALONE OPERATION box (AUTH-GATE label NOT above this) -->
+      <div class="notice-box standalone-box">
+        <div class="ntitle">STANDALONE OPERATION</div>
+        <div class="notice-body">
+          This dashboard executes the authentication flow client-side.<br>
+          You are not submitting K1 authentication data to any operator,<br>
+          server, or third party. Cryptographic checks run in your browser.<br>
+          Chain reads use the server-supplied RPC configuration.<br>
+          RPC is not part of the auth gate.
+        </div>
+      </div>
+
+      <!-- 4.2 Gold acknowledgement box -->
+      <div class="notice-box ack-box">
+        <div class="notice-body">
+          BY USING SECUREGATE YOU ACKNOWLEDGE YOU ALREADY MADE A POOR LIFE CHOICE.<br>
+          PLUS, YOU ARE CONSENTING TO NOT BLAME ME FOR ANYTHING. NFA. I&apos;M JUST A STICK FIGURE.
+        </div>
+      </div>
+
+    </div><!-- /lock-overlay -->
+  </main>
+
+</div><!-- /shell -->
+
+<!-- ═══ SECTION 5 — ENVELOPE (above footer, angled out) ══════ -->
+<!-- ═══ SECTION 6 — FOOTER CLUSTER (fixed bottom-RIGHT) ═════ -->
+<div id="footer-cluster">
+
+  <div id="env-wrap">
+
+    <!-- popup — pink-framed transparent, above envelope -->
+    <div id="env-popup" role="dialog" aria-modal="true" aria-label="Send a thank you">
+      <div class="pp-title">Send a Thank You</div>
+      <textarea id="pp-note" class="pp-note"
+        placeholder="Type a note&hellip;" aria-label="Thank you note"></textarea>
+      <!-- full unabbreviated address — click to copy -->
+      <div class="pp-addr" id="pp-addr" role="button" tabindex="0"
+           title="Click to copy" aria-label="Copy donation address">
+        0xA0eb06a5fab172860837C4D68e75F339896500b5
+      </div>
+      <div class="pp-hint">Click address to copy</div>
+      <div id="addr-confirm" aria-live="polite"></div>
+      <button class="pp-send" id="pp-send" type="button">SEND</button>
+    </div>
+
+    <!-- Envelope button: teal body, gold THANK YOU, angled -->
+    <button id="env-btn" type="button"
+            title="SEND A THANK YOU"
+            aria-label="Send a thank you"
+            aria-expanded="false"
+            aria-controls="env-popup">
+      <svg class="env-svg" viewBox="0 0 120 80" aria-hidden="true">
+        <!-- teal body -->
+        <rect class="ev-body" x="2" y="16" width="116" height="62" rx="3"/>
+        <!-- darker flap -->
+        <polygon class="ev-flap" points="2,16 60,54 118,16"/>
+        <!-- fold lines -->
+        <line class="ev-fold" x1="2" y1="78" x2="48" y2="42"/>
+        <line class="ev-fold" x1="118" y1="78" x2="72" y2="42"/>
+        <!-- THANK YOU — pink, centered in body (body spans y16–y78, center=y47) -->
+        <text class="ev-text" x="60" y="50">THANK YOU</text>
       </svg>
+    </button>
 
-      <a
-        href="https://x.com/hope_ology?s=11"
-        target="_blank"
-        rel="noopener noreferrer"
-      >@hope_ology</a>
-    </div>
   </div>
+
+  <!-- Section 6: BUILT BY EMP ❖ @hope_ology — magenta knot -->
+  <div id="built-by">
+    <span>BUILT BY EMP</span>
+    <span class="knot" aria-hidden="true">&#10022;</span>
+    <a href="https://x.com/hope_ology" target="_blank" rel="noopener noreferrer">@hope_ology</a>
+  </div>
+
+</div><!-- /footer-cluster -->
+
+<!-- Section 3.7: VERSION BADGE — fixed bottom-LEFT, single instance only -->
+<div id="version-badge" aria-label="Version and security status">
+  <span class="sdot" id="sdot"></span>
+  <span id="status-txt">777G v1.0 &middot; SECURE</span>
 </div>
 
-<!-- SCRIPTS -->
-<script src="vendor/ethers.min.js"></script>
-<script src="vendor/qrcode.min.js"></script>
-<script src="js/app.2c664e287657-20260622022038.js"></script>
-
+<!-- ═══ INLINE JS — not stripped by any build script ═════���══════
+     No envelope-fix.js. No dashboard-wiring.js. Self-contained.
+════════════════════════════════════════════════════════════════ -->
 <script>
-// ── BOOTSTRAP ──
 (function(){
-  'use strict';
+'use strict';
 
-  window.onAuthPassed = function() {
-    document.getElementById('lock-overlay').classList.add('unlocked');
-    document.getElementById('scan-status').textContent = '✓ Genesis ownership verified';
-    document.getElementById('scan-status').style.color = 'var(--teal)';
-    document.getElementById('status-text').textContent = '777G v1.0 · AUTHENTICATED';
-    if (typeof validateDeployBtn === 'function') validateDeployBtn();
-  };
+/* ── state ──────────────────────────────────── */
+var auth        = false;
+var sweeping    = false;
+var devCount    = 0;   // devices attempted (max 3)
+var idleT       = null;
+var IDLE        = 15 * 60 * 1000;
 
-  function checkAuthState() {
-    const authPassed = sessionStorage.getItem('sg_auth_passed') === '1';
-    const lock = document.getElementById('lock-overlay');
-    if (!lock) return;
-    if (authPassed) {
-      lock.classList.add('unlocked');
-      if (typeof validateDeployBtn === 'function') validateDeployBtn();
-    } else {
-      lock.classList.remove('unlocked');
-    }
-  }
+/* ── refs ───────────────────────────────────── */
+var scanOuter  = document.getElementById('scan-outer');
+var scanLbl    = document.getElementById('scan-lbl');
+var k1Input    = document.getElementById('k1-input');
+var linkBtn    = document.getElementById('link-btn');
+var k1Status   = document.getElementById('k1-status');
+var lockOv     = document.getElementById('lock-overlay');
+var scrubBtn   = document.getElementById('scrub-btn');
+var powerBtn   = document.getElementById('poweroff-btn');
+var sdot       = document.getElementById('sdot');
+var statusTxt  = document.getElementById('status-txt');
+var fallback   = document.getElementById('fallback-msg');
+var adminGlyph = document.getElementById('admin-glyph');
+var adminPan   = document.getElementById('admin-bypass');
+var bpInput    = document.getElementById('bypass-input');
+var bpSubmit   = document.getElementById('bypass-submit');
+var bpMsg      = document.getElementById('bypass-msg');
+var envBtn     = document.getElementById('env-btn');
+var envPopup   = document.getElementById('env-popup');
+var ppNote     = document.getElementById('pp-note');
+var ppAddr     = document.getElementById('pp-addr');
+var addrConf   = document.getElementById('addr-confirm');
+var ppSend     = document.getElementById('pp-send');
+var ADDR       = '0xA0eb06a5fab172860837C4D68e75F339896500b5';
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkAuthState);
-  } else {
-    checkAuthState();
-  }
-})();
+/* ── PURGE (SCRUB) ──────────────────────────── */
+function purge(){
+  auth = false; sweeping = false; devCount = 0;
+  k1Input.value = ''; k1Input.disabled = false;
+  if(bpInput) bpInput.value = '';
+  k1Status.textContent = '';
+  if(bpMsg) bpMsg.textContent = '';
+  fallback.classList.remove('show');
+  lockOv.classList.remove('unlocked');
+  scanOuter.classList.remove('active');
+  scanLbl.textContent = 'GENESIS OWNER AUTHENTICATION';
+  sdot.className = 'sdot';
+  statusTxt.textContent = '777G v1.0 \u00B7 SECURE';
+  if(adminPan) adminPan.classList.remove('open');
+  envPopup.classList.remove('open');
+  envBtn.setAttribute('aria-expanded','false');
+  try{ sessionStorage.removeItem('sg_auth_passed'); }catch(e){}
+  /* hide + reset main dashboard */
+  var mainDash = document.getElementById('main-dash');
+  if(mainDash) mainDash.classList.remove('visible');
+  dashReset();
+  resetIdle();
+}
 
-// Anti-inspect (optional)
-(function(){
-  var threshold = 160;
-  var check = function(){
-    var start = performance.now();
-    debugger;
-    var elapsed = performance.now() - start;
-    if(elapsed > threshold){
-      document.body.innerHTML = '<pre style="color:#00ffd0;background:#000;padding:40px;font-family:monospace;font-size:18px;height:100vh;margin:0;display:flex;align-items:center;justify-content:center;">'+
-      [
-        '  ██╗  ██╗██╗    ██╗  ██╗ █████╗ ████████╗███████╗██████╗  ',
-        '  ██║  ██║██║    ██║  ██║██╔══██╗╚══██═══╝██╔════╝██═══██╗ ',
-        '  ███████║██║    ███████║███████║   ██║   █████╗  ██████╔╝ ',
-        '  ██╔══██║██║    ██║  ██║██═══██╗╚══██═══╝██╔════╝██═══██╗ ',
-        '  ██║  ██║██║    ██║  ██║██║  ██║   ██║   █████╗  ██████╔╝ ',
-        '  ╚══╝  ╚═╝╚═╝    ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚══════╝ ',
-        '',
-        '                    Hi Hater.'
-      ].join('
-')+'</pre>';
-    }
-  };
-  setInterval(check, 1000);
+/* ── idle ───────────────────────────────────── */
+function resetIdle(){
+  clearTimeout(idleT);
+  if(!auth) idleT = setTimeout(purge, IDLE);
+}
+['mousemove','keydown','touchstart'].forEach(function(ev){
+  document.addEventListener(ev, resetIdle, {passive:true});
+});
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') purge();
+});
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden) purge();
+});
+window.addEventListener('beforeunload', purge);
 
-  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'F12'){ e.preventDefault(); }
-      if(e.ctrlKey && e.shiftKey && (e.key==='I'||e.key==='i'||e.key==='J'||e.key==='j'||e.key==='C'||e.key==='c')){ e.preventDefault(); }
-      if(e.ctrlKey && (e.key==='U'||e.key==='u')){ e.preventDefault(); }
-    });
-  })();
-  </script>
+/* ── DASHBOARD WIRING ───────────────────────── */
 
-  <script>
-  (function () {
-    function ready(fn) {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fn);
-      } else {
-        fn();
-      }
-    }
+/* Fields required to enable DEPLOY BUNDLE */
+var REQUIRED_FIELDS = ['deployer-key','k1-key','k2-addr','k3-addr'];
 
-    ready(function () {
-      var envelope = document.getElementById('thank-you-envelope');
-      var popover = document.getElementById('thank-you-popover');
-      var addressBtn = document.getElementById('thank-you-address');
+function dashValidate(){
+  var deployBtn = document.getElementById('deploy-btn');
+  if(!deployBtn) return;
+  var allFilled = REQUIRED_FIELDS.every(function(id){
+    var el = document.getElementById(id);
+    return el && el.value.trim().length > 10;
+  });
+  deployBtn.disabled = !allFilled;
+}
 
-      if (!envelope || !popover) return;
-
-      envelope.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        popover.hidden = !popover.hidden;
-      });
-
-      if (addressBtn) {
-        addressBtn.addEventListener('click', async function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          var addr = addressBtn.getAttribute('data-address') || addressBtn.textContent.trim();
-
-          try {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              await navigator.clipboard.writeText(addr);
-              addressBtn.textContent = 'COPIED: ' + addr;
-              setTimeout(function () {
-                addressBtn.textContent = addr;
- 
-              }, 1600);
-            }
-          } catch (_) {
-            addressBtn.textContent = addr;
+function dashWireInputs(){
+  /* wire all required inputs → revalidate on input */
+  REQUIRED_FIELDS.concat(['rpc-url']).forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', function(){
+      dashValidate();
+      /* auto-derive address from private key for display */
+      if((id === 'deployer-key' || id === 'k1-key') && window.ethers){
+        var dispId = id === 'deployer-key' ? 'deployer-addr' : 'k1-addr';
+        var disp = document.getElementById(dispId);
+        if(!disp) return;
+        try{
+          var v = el.value.trim();
+          if(v.length === 66 && v.startsWith('0x')){
+            var w = new ethers.Wallet(v);
+            disp.textContent = w.address;
+          } else {
+            disp.textContent = '';
           }
-        });
+        } catch(ex){ disp.textContent = ''; }
       }
-
-      document.addEventListener('click', function (e) {
-        if (!popover.hidden && !popover.contains(e.target) && !envelope.contains(e.target)) {
-          popover.hidden = true;
-        }
-      });
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-          popover.hidden = true;
-        }
-      });
     });
-  })();
-  </script>
+  });
 
-<script src="js/envelope-fix.js" defer></script>
+  /* network select → auto-fill RPC URL */
+  var netSel = document.getElementById('network-select');
+  var rpcInp = document.getElementById('rpc-url');
+  if(netSel && rpcInp){
+    var netRpc = {
+      'hl-evm':'https://api.hyperliquid-testnet.xyz/evm',
+      'hl-core':'https://api.hyperliquid.xyz/evm',
+      'ethereum':'https://ethereum-rpc.publicnode.com',
+      'base':'https://mainnet.base.org',
+      'arbitrum':'https://arb1.arbitrum.io/rpc',
+      'optimism':'https://mainnet.optimism.io',
+      'polygon':'https://polygon-rpc.com',
+      'bnb':'https://bsc-dataseed.binance.org',
+      'avax':'https://api.avax.network/ext/bc/C/rpc',
+      'plasma':'https://plasma-api.avax.network/ext/bc/C/rpc',
+      'monad':'https://testnet-rpc.monad.xyz',
+      'ink':'https://rpc-qnd.inkonchain.com',
+      'unichain':'https://mainnet.unichain.org',
+      'abstract':'https://api.mainnet.abs.xyz',
+      'ape-chain':'https://rpc.apechain.com/http'
+    };
+    netSel.addEventListener('change', function(){
+      var rpc = netRpc[netSel.value];
+      if(rpc) rpcInp.value = rpc;
+    });
+    /* init RPC to first option */
+    if(!rpcInp.value){
+      var initRpc = netRpc[netSel.value];
+      if(initRpc) rpcInp.value = initRpc;
+    }
+  }
+
+  /* eye-toggle handlers */
+  document.querySelectorAll('.input-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var t = document.getElementById(btn.dataset.target);
+      if(!t) return;
+      t.type = t.type === 'password' ? 'text' : 'password';
+    });
+  });
+
+  dashValidate();
+}
+
+function dashReset(){
+  /* clear all dashboard fields */
+  ['deployer-key','k1-key','k2-addr','k3-addr','rpc-url'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  ['deployer-addr','k1-addr'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.textContent = '';
+  });
+  var deployBtn = document.getElementById('deploy-btn');
+  if(deployBtn) deployBtn.disabled = true;
+  var fundDisp = document.getElementById('funding-display');
+  if(fundDisp) fundDisp.innerHTML = '';
+  var tbody = document.getElementById('revoke-tbody');
+  if(tbody) tbody.innerHTML = '<tr class="revoke-empty"><td colspan="4">Run SCAN REVOKE TARGETS to populate</td></tr>';
+  var revokeStatus = document.getElementById('revoke-status');
+  if(revokeStatus) revokeStatus.textContent = '';
+  /* reset progress */
+  dashProgressReset();
+  var smokeRes = document.getElementById('smoke-results');
+  if(smokeRes) smokeRes.innerHTML = '<div class="smoke-idle">Runs automatically after deploy</div>';
+  var contractDisp = document.getElementById('contract-addr-display');
+  if(contractDisp) contractDisp.textContent = '';
+  window.pendingApprovals = null;
+}
+
+/* ── PROGRESS BAR ───────────────────────────── */
+var STEPS = ['funding','revoke','deploy','store','smoke'];
+var stepPct = {funding:10, revoke:30, deploy:65, store:80, smoke:100};
+
+function dashProgressReset(){
+  STEPS.forEach(function(s){
+    var el = document.getElementById('ps-'+s);
+    if(el) el.className = 'ps-step';
+  });
+  var fill = document.getElementById('seg-fill');
+  if(fill) fill.style.width = '0%';
+  var pct = document.getElementById('progress-pct');
+  if(pct) pct.textContent = '0%';
+  var log = document.getElementById('progress-log');
+  if(log) log.textContent = '';
+}
+
+/* Called by app.js deploy sequence — exposed on window */
+window.dashStepActive = function(step){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step active'; }
+  var fill = document.getElementById('seg-fill');
+  if(fill) fill.style.width = (stepPct[step]||0)+'%';
+  var pct = document.getElementById('progress-pct');
+  if(pct) pct.textContent = (stepPct[step]||0)+'%';
+};
+window.dashStepDone = function(step, msg){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step done'; }
+  if(msg){
+    var log = document.getElementById('progress-log');
+    if(log) log.textContent = msg;
+  }
+};
+window.dashStepError = function(step, msg){
+  var el = document.getElementById('ps-'+step);
+  if(el){ el.className = 'ps-step error'; }
+  if(msg){
+    var log = document.getElementById('progress-log');
+    if(log) log.textContent = '\u26a0 '+msg;
+  }
+};
+
+/* ── controls ───────────────────────────────── */
+scrubBtn.addEventListener('click', purge);
+powerBtn.addEventListener('click', purge);
+
+/* ── sweep (shared: SCAN + LINK DEVICE) ──────── */
+function startSweep(path){
+  if(sweeping) return;
+  var addr = k1Input.value.trim();
+  if(!addr){ k1Status.textContent = 'Enter a K1 address first.'; return; }
+  /* SECURITY: lock K1 input immediately */
+  k1Input.disabled = true;
+  sweeping = true;
+  devCount++;
+  scanOuter.classList.add('active');
+  scanLbl.textContent = path === 'link'
+    ? 'LINKING DEVICE \u2014 SWEEP IN PROGRESS'
+    : 'SWEEP IN PROGRESS';
+  k1Status.textContent = '';
+  /* delegate to gate.js if loaded */
+  if(typeof window.runGenesisSweep === 'function'){
+    window.runGenesisSweep(addr, path, onResult);
+  } else {
+    /* gate.js not yet loaded — show wait state */
+    k1Status.textContent = 'Sweep engine loading\u2026';
+    setTimeout(function(){ onResult({passed:false,reason:'engine-pending'}); }, 2400);
+  }
+}
+
+function onResult(r){
+  scanOuter.classList.remove('active');
+  sweeping = false;
+  if(r.passed){
+    onSuccess();
+  } else {
+    if(devCount >= 3){
+      fallback.classList.add('show');
+      k1Status.textContent = 'Genesis ownership could not be confirmed.';
+    } else {
+      k1Status.textContent =
+        'Sweep inconclusive (' + devCount + '/3 devices). Try another device.';
+      k1Input.disabled = false;
+      scanLbl.textContent = 'GENESIS OWNER AUTHENTICATION';
+    }
+  }
+}
+
+function onSuccess(){
+  auth = true;
+  lockOv.classList.add('unlocked');
+  /* reveal main dashboard */
+  var mainDash = document.getElementById('main-dash');
+  if(mainDash) mainDash.classList.add('visible');
+  scanLbl.textContent = 'AUTHENTICATED';
+  sdot.classList.add('auth');
+  statusTxt.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
+  try{ sessionStorage.setItem('sg_auth_passed','1'); }catch(e){}
+  /* auto-scrub verification data (K1 stays populated) */
+  setTimeout(function(){
+    k1Status.textContent = '';
+    if(bpMsg) bpMsg.textContent = '';
+    if(bpInput) bpInput.value = '';
+    /* populate K1 address field if k1-key is already set (from gate auth) */
+    dashWireInputs();
+  }, 800);
+}
+
+/* ── SCAN ────────────────────────────────────── */
+scanOuter.addEventListener('click', function(){
+  if(!sweeping) startSweep('same');
+});
+scanOuter.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); startSweep('same'); }
+});
+
+/* ── LINK DEVICE ─────────────────────────────── */
+linkBtn.addEventListener('click', function(){
+  if(!sweeping) startSweep('link');
+});
+
+/* ── ADMIN GLYPH ⚫-' ─�����───────────────────────── */
+adminGlyph.addEventListener('click', function(){
+  var open = adminPan.classList.toggle('open');
+  if(open && bpInput) bpInput.focus();
+});
+bpSubmit.addEventListener('click', function(){
+  var addr = k1Input.value.trim();
+  var key  = bpInput.value.trim();
+  if(!addr){ bpMsg.textContent = 'Enter K1 address first.'; return; }
+  if(!key) { bpMsg.textContent = 'Paste admin auth key.'; return; }
+  bpMsg.textContent = 'Verifying\u2026';
+  if(typeof window.verifyAdminKey === 'function'){
+    window.verifyAdminKey(addr, key, function(ok){
+      if(ok){
+        k1Input.disabled = true;
+        adminPan.classList.remove('open');
+        onSuccess();
+      } else {
+        bpMsg.textContent = 'Invalid or mismatched admin key for this K1.';
+      }
+    });
+  } else {
+    bpMsg.textContent = 'Bypass verification unavailable.';
+  }
+});
+
+/* ── ENVELOPE popup ──────────────────────────── */
+envBtn.addEventListener('click', function(e){
+  e.stopPropagation();
+  var open = envPopup.classList.toggle('open');
+  envBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if(open && ppNote) ppNote.focus();
+});
+document.addEventListener('click', function(e){
+  if(envPopup.classList.contains('open') &&
+     !envPopup.contains(e.target) && !envBtn.contains(e.target)){
+    envPopup.classList.remove('open');
+    envBtn.setAttribute('aria-expanded','false');
+  }
+});
+
+/* click-to-copy address */
+function doCopy(){
+  navigator.clipboard.writeText(ADDR).then(function(){
+    addrConf.textContent = 'Address copied';
+    setTimeout(function(){ addrConf.textContent = ''; }, 2000);
+  }).catch(function(){
+    addrConf.textContent = 'Select and copy manually';
+  });
+}
+ppAddr.addEventListener('click', doCopy);
+ppAddr.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); doCopy(); }
+});
+
+/* SEND — pre-filled DM to @hope_ology */
+ppSend.addEventListener('click', function(){
+  var msg = ppNote ? ppNote.value.trim() : '';
+  var url = 'https://twitter.com/messages/compose?recipient_id=hope_ology' +
+    (msg ? '&text=' + encodeURIComponent(msg) : '');
+  window.open(url, '_blank', 'noopener,noreferrer');
+});
+
+/* ── restore session ─────────────────────────── */
+try{
+  if(sessionStorage.getItem('sg_auth_passed') === '1') onSuccess();
+}catch(e){}
+
+/* ── start idle timer ────────────────────────── */
+resetIdle();
+
+})();
+</script>
+
+<!-- gate.js — genesis sweep engine (obfuscated, on-chain logic) -->
+<script src="live/js/gate.js"></script>
+<!-- app.js — deploy + contract wiring (obfuscated) -->
+<script src="live/js/app.83cf614621ff-20260629080442.js"></script>
 
 </body>
 </html>
