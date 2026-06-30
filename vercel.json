@@ -42,9 +42,9 @@
     { "source": "/abi.json",                    "destination": "/", "permanent": false },
     { "source": "/bytecode.txt",                "destination": "/", "permanent": false }
   ],
-  "rewrites": [
-    { "source": "/api/:path*",         "destination": "/api/:path*" },
-    { "source": "/vendor/:file",       "destination": "/vendor/:file" },
-    { "source": "/(.*)",               "destination": "/index.html" }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)",     "dest": "/index.html" }
   ]
 }
