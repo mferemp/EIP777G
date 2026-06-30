@@ -32,7 +32,6 @@
   ],
   "redirects": [
     { "source": "/js/genesis-verification.js", "destination": "/", "permanent": false },
-    { "source": "/artifacts/:path*",            "destination": "/", "permanent": false },
     { "source": "/contracts/:path*",            "destination": "/", "permanent": false },
     { "source": "/private-artifacts/:path*",    "destination": "/", "permanent": false },
     { "source": "/EIP777G.json",                "destination": "/", "permanent": false },
