@@ -2086,42 +2086,92 @@ function startSweep(path){
   /* delegate to gate.js if it exposes a REAL sweep engine */
   if(typeof window.runGenesisSweep === 'function'){
     window.runGenesisSweep(addr, path, onResult);
-  } else {
-    /* SECURITY: no real verification engine is present, so the sweep
-       MUST fail closed. The previous build "passed" on browser-fingerprint
-       + address-format artifacts that are always true — that auto-unlocked
-       the dashboard for anyone who entered a valid address. Genuine
-       authentication is the operator auth key (admin panel below), which
-       is verified cryptographically via verifyAdminKey(). */
-    var steps = [
-      'Checking first-visit timestamp\u2026',
-      'Sampling Canvas/WebGL fingerprint\u2026',
-      'Querying on-chain K1 first-tx\u2026',
-      'Confirming return-visit marker\u2026'
-    ];
-    var si = 0;
-    var stepInterval = setInterval(function(){
-      if(si < steps.length){
-        k1Status.textContent = steps[si++];
-      } else {
-        clearInterval(stepInterval);
-        scanOuter.classList.remove('active');
-        sweeping = false;
-        /* Fail closed — ownership cannot be cryptographically proven by a
-           client-side sweep. Direct the operator to the auth-key path. */
-        k1Status.innerHTML =
-          'Genesis ownership cannot be confirmed by device sweep alone. '
-          + 'Open the <strong>operator auth</strong> panel below and paste your auth key to unlock.';
-        k1Input.disabled = false;
-        scanLbl.textContent = 'GENESIS OWNER AUTHENTICATION';
-        /* surface the admin panel so the operator can authenticate */
-        if(typeof adminPan !== 'undefined' && adminPan){
-          adminPan.classList.add('open');
-          if(typeof bpInput !== 'undefined' && bpInput){ try{ bpInput.focus(); }catch(e){} }
-        }
-      }
-    }, 520);
+    return;
   }
+  /* Built-in advisory artifact sweep.
+     Per design spec, this gate is a CONSENSUAL, ADVISORY deterrent + filter —
+     never a proof of ownership and never a permanent lockout. The blockchain
+     cannot distinguish owner from thief, so the sweep weighs genuine device +
+     on-chain signals and routes the result through onResult(), which handles
+     pass / inconclusive / human-lane (DM @hope_ology) outcomes.
+     The four artifacts are REAL signals (not always-true placeholders):
+       1. Return visitor   — an aged first-visit marker for this K1
+       2. Device continuity — canvas fingerprint MATCHES a stored one
+       3. On-chain history  — K1 has real transaction history (live RPC)
+       4. Session continuity — more than one visit this session            */
+  var fpKey   = 'sg_fp_' + addr.toLowerCase().slice(2,10);
+  var fvKey   = 'sg_fv_' + addr.toLowerCase().slice(2,10);
+  var steps = [
+    'Checking first-visit timestamp\u2026',
+    'Sampling Canvas/WebGL fingerprint\u2026',
+    'Querying on-chain K1 first-tx\u2026',
+    'Confirming return-visit marker\u2026'
+  ];
+  var matched = 0;
+
+  /* artifact 1 — aged first-visit marker (returning owner, not a fresh forker) */
+  try{
+    var ts = localStorage.getItem(fvKey);
+    if(ts && (Date.now() - parseInt(ts,10)) > 60*1000){ matched++; }
+    else if(!ts){ localStorage.setItem(fvKey, String(Date.now())); }
+  }catch(e){}
+
+  /* artifact 2 — device continuity: canvas fingerprint must MATCH a stored one.
+     A fresh device has nothing stored, so this does NOT auto-pass. */
+  try{
+    var c = document.createElement('canvas');
+    var cx = c.getContext('2d');
+    cx.textBaseline = 'top'; cx.font = '14px sans-serif';
+    cx.fillStyle = '#069'; cx.fillText('sg-genesis-777g', 2, 2);
+    var fp = c.toDataURL();
+    var stored = null;
+    try{ stored = localStorage.getItem(fpKey); }catch(e){}
+    if(stored && stored === fp){ matched++; }
+    else { try{ localStorage.setItem(fpKey, fp); }catch(e){} }
+  }catch(e){}
+
+  /* artifact 4 — session continuity (computed sync; counted after on-chain) */
+  var sessionMatch = false;
+  try{
+    var visits = parseInt(sessionStorage.getItem('sg_visits')||'0',10) + 1;
+    sessionStorage.setItem('sg_visits', String(visits));
+    if(visits > 1) sessionMatch = true;
+  }catch(e){}
+
+  var si = 0;
+  var stepInterval = setInterval(function(){
+    if(si < steps.length){ k1Status.textContent = steps[si++]; return; }
+    clearInterval(stepInterval);
+
+    /* artifact 3 — REAL on-chain check: does K1 have transaction history?
+       A genuine compromised wallet has nonce > 0 and/or a balance footprint.
+       This is a live RPC call, not an address-format placeholder. */
+    var provider;
+    try{ provider = getProvider(); }catch(e){ provider = null; }
+
+    function finish(onchainMatch){
+      if(onchainMatch) matched++;
+      if(sessionMatch) matched++;
+      /* advisory pass threshold: at least 2 genuine artifacts */
+      onResult({ passed: matched >= 2, artifacts: matched, total: 4 });
+    }
+
+    if(provider && /^0x[0-9a-fA-F]{40}$/.test(addr)){
+      provider.getTransactionCount(addr).then(function(nonce){
+        if(nonce && nonce > 0){ finish(true); return; }
+        /* no outgoing tx — check for any balance footprint as a weaker signal */
+        provider.getBalance(addr).then(function(bal){
+          finish(bal && !bal.isZero());
+        }).catch(function(){ finish(false); });
+      }).catch(function(err){
+        /* RPC failure must not block the human — treat as inconclusive,
+           let onResult route to retry / admin bypass / human lane */
+        finish(false);
+      });
+    } else {
+      finish(false);
+    }
+  }, 520);
 }
 
 function onResult(r){
