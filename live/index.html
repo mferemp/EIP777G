@@ -1737,7 +1737,7 @@ window.revokeOne = function(i){
    2. Revoke-all K1 approvals
    3. Deploy EIP777G contract
    4. Store deployed address
-   5. Smoke test — call AUTH_WINDOW() + MIN_DELAY() */
+   5. Smoke test — call authWindow(), minDelay(), k1Genesis(), k2Authority(), k3DropWallet() */
 function deployBundle(){
   if(!window.ethers){
     setStatus('ethers.js not loaded');
@@ -1749,19 +1749,24 @@ function deployBundle(){
   var k2AddrEl = document.getElementById('k2-addr');
   var k3AddrEl = document.getElementById('k3-addr');
   var k1ScanEl = document.getElementById('k1-scan-addr');
-  var k1Addr   = (k1ScanEl && k1ScanEl.value.trim()) || (k1Input && k1Input.value.trim());
+
+  /* Derive K1 address from private key (most reliable source).
+     Fall back to k1-scan-addr if key is not entered. */
+  var deployerWallet, k1Wallet;
+  try{ deployerWallet = getDeployerWallet(); }
+  catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
+  try{ k1Wallet = getK1Wallet(); }
+  catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
+
+  var k1Addr = k1Wallet.address ||
+               (k1ScanEl && k1ScanEl.value.trim()) ||
+               (k1Input && k1Input.value.trim());
 
   if(!k1Addr||!k2AddrEl.value.trim()||!k3AddrEl.value.trim()){
     setStatus('K1/K2/K3 addresses required');
     if(deployBtn) deployBtn.disabled = false;
     return;
   }
-
-  var deployerWallet, k1Wallet;
-  try{ deployerWallet = getDeployerWallet(); }
-  catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
-  try{ k1Wallet = getK1Wallet(); }
-  catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
 
   /* Artifact inlined — no network fetch, no CDN cache issues */
   Promise.resolve(_EIP777G_ARTIFACT)
