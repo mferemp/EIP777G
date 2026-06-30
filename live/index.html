@@ -7,8 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-<!-- ethers v5 — loaded synchronously in head so window.ethers is ready before inline JS runs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
+<!-- ethers v5 — deferred so it never blocks first paint. It is only used
+     inside click handlers (calc/scan/revoke/deploy), never at parse time,
+     so loading it after DOM parse keeps the lock screen instant. -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
 <style>
 /* ─── RESET ──────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -27,16 +29,17 @@
   --mag-d:    rgba(255,79,216,.12);
   --orange:   #ff9a1a;
   --red:      #e53e3e;
-  --text:     #dde3ee;
-  --muted:    #7a8499;
+  --text:     #eef2f9;
+  --muted:    #a3aec4;
   --faint:    #2e3650;
   --sw:       264px;
 }
 
 /* ─── BASE ───────────────────────────────── */
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
-  font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:12px;
-  -webkit-font-smoothing:antialiased;}
+  font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:12px;font-weight:500;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;}
 /* monospace only for code/addresses/labels */
 .mono{font-family:'Courier New',Courier,monospace}
 
@@ -647,7 +650,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   #center{height:auto;min-height:60vh;display:block;}
   #main-dash{position:relative;inset:auto;height:auto;padding:16px 14px 40px;display:none;opacity:1;}
   #main-dash.visible{display:flex;}
-  #lock-overlay{position:relative;inset:auto;min-height:60vh;padding:24px 16px;display:flex;}
+  #lock-overlay{position:relative;inset:auto;min-height:0;padding:8px 16px 24px;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;}
   #lock-overlay.unlocked{display:none;}
 
   /* single-column forms + panels so nothing is cramped */
@@ -659,10 +662,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   .db-actions-left{flex-direction:column;}
   .db-btn,.db-btn--deploy{width:100%;text-align:center;}
 
-  /* keep the floating clusters out of the way of scrolling content */
-  #footer-cluster{position:fixed;bottom:10px;right:10px;}
+  /* footer + version badge flow at the end of the page so they scroll
+     with content instead of covering it (no fixed positioning on mobile) */
+  #footer-cluster{position:static;margin:24px auto 8px;display:flex;justify-content:center;}
   .env-svg{width:58px}
-  #version-badge{position:fixed;left:10px;bottom:10px;}
+  #version-badge{position:static;margin:0 auto 20px;display:flex;justify-content:center;text-align:center;}
   .revoke-table-wrap{overflow-x:auto;}
 }
 
@@ -1301,7 +1305,7 @@ function dashReset(){
   window.pendingApprovals = null;
 }
 
-/* ── HELPERS ──────────────────────────────────── */
+/* ── HELPERS ─────────────────────���────────────── */
 function getProvider(){
   var rpc = (document.getElementById('rpc-url')||{}).value || 'https://rpc.hyperliquid.xyz/evm';
   return new ethers.providers.JsonRpcProvider(rpc);
@@ -1616,7 +1620,7 @@ function deployBundle(){
           var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='65%';
           var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='65%';
 
-          /* ── STEP 4: STORE ADDRESS ──────────── */
+          /* ── STEP 4: STORE ADDRESS ─��────────── */
           window.dashStepActive('store');
           dbLog('Recording deployed address\u2026');
           var cadEl = document.getElementById('contract-addr-display');
@@ -1718,30 +1722,61 @@ window.dashStepError = function(step, msg){
 };
 
 /* ── verifyAdminKey ──────────────────────────────
-   Admin keys are HMAC-SHA256(k1Address, adminSalt).
-   The salt is obfuscated across two halves so it
-   never appears plaintext in a single string literal.
-   cb(true) unlocks the dashboard without a sweep.   */
+   Two key types, both HMAC-SHA256 keyed by the obfuscated salt:
+
+   1. MASTER bypass key  = HMAC(salt, "__master__")  (full 64 hex)
+      → owner-only. Unlocks with NO K1 address required.
+
+   2. Per-K1 auth key     = HMAC(salt, k1Address)[:32]
+      → issued by the owner for a specific K1. The user MUST enter
+        that K1 address; the key only validates against its own K1.
+
+   verifyAdminKey(addr, key, cb) calls cb(ok, mode) where mode is
+   'master' | 'k1' | 'need-k1' so the UI can prompt correctly.
+
+   window.sgMintAuthKey(k1)  → owner helper (console) that returns the
+   per-K1 auth key for a given address, and the master key for k1=''.  */
 (function(){
   var _a = '\x73\x67\x5f';         // 'sg_'
   var _b = '\x61\x64\x6d\x5f\x76\x31\x5f'; // 'adm_v1_'
   var _c = '\x65\x6d\x70';        // 'emp'
   var SALT = _a + _b + _c;        // assembled only at runtime
-  window.verifyAdminKey = function(addr, key, cb){
-    if(!addr||!key){ cb(false); return; }
-    /* SubtleCrypto HMAC-SHA256 */
+  var MASTER_LABEL = '\x5f\x5f\x6d\x61\x73\x74\x65\x72\x5f\x5f'; // '__master__'
+
+  function hmacHex(message){
     var enc = new TextEncoder();
-    crypto.subtle.importKey(
-      'raw', enc.encode(SALT),
-      {name:'HMAC',hash:'SHA-256'},
-      false, ['sign']
+    return crypto.subtle.importKey(
+      'raw', enc.encode(SALT), {name:'HMAC',hash:'SHA-256'}, false, ['sign']
     ).then(function(k){
-      return crypto.subtle.sign('HMAC', k, enc.encode(addr.toLowerCase()));
+      return crypto.subtle.sign('HMAC', k, enc.encode(message));
     }).then(function(sig){
-      /* hex-encode the signature and compare first 32 chars with admin key */
-      var hex = Array.from(new Uint8Array(sig)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
-      cb(key.trim().toLowerCase() === hex.slice(0,32));
-    }).catch(function(){ cb(false); });
+      return Array.from(new Uint8Array(sig)).map(function(b){
+        return b.toString(16).padStart(2,'0');
+      }).join('');
+    });
+  }
+
+  window.verifyAdminKey = function(addr, key, cb){
+    key = (key||'').trim().toLowerCase();
+    if(!key){ cb(false, 'empty'); return; }
+    /* 1. master key — full 64-hex, no K1 required */
+    hmacHex(MASTER_LABEL).then(function(masterHex){
+      if(key === masterHex){ cb(true, 'master'); return; }
+      /* 2. per-K1 key — requires a K1 address */
+      var a = (addr||'').trim();
+      if(!a){ cb(false, 'need-k1'); return; }
+      hmacHex(a.toLowerCase()).then(function(hex){
+        cb(key === hex.slice(0,32), 'k1');
+      });
+    }).catch(function(){ cb(false, 'error'); });
+  };
+
+  /* Owner helper — run in console:
+       sgMintAuthKey('')              → master key (no K1)
+       sgMintAuthKey('0xK1address')   → that K1's auth key            */
+  window.sgMintAuthKey = function(k1){
+    if(!k1){ return hmacHex(MASTER_LABEL); }
+    return hmacHex(k1.trim().toLowerCase()).then(function(h){ return h.slice(0,32); });
   };
 })();
 
@@ -1887,17 +1922,21 @@ adminGlyph.addEventListener('click', function(){
 bpSubmit.addEventListener('click', function(){
   var addr = k1Input.value.trim();
   var key  = bpInput.value.trim();
-  if(!addr){ bpMsg.textContent = 'Enter K1 address first.'; return; }
+  /* NOTE: K1 is NOT required up front — the master key needs no K1.
+     Per-K1 auth keys still require K1, enforced by verifyAdminKey. */
   if(!key) { bpMsg.textContent = 'Paste admin auth key.'; return; }
   bpMsg.textContent = 'Verifying\u2026';
   if(typeof window.verifyAdminKey === 'function'){
-    window.verifyAdminKey(addr, key, function(ok){
+    window.verifyAdminKey(addr, key, function(ok, mode){
       if(ok){
-        k1Input.disabled = true;
+        /* master unlock may have no K1 — only lock the field if one exists */
+        if(addr) k1Input.disabled = true;
         adminPan.classList.remove('open');
         onSuccess();
+      } else if(mode === 'need-k1'){
+        bpMsg.textContent = 'This auth key requires its K1 address \u2014 enter K1 above.';
       } else {
-        bpMsg.textContent = 'Invalid or mismatched admin key for this K1.';
+        bpMsg.textContent = 'Invalid or mismatched admin key.';
       }
     });
   } else {
