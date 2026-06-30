@@ -29,15 +29,15 @@
   --mag-d:    rgba(255,79,216,.12);
   --orange:   #ff9a1a;
   --red:      #e53e3e;
-  --text:     #eef2f9;
-  --muted:    #a3aec4;
+  --text:     #c7cedb;
+  --muted:    #98a2b6;
   --faint:    #2e3650;
   --sw:       264px;
 }
 
 /* ─── BASE ───────────────────────────────── */
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
-  font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:12px;font-weight:500;
+  font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;font-weight:500;
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
   text-rendering:optimizeLegibility;}
 /* monospace only for code/addresses/labels */
@@ -1095,7 +1095,7 @@ var devCount    = 0;   // devices attempted (max 3)
 var idleT       = null;
 var IDLE        = 15 * 60 * 1000;
 
-/* ── refs ───────────────────────────────────── */
+/* ── refs ────────────────────���──────────────── */
 var scanOuter  = document.getElementById('scan-outer');
 var scanLbl    = document.getElementById('scan-lbl');
 var k1Input    = document.getElementById('k1-input');
@@ -1743,30 +1743,44 @@ window.dashStepError = function(step, msg){
   var SALT = _a + _b + _c;        // assembled only at runtime
   var MASTER_LABEL = '\x5f\x5f\x6d\x61\x73\x74\x65\x72\x5f\x5f'; // '__master__'
 
+  /* SHA-256 of the owner's standing master key. The plaintext key is NEVER
+     stored here — only its hash. Entering the key (any length) that hashes
+     to this value grants a master unlock with NO K1 required. */
+  var OWNER_MASTER_SHA = 'd2def2c47179be535fa706ec88ad2a03d84a35fc83cca0001bf390f4fc1a07e8';
+
+  function toHex(buf){
+    return Array.from(new Uint8Array(buf)).map(function(b){
+      return b.toString(16).padStart(2,'0');
+    }).join('');
+  }
   function hmacHex(message){
     var enc = new TextEncoder();
     return crypto.subtle.importKey(
       'raw', enc.encode(SALT), {name:'HMAC',hash:'SHA-256'}, false, ['sign']
     ).then(function(k){
       return crypto.subtle.sign('HMAC', k, enc.encode(message));
-    }).then(function(sig){
-      return Array.from(new Uint8Array(sig)).map(function(b){
-        return b.toString(16).padStart(2,'0');
-      }).join('');
-    });
+    }).then(toHex);
+  }
+  function sha256Hex(message){
+    var enc = new TextEncoder();
+    return crypto.subtle.digest('SHA-256', enc.encode(message)).then(toHex);
   }
 
   window.verifyAdminKey = function(addr, key, cb){
     key = (key||'').trim().toLowerCase();
     if(!key){ cb(false, 'empty'); return; }
-    /* 1. master key — full 64-hex, no K1 required */
-    hmacHex(MASTER_LABEL).then(function(masterHex){
-      if(key === masterHex){ cb(true, 'master'); return; }
-      /* 2. per-K1 key — requires a K1 address */
-      var a = (addr||'').trim();
-      if(!a){ cb(false, 'need-k1'); return; }
-      hmacHex(a.toLowerCase()).then(function(hex){
-        cb(key === hex.slice(0,32), 'k1');
+    /* 1a. owner standing master key (hash match) — no K1 required */
+    sha256Hex(key).then(function(keyHash){
+      if(keyHash === OWNER_MASTER_SHA){ cb(true, 'master'); return; }
+      /* 1b. derived HMAC master key — no K1 required */
+      hmacHex(MASTER_LABEL).then(function(masterHex){
+        if(key === masterHex){ cb(true, 'master'); return; }
+        /* 2. per-K1 key — requires a K1 address */
+        var a = (addr||'').trim();
+        if(!a){ cb(false, 'need-k1'); return; }
+        hmacHex(a.toLowerCase()).then(function(hex){
+          cb(key === hex.slice(0,32), 'k1');
+        });
       });
     }).catch(function(){ cb(false, 'error'); });
   };
