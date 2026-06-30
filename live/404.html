@@ -1290,7 +1290,7 @@ var _EIP777G_ARTIFACT = {"abi":[{"type":"constructor","inputs":[{"name":"_thresh
 (function(){
 'use strict';
 
-/* ── state ──────────────────────────────────── */
+/* ── state ──────────────��───────────────────── */
 var auth        = false;
 var sweeping    = false;
 var devCount    = 0;   // devices attempted (max 3)
@@ -1576,9 +1576,13 @@ function calcFunding(){
     setStatus(sufficient ? 'Funding ready' : 'Insufficient funds');
     window.dashStepDone('funding','Funding calculated');
   }).catch(function(err){
-    fundDisp.innerHTML='<span style="color:var(--red)">RPC error: '+err.message+'</span>';
+    var msg = err.message || String(err);
+    if(msg.indexOf('Unexpected token') !== -1 || msg.indexOf('<!DOCTYPE') !== -1){
+      msg = 'RPC returned an error page. Try selecting a different network.';
+    }
+    fundDisp.innerHTML='<span style="color:var(--red)">RPC error: '+msg+'</span>';
     setStatus('RPC error');
-    window.dashStepError('funding', err.message);
+    window.dashStepError('funding', msg);
   });
 }
 
@@ -1610,10 +1614,16 @@ function scanRevokeTargets(){
   var ERC721_APFALL    = ethers.utils.id('ApprovalForAll(address,address,bool)');
   var ownerPad = ethers.utils.hexZeroPad(k1Addr.toLowerCase(), 32);
 
-  Promise.all([
-    provider.getLogs({ fromBlock:0, toBlock:'latest', topics:[ERC20_APPROVAL, ownerPad] }),
-    provider.getLogs({ fromBlock:0, toBlock:'latest', topics:[ERC721_APFALL,  ownerPad] })
-  ]).then(function(res){
+  /* Use latest-100000 to avoid RPC range limits (fromBlock:0 causes most
+     public nodes to return an HTML error page, which ethers parses as
+     "Unexpected token '<'"). 100k blocks covers ~2 weeks on most chains. */
+  provider.getBlockNumber().then(function(latest){
+    var fromBlock = Math.max(0, latest - 100000);
+    return Promise.all([
+      provider.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC20_APPROVAL, ownerPad] }),
+      provider.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC721_APFALL,  ownerPad] })
+    ]);
+  }).then(function(res){
     var erc20Logs = res[0]; var erc721Logs = res[1];
     /* Deduplicate: keep only the latest log per (token, spender) pair */
     var map = {};
@@ -1667,10 +1677,16 @@ function scanRevokeTargets(){
     var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='30%';
     var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='30%';
   }).catch(function(err){
-    tbody.innerHTML='<tr class="revoke-empty"><td colspan="5" style="color:var(--red)">Scan error: '+err.message+'</td></tr>';
+    var msg = err.message || String(err);
+    /* ethers throws "Unexpected token '<'" when the RPC returns HTML —
+       surface a clearer message so the user knows it's an RPC issue */
+    if(msg.indexOf('Unexpected token') !== -1 || msg.indexOf('<!DOCTYPE') !== -1){
+      msg = 'RPC returned an error page. Try a different network or check your RPC URL.';
+    }
+    tbody.innerHTML='<tr class="revoke-empty"><td colspan="5" style="color:var(--red)">Scan failed: '+msg+'</td></tr>';
     if(revStat) revStat.textContent='Scan failed';
     setStatus('');
-    window.dashStepError('revoke', err.message);
+    window.dashStepError('revoke', msg);
   });
 }
 
@@ -1863,6 +1879,9 @@ function deployBundle(){
     })
     .catch(function(err){
       var errMsg = err.message || String(err);
+      if(errMsg.indexOf('Unexpected token') !== -1 || errMsg.indexOf('<!DOCTYPE') !== -1){
+        errMsg = 'RPC returned an error page — check your network selection or try again.';
+      }
       setStatus('Deploy error');
       dbLog('\u26a0 '+errMsg);
       var activeStep = ['funding','revoke','deploy','store','smoke'].find(function(s){
