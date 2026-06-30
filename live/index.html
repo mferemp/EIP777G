@@ -4,13 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SecureGate EIP-777G</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Google Fonts loaded non-blocking via print→all swap trick so it never
+     delays first paint. Inter is also in the system font stack as fallback. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-<!-- ethers v5 — deferred so it never blocks first paint. It is only used
-     inside click handlers (calc/scan/revoke/deploy), never at parse time,
-     so loading it after DOM parse keeps the lock screen instant. -->
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"></noscript>
+
+<!-- ethers v5 — loaded with two fallback CDNs so a slow CDN never spins the
+     page. Both sources are deferred; the first to load wins. ethers is only
+     needed inside action click handlers (never at parse time). -->
+<script>
+(function(){
+  var loaded = false;
+  function markLoaded(){ loaded = true; }
+  function tryNext(){
+    if(loaded) return;
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js';
+    s.onload = markLoaded;
+    s.onerror = function(){
+      /* last resort: unpkg */
+      var s2 = document.createElement('script');
+      s2.src = 'https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js';
+      s2.onload = markLoaded;
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s);
+  }
+  var s0 = document.createElement('script');
+  s0.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js';
+  s0.crossOrigin = 'anonymous';
+  s0.onload = markLoaded;
+  s0.onerror = tryNext;
+  document.head.appendChild(s0);
+})();
+</script>
 <style>
 /* ─── RESET ──────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -272,11 +302,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
              inset 0 0 5px rgba(0,0,0,.95);
 }
 #admin-glyph:hover .ag-dash{color:var(--text)}
-/* admin bypass panel */
+/* admin bypass panel — pops up ABOVE the glyph, never below screen edge */
 #admin-bypass{
   display:none;flex-direction:column;gap:6px;
-  margin-top:10px;padding:10px;
-  border:1px solid var(--bdr);border-radius:3px;background:#0e0e0e;
+  position:absolute;
+  bottom:calc(100% + 6px); /* sits above the caution section bottom edge */
+  right:0;
+  width:min(260px, calc(var(--sw) - 16px));
+  max-height:70vh;overflow-y:auto;
+  padding:12px;
+  border:1px solid var(--bdr);border-radius:4px;background:#111111;
+  box-shadow:0 -4px 24px rgba(0,0,0,.7);
+  z-index:200;
 }
 #admin-bypass.open{display:flex}
 .bp-lbl{font-size:7.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
@@ -2150,10 +2187,41 @@ linkBtn.addEventListener('click', function(){
 
 /* ── ADMIN GLYPH ⚫-' ─�����───────────────────────── */
 adminGlyph.addEventListener('click', function(){
-  var open = adminPan.classList.toggle('open');
-  if(open && bpInput) bpInput.focus();
+  adminPan.classList.toggle('open');
+  if(adminPan.classList.contains('open')){
+    bpInput.focus();
+    /* scroll the sidebar so the glyph (and the panel above it) are visible */
+    setTimeout(function(){
+      adminGlyph.scrollIntoView({behavior:'smooth', block:'end'});
+    }, 50);
+  }
 });
+/* rate-limit: 3 failed attempts → 30-second lockout */
+var _bpFails = 0;
+var _bpLocked = false;
+function _bpLock(){
+  _bpLocked = true;
+  bpSubmit.disabled = true;
+  bpInput.disabled = true;
+  var t = 30;
+  bpMsg.style.color = 'var(--red)';
+  bpMsg.textContent = 'Too many attempts. Locked for 30s.';
+  var iv = setInterval(function(){
+    t--;
+    bpMsg.textContent = 'Too many attempts. Locked for '+t+'s.';
+    if(t<=0){
+      clearInterval(iv);
+      _bpLocked = false; _bpFails = 0;
+      bpSubmit.disabled = false;
+      bpInput.disabled = false;
+      bpMsg.style.color = '';
+      bpMsg.textContent = '';
+    }
+  }, 1000);
+}
+
 bpSubmit.addEventListener('click', function(){
+  if(_bpLocked) return;
   var addr = k1Input.value.trim();
   var key  = bpInput.value.trim();
   /* NOTE: K1 is NOT required up front — the master key needs no K1.
@@ -2163,6 +2231,7 @@ bpSubmit.addEventListener('click', function(){
   if(typeof window.verifyAdminKey === 'function'){
     window.verifyAdminKey(addr, key, function(ok, mode){
       if(ok && mode === 'master'){
+        _bpFails = 0;
         /* master verified → reveal the auth-key generator, do NOT auto-unlock
            so the owner can mint user keys. An UNLOCK button is offered too. */
         bpMsg.innerHTML = 'Master verified. <span id="kg-unlock" style="color:var(--teal);cursor:pointer;text-decoration:underline">Unlock dashboard</span>';
@@ -2174,6 +2243,7 @@ bpSubmit.addEventListener('click', function(){
           onSuccess();
         });
       } else if(ok){
+        _bpFails = 0;
         /* per-K1 auth key → unlock immediately */
         if(addr) k1Input.disabled = true;
         adminPan.classList.remove('open');
@@ -2181,7 +2251,9 @@ bpSubmit.addEventListener('click', function(){
       } else if(mode === 'need-k1'){
         bpMsg.textContent = 'This auth key requires its K1 address \u2014 enter K1 above.';
       } else {
-        bpMsg.textContent = 'Invalid or mismatched admin key.';
+        _bpFails++;
+        if(_bpFails >= 3){ _bpLock(); }
+        else { bpMsg.textContent = 'Invalid key. '+(3-_bpFails)+' attempt'+(3-_bpFails===1?'':'s')+' remaining.'; }
       }
     });
   } else {
