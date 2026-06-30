@@ -1578,7 +1578,9 @@ function calcFunding(){
   }).catch(function(err){
     var msg = err.message || String(err);
     if(msg.indexOf('Unexpected token') !== -1 || msg.indexOf('<!DOCTYPE') !== -1){
-      msg = 'RPC returned an error page. Try selecting a different network.';
+      msg = 'RPC returned an error page — check your RPC URL.';
+    } else if(msg.indexOf('max block range') !== -1 || msg.indexOf('-32602') !== -1){
+      msg = 'RPC block range limit exceeded.';
     }
     fundDisp.innerHTML='<span style="color:var(--red)">RPC error: '+msg+'</span>';
     setStatus('RPC error');
@@ -1614,11 +1616,11 @@ function scanRevokeTargets(){
   var ERC721_APFALL    = ethers.utils.id('ApprovalForAll(address,address,bool)');
   var ownerPad = ethers.utils.hexZeroPad(k1Addr.toLowerCase(), 32);
 
-  /* Use latest-100000 to avoid RPC range limits (fromBlock:0 causes most
-     public nodes to return an HTML error page, which ethers parses as
-     "Unexpected token '<'"). 100k blocks covers ~2 weeks on most chains. */
+  /* HL EVM hard-limits getLogs to 1000 blocks per request.
+     Use latest-900 to stay under the limit on HL EVM.
+     Other chains allow larger ranges but 900 is safe everywhere. */
   provider.getBlockNumber().then(function(latest){
-    var fromBlock = Math.max(0, latest - 100000);
+    var fromBlock = Math.max(0, latest - 900);
     return Promise.all([
       provider.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC20_APPROVAL, ownerPad] }),
       provider.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC721_APFALL,  ownerPad] })
@@ -1678,10 +1680,10 @@ function scanRevokeTargets(){
     var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='30%';
   }).catch(function(err){
     var msg = err.message || String(err);
-    /* ethers throws "Unexpected token '<'" when the RPC returns HTML —
-       surface a clearer message so the user knows it's an RPC issue */
     if(msg.indexOf('Unexpected token') !== -1 || msg.indexOf('<!DOCTYPE') !== -1){
-      msg = 'RPC returned an error page. Try a different network or check your RPC URL.';
+      msg = 'RPC returned an error page — check your RPC URL.';
+    } else if(msg.indexOf('max block range') !== -1 || msg.indexOf('-32602') !== -1){
+      msg = 'RPC block range limit hit — retrying with smaller range is not supported on this node.';
     }
     tbody.innerHTML='<tr class="revoke-empty"><td colspan="5" style="color:var(--red)">Scan failed: '+msg+'</td></tr>';
     if(revStat) revStat.textContent='Scan failed';
@@ -1893,7 +1895,9 @@ function deployBundle(){
     .catch(function(err){
       var errMsg = err.message || String(err);
       if(errMsg.indexOf('Unexpected token') !== -1 || errMsg.indexOf('<!DOCTYPE') !== -1){
-        errMsg = 'RPC returned an error page — check your network selection or try again.';
+        errMsg = 'RPC returned an error page — check your RPC URL.';
+      } else if(errMsg.indexOf('max block range') !== -1 || errMsg.indexOf('-32602') !== -1){
+        errMsg = 'RPC block range limit exceeded.';
       }
       setStatus('Deploy error');
       dbLog('\u26a0 '+errMsg);
