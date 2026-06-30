@@ -17,9 +17,9 @@
 
 /* ─── DESIGN TOKENS ──────────────────────── */
 :root{
-  /* Pure black — zero tinge of any hue */
-  --bg:       #000000;
-  --sur:      #0d0d0d;
+  /* Near-black — neutral, no warm or blue tinge */
+  --bg:       #080808;
+  --sur:      #101010;
   --bdr:      #2a2a2a;
   --bdr2:     #1c1c1c;
   --teal:     #00e8dd;
@@ -56,7 +56,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #identity{display:flex;flex-direction:column;gap:1px;line-height:1}
 #sg-name{
   font-size:14px;font-weight:900;letter-spacing:.16em;
-  color:var(--mag);
+  background:linear-gradient(90deg,var(--teal) 0%,var(--mag) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
   text-transform:uppercase;white-space:nowrap;
 }
 #sg-sub{
@@ -148,7 +150,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .scan-inner svg{color:var(--mag)}
 .scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--mag)}
 .scan-lbl{
-  font-size:8.5px;font-weight:700;letter-spacing:.12em;
+  font-size:10px;font-weight:700;letter-spacing:.08em;
   color:var(--mag);text-align:center;text-transform:uppercase;line-height:1.4;
 }
 
@@ -173,7 +175,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
 .k1-lbl{
-  font-size:9px;font-weight:900;letter-spacing:.16em;
+  font-size:11px;font-weight:700;letter-spacing:.10em;
   color:var(--gold);text-transform:uppercase;
 }
 .k1-input{
@@ -196,7 +198,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 
 /* ── 3.4 Short instructions ──────────────── */
 .instructions{
-  font-size:9px;color:var(--text);line-height:1.7;
+  font-size:11px;color:var(--text);line-height:1.8;
   padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
 .instructions .hi{color:var(--mag);font-weight:700}
@@ -206,11 +208,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   padding-bottom:11px;border-bottom:1px solid var(--bdr2);margin-bottom:10px;
 }
 .authgate-hd{
-  font-size:9.5px;font-weight:900;letter-spacing:.24em;
+  font-size:11px;font-weight:900;letter-spacing:.16em;
   color:var(--teal);text-transform:uppercase;margin-bottom:10px;
 }
 .ag-points{display:flex;flex-direction:column;gap:8px}
-.ag-p{font-size:9px;color:var(--text);line-height:1.7}
+.ag-p{font-size:11px;color:var(--text);line-height:1.8}
 .ag-p a{color:var(--mag);text-decoration:none}
 .ag-p a:hover{text-decoration:underline}
 .ag-p .hm{color:var(--teal);font-weight:700}
@@ -232,10 +234,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   padding:10px 10px 28px;
 }
 .caution-title{
-  font-size:9.5px;font-weight:900;letter-spacing:.18em;
+  font-size:11px;font-weight:900;letter-spacing:.14em;
   color:var(--orange);text-transform:uppercase;margin-bottom:7px;
 }
-.caution-body{font-size:9px;color:var(--text);line-height:1.75}
+.caution-body{font-size:11px;color:var(--text);line-height:1.8}
 .caution-body .bad{color:var(--red);font-weight:700}
 /* ⚫-' admin glyph — renders as: [dark circle]-' with teal top-glow */
 #admin-glyph{
@@ -337,7 +339,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 /* ── deployment bundle section ── */
 .db-section{
   background:#141414;border:1px solid var(--bdr);border-radius:6px;
-  padding:16px 18px;
+  padding:16px 18px;/* #141414 = visible panel lift above #080808 bg — intentional */
 }
 .db-header{
   display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;
