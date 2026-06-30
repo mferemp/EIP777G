@@ -4,43 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SecureGate EIP-777G</title>
-<!-- Google Fonts loaded non-blocking via print→all swap trick so it never
-     delays first paint. Inter is also in the system font stack as fallback. -->
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"></noscript>
+<!-- No external font CDN — system-ui stack renders instantly, no round-trips -->
 
-<!-- ethers v5 — loaded with two fallback CDNs so a slow CDN never spins the
-     page. Both sources are deferred; the first to load wins. ethers is only
-     needed inside action click handlers (never at parse time). -->
-<script>
-(function(){
-  var loaded = false;
-  function markLoaded(){ loaded = true; }
-  function tryNext(){
-    if(loaded) return;
-    var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js';
-    s.onload = markLoaded;
-    s.onerror = function(){
-      /* last resort: unpkg */
-      var s2 = document.createElement('script');
-      s2.src = 'https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js';
-      s2.onload = markLoaded;
-      document.head.appendChild(s2);
-    };
-    document.head.appendChild(s);
-  }
-  var s0 = document.createElement('script');
-  s0.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js';
-  s0.crossOrigin = 'anonymous';
-  s0.onload = markLoaded;
-  s0.onerror = tryNext;
-  document.head.appendChild(s0);
-})();
-</script>
+<!-- ethers v5 — served from self (CSP-safe, no external round-trip) -->
+<script defer src="/vendor/ethers.umd.min.js"></script>
 <style>
 /* ─── RESET ──────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
