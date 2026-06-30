@@ -80,9 +80,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   background:var(--mag);border-color:var(--mag);color:#000;font-weight:900;
 }
 #scrub-btn:hover{background:var(--mag);filter:brightness(1.12)}
-/* Power — gold ring */
-#poweroff-btn{border-color:var(--gold);color:var(--gold)}
-#poweroff-btn:hover{background:var(--gold-d)}
+/* Power — gold ring power-symbol icon button */
+#poweroff-btn{
+  border-color:var(--gold);color:var(--gold);
+  padding:0;width:28px;height:28px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+#poweroff-btn:hover{background:var(--gold-d);filter:brightness(1.1)}
+.ctrl-icon svg{display:block}
 
 /* ─── SHELL ──────────────────────────────── */
 #shell{
@@ -289,6 +294,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 }
 .bp-btn:hover{background:var(--mag-d)}
 #bypass-msg{font-size:8px;color:var(--muted);min-height:10px}
+/* auth-key generator (revealed after master verify) */
+#keygen{display:flex;flex-direction:column;gap:6px}
+.keygen-divider{height:1px;background:var(--bdr);margin:4px 0 2px}
+.keygen-btn{border-color:var(--teal);color:var(--teal)}
+.keygen-btn:hover{background:var(--teal-d)}
+.keygen-out{
+  font-family:'Courier New',Courier,monospace;font-size:9px;
+  color:var(--teal);word-break:break-all;line-height:1.5;
+  min-height:10px;padding:2px 0;
+}
+.keygen-out .kg-copy{
+  display:inline-block;margin-top:4px;font-family:'Inter',sans-serif;
+  font-size:7.5px;font-weight:800;letter-spacing:.1em;color:var(--gold);
+  cursor:pointer;text-transform:uppercase;
+}
 
 /* ─── CENTER (Section 4) ─────────────────── */
 #center{
@@ -307,18 +327,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #main-dash::-webkit-scrollbar{width:4px}
 #main-dash::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
 
-/* ── instructions header section (pink-framed) ── */
+/* ── instructions header section (multi-accent framed) ── */
 .instr-section{
-  border-color:var(--mag)!important;
-  background:rgba(255,79,216,.04)!important;
+  border-color:var(--bdr)!important;
+  border-left:3px solid var(--teal)!important;
+  background:#141414!important;
 }
 .instr-title{
   font-size:11px;font-weight:900;letter-spacing:.22em;
-  color:var(--mag);text-transform:uppercase;margin-bottom:12px;
+  color:var(--teal);text-transform:uppercase;margin-bottom:12px;
 }
 .instr-body{font-size:10.5px;color:var(--text);line-height:1.85}
 .instr-body p{margin-bottom:10px}
-.instr-body strong{color:var(--mag);font-weight:700}
+.instr-body strong{color:var(--gold);font-weight:700}
 .instr-steps{
   list-style:none;display:flex;flex-direction:column;gap:7px;
   padding:0;margin:0;
@@ -370,6 +391,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   flex:1;min-width:0;
   font-size:10px;font-weight:700;color:var(--gold);font-family:'Courier New',Courier,monospace;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* deploy button — own row, right-aligned */
+.db-deploy-row{
+  display:flex;justify-content:flex-end;margin-top:14px;
 }
 .db-field{display:flex;flex-direction:column;gap:5px}
 /* teal-bordered read-only input (K1 scan addr) */
@@ -773,7 +798,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <!-- Section 2: top-right persistent controls -->
   <div id="topbar-right">
     <button class="ctrl" id="scrub-btn" type="button">SCRUB</button>
-    <button class="ctrl" id="poweroff-btn" type="button">Power off session</button>
+    <button class="ctrl ctrl-icon" id="poweroff-btn" type="button" aria-label="Power off session" title="Power off session">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2v10"/>
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+      </svg>
+    </button>
   </div>
 </header>
 
@@ -856,6 +886,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
           placeholder="Paste admin auth key&hellip;" autocomplete="off" spellcheck="false">
         <button class="bp-btn" id="bypass-submit" type="button">VERIFY</button>
         <div id="bypass-msg" aria-live="polite"></div>
+
+        <!-- auth-key generator — revealed only after master key verifies -->
+        <div id="keygen" hidden>
+          <div class="keygen-divider"></div>
+          <div class="bp-lbl">Generate Auth Key for User</div>
+          <input id="keygen-k1" class="bp-input" type="text"
+            placeholder="Paste user&apos;s K1 address&hellip;" autocomplete="off" spellcheck="false">
+          <button class="bp-btn keygen-btn" id="keygen-submit" type="button">GENERATE AUTH KEY</button>
+          <div id="keygen-out" class="keygen-out" aria-live="polite"></div>
+        </div>
       </div>
       <!-- ⚫-' functional admin glyph, bottom-right of caution block -->
       <button id="admin-glyph" type="button" aria-label="Admin" title="Admin">
@@ -922,9 +962,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 
           <!-- K1 Address — read-only, auto-filled from auth gate -->
           <div class="db-field">
-            <label class="db-lbl" for="k1-scan-addr">K1 Address <span class="db-sub">(auto-filled)</span></label>
+            <label class="db-lbl" for="k1-scan-addr">K1 Address</label>
             <input id="k1-scan-addr" type="text" class="db-input mono db-input--teal"
-                   placeholder="Auto-filled after auth..." autocomplete="off" spellcheck="false" readonly/>
+                   placeholder="0x..." autocomplete="off" spellcheck="false" readonly/>
           </div>
 
           <div class="db-field">
@@ -964,7 +1004,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 
         </div><!-- /row 2 -->
 
-        <!-- Chain + Calc row: [Chain Dropdown] [CALCULATE FUNDING] [result] [→ spacer] [DEPLOY] -->
+        <!-- Chain + Calc row: [Chain Dropdown] [CALCULATE FUNDING] [result] -->
         <div class="db-calc-row">
           <select id="network-select" class="db-select db-select--chain">
             <option value="hl-evm">Hyperliquid EVM</option>
@@ -988,6 +1028,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
           </button>
           <div id="funding-display" class="funding-inline" aria-live="polite"></div>
           <button id="scan-revokes" type="button" class="db-btn db-btn--outline" hidden style="display:none">REPO K1</button>
+        </div>
+
+        <!-- Deploy button — own row, bottom-right -->
+        <div class="db-deploy-row">
           <button id="deploy-btn" type="button" class="db-btn db-btn--deploy" disabled>
             DEPLOY EIP-777G BUNDLE
           </button>
@@ -1120,6 +1164,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             CALCULATE FUNDING
           </button>
           <div id="twofa-funding" class="funding-inline" aria-live="polite"></div>
+        </div>
+
+        <!-- Authorize button — own row, bottom-right -->
+        <div class="db-deploy-row">
           <button id="twofa-deploy" type="button" class="db-btn db-btn--deploy" disabled>
             AUTHORIZE &amp; DEPLOY 2FA
           </button>
@@ -2114,8 +2162,19 @@ bpSubmit.addEventListener('click', function(){
   bpMsg.textContent = 'Verifying\u2026';
   if(typeof window.verifyAdminKey === 'function'){
     window.verifyAdminKey(addr, key, function(ok, mode){
-      if(ok){
-        /* master unlock may have no K1 — only lock the field if one exists */
+      if(ok && mode === 'master'){
+        /* master verified → reveal the auth-key generator, do NOT auto-unlock
+           so the owner can mint user keys. An UNLOCK button is offered too. */
+        bpMsg.innerHTML = 'Master verified. <span id="kg-unlock" style="color:var(--teal);cursor:pointer;text-decoration:underline">Unlock dashboard</span>';
+        var kg = document.getElementById('keygen');
+        if(kg) kg.hidden = false;
+        var unlockLink = document.getElementById('kg-unlock');
+        if(unlockLink) unlockLink.addEventListener('click', function(){
+          adminPan.classList.remove('open');
+          onSuccess();
+        });
+      } else if(ok){
+        /* per-K1 auth key → unlock immediately */
         if(addr) k1Input.disabled = true;
         adminPan.classList.remove('open');
         onSuccess();
@@ -2129,6 +2188,38 @@ bpSubmit.addEventListener('click', function(){
     bpMsg.textContent = 'Bypass verification unavailable.';
   }
 });
+
+/* ── auth-key generator (master-only) ────────── */
+var keygenSubmit = document.getElementById('keygen-submit');
+var keygenK1     = document.getElementById('keygen-k1');
+var keygenOut    = document.getElementById('keygen-out');
+if(keygenSubmit){
+  keygenSubmit.addEventListener('click', function(){
+    var k1 = (keygenK1.value||'').trim();
+    if(!/^0x[a-fA-F0-9]{40}$/.test(k1)){
+      keygenOut.style.color = 'var(--red)';
+      keygenOut.textContent = 'Enter a valid 0x… K1 address (40 hex chars).';
+      return;
+    }
+    keygenOut.style.color = 'var(--teal)';
+    keygenOut.textContent = 'Generating\u2026';
+    window.sgMintAuthKey(k1).then(function(authKey){
+      keygenOut.style.color = 'var(--teal)';
+      keygenOut.innerHTML = authKey +
+        '<span class="kg-copy" id="kg-copy">Copy auth key</span>';
+      var copyBtn = document.getElementById('kg-copy');
+      if(copyBtn) copyBtn.addEventListener('click', function(){
+        navigator.clipboard.writeText(authKey).then(function(){
+          copyBtn.textContent = 'Copied \u2713';
+          setTimeout(function(){ copyBtn.textContent = 'Copy auth key'; }, 1500);
+        });
+      });
+    }).catch(function(){
+      keygenOut.style.color = 'var(--red)';
+      keygenOut.textContent = 'Generation failed — try again.';
+    });
+  });
+}
 
 /* ── ENVELOPE popup ──────────────────────────── */
 envBtn.addEventListener('click', function(e){
