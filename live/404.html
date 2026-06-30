@@ -1744,7 +1744,7 @@ function deployBundle(){
   catch(err){ setStatus(err.message); if(deployBtn) deployBtn.disabled=false; return; }
 
   /* Fetch artifact ABI + bytecode */
-  fetch('artifacts/EIP777G.json')
+  fetch('/artifacts/EIP777G.json')
     .then(function(r){ return r.json(); })
     .then(function(artifact){
       var abi      = artifact.abi;
@@ -2297,10 +2297,7 @@ ppSend.addEventListener('click', function(){
   window.open(url, '_blank', 'noopener,noreferrer');
 });
 
-/* ── restore session ─────────────────────────── */
-try{
-  if(sessionStorage.getItem('sg_auth_passed') === '1') onSuccess();
-}catch(e){}
+/* ── session restore intentionally removed: every page load requires fresh auth ── */
 
 /* ── start idle timer ─────────────��──────────── */
 resetIdle();
