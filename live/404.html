@@ -1508,10 +1508,36 @@ function dashReset(){
   window.pendingApprovals = null;
 }
 
-/* ── HELPERS ─────────────────────���────────────── */
+/* ── HELPERS ────────────────────────────────────── */
+/* chainId per network-select value. Passing an explicit network to
+   StaticJsonRpcProvider makes ethers 5.7.2 SKIP its eth_chainId
+   auto-detection, which is what throws "could not detect network
+   (event=noNetwork)" when a public RPC (e.g. polygon-rpc.com) is
+   CORS-restricted or rate-limited from the browser. The chainId is
+   also required for correct EIP-155 transaction signing. */
+var NET_CHAIN = {
+  'hl-evm':   { chainId: 999,   name: 'hyperevm' },
+  'hl-core':  { chainId: 999,   name: 'hyperevm' },
+  'ethereum': { chainId: 1,     name: 'homestead' },
+  'base':     { chainId: 8453,  name: 'base' },
+  'arbitrum': { chainId: 42161, name: 'arbitrum' },
+  'optimism': { chainId: 10,    name: 'optimism' },
+  'polygon':  { chainId: 137,   name: 'matic' },
+  'bnb':      { chainId: 56,    name: 'bnb' },
+  'avax':     { chainId: 43114, name: 'avalanche' },
+  'plasma':   { chainId: 9745,  name: 'plasma' },
+  'monad':    { chainId: 10143, name: 'monad-testnet' },
+  'ink':      { chainId: 57073, name: 'ink' },
+  'unichain': { chainId: 130,   name: 'unichain' },
+  'abstract': { chainId: 2741,  name: 'abstract' },
+  'ape-chain':{ chainId: 33139, name: 'apechain' }
+};
 function getProvider(){
   var rpc = (document.getElementById('rpc-url')||{}).value || 'https://rpc.hyperliquid.xyz/evm';
-  return new ethers.providers.JsonRpcProvider(rpc);
+  var netSel = document.getElementById('network-select');
+  var net = (netSel && NET_CHAIN[netSel.value]) || NET_CHAIN['hl-evm'];
+  /* StaticJsonRpcProvider + explicit network = no auto-detection, no noNetwork error */
+  return new ethers.providers.StaticJsonRpcProvider(rpc, net);
 }
 function getDeployerWallet(){
   var k = (document.getElementById('deployer-key')||{}).value||'';
