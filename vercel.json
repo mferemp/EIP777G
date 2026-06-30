@@ -43,6 +43,7 @@
     { "source": "/private-artifacts/:path*",    "destination": "/", "permanent": false },
     { "source": "/EIP777G.json",                "destination": "/", "permanent": false },
     { "source": "/abi.json",                    "destination": "/", "permanent": false },
-    { "source": "/bytecode.txt",                "destination": "/", "permanent": false }
+    { "source": "/bytecode.txt",                "destination": "/", "permanent": false },
+    { "source": "/((?!vendor|api|artifacts|404\\.html|index\\.html).+)", "destination": "/", "permanent": false }
   ]
 }
