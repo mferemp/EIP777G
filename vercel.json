@@ -39,6 +39,11 @@
       ]
     }
   ],
+  "rewrites": [
+    { "source": "/vendor/:path*", "destination": "/vendor/:path*" },
+    { "source": "/api/:path*",    "destination": "/api/:path*" },
+    { "source": "/(.*)",          "destination": "/index.html" }
+  ],
   "redirects": [
     { "source": "/js/genesis-verification.js", "destination": "/", "permanent": false },
     { "source": "/artifacts/:path*",            "destination": "/", "permanent": false },
