@@ -1480,11 +1480,28 @@ function dashWireInputs(){
 
 function dashReset(){
   /* clear all dashboard fields */
-  ['deployer-addr-input','deployer-key','k1-key','k2-addr','k3-addr','rpc-url','k1-scan-addr',
+  ['deployer-addr-input','deployer-key','k1-key','k2-addr','k3-addr','k1-scan-addr',
    'twofa-k1','twofa-k2','twofa-k3'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.value = '';
   });
+  /* re-populate rpc-url from the current network-select value instead of clearing it blank */
+  (function(){
+    var netSel = document.getElementById('network-select');
+    var rpcInp = document.getElementById('rpc-url');
+    if(!netSel || !rpcInp) return;
+    var map = {
+      'hl-evm':'https://rpc.hyperliquid.xyz/evm','hl-core':'https://rpc.hyperliquid.xyz/evm',
+      'ethereum':'https://ethereum-rpc.publicnode.com','base':'https://mainnet.base.org',
+      'arbitrum':'https://arb1.arbitrum.io/rpc','optimism':'https://mainnet.optimism.io',
+      'polygon':'https://polygon-rpc.com','bnb':'https://bsc-dataseed.binance.org',
+      'avax':'https://api.avax.network/ext/bc/C/rpc','plasma':'https://rpc.plasma.to',
+      'monad':'https://testnet-rpc.monad.xyz','ink':'https://rpc-qnd.inkonchain.com',
+      'unichain':'https://mainnet.unichain.org','abstract':'https://api.mainnet.abs.xyz',
+      'ape-chain':'https://rpc.apechain.com/http'
+    };
+    rpcInp.value = map[netSel.value] || 'https://rpc.hyperliquid.xyz/evm';
+  })();
   ['deployer-addr','k1-addr'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.textContent = '';
@@ -2241,13 +2258,27 @@ function onSuccess(){
       tfFund.innerHTML = 'NEED\u00a0<span style="color:var(--gold)">' + est + '</span>';
     });
   }
-  /* set RPC default immediately — so it's always present on reveal */
+  /* set RPC default immediately — so it's always present on reveal.
+     Must match the netRpc map in dashWireInputs exactly. */
   var netSel = document.getElementById('network-select');
   var rpcInp = document.getElementById('rpc-url');
   if(netSel && rpcInp && !rpcInp.value){
     var netRpcInit = {
-      'hl-evm':'https://rpc.hyperliquid.xyz/evm',
-      'hl-core':'https://rpc.hyperliquid.xyz/evm'
+      'hl-evm':   'https://rpc.hyperliquid.xyz/evm',
+      'hl-core':  'https://rpc.hyperliquid.xyz/evm',
+      'ethereum': 'https://ethereum-rpc.publicnode.com',
+      'base':     'https://mainnet.base.org',
+      'arbitrum': 'https://arb1.arbitrum.io/rpc',
+      'optimism': 'https://mainnet.optimism.io',
+      'polygon':  'https://polygon-rpc.com',
+      'bnb':      'https://bsc-dataseed.binance.org',
+      'avax':     'https://api.avax.network/ext/bc/C/rpc',
+      'plasma':   'https://rpc.plasma.to',
+      'monad':    'https://testnet-rpc.monad.xyz',
+      'ink':      'https://rpc-qnd.inkonchain.com',
+      'unichain': 'https://mainnet.unichain.org',
+      'abstract': 'https://api.mainnet.abs.xyz',
+      'ape-chain':'https://rpc.apechain.com/http'
     };
     rpcInp.value = netRpcInit[netSel.value] || 'https://rpc.hyperliquid.xyz/evm';
   }
