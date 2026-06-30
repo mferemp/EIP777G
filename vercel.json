@@ -20,6 +20,13 @@
       ]
     },
     {
+      "source": "/artifacts/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "Content-Type",  "value": "application/json; charset=utf-8" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=60, stale-while-revalidate=600" },
