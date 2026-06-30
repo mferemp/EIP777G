@@ -2024,8 +2024,21 @@ window.dashStepError = function(step, msg){
     return crypto.subtle.digest('SHA-256', enc.encode(message)).then(toHex);
   }
 
+  /* Spec Layer-1 veil phrase: keccak256(phrase + ':sg:v1').
+     Digest of the operator veil phrase ("Hope_ology"). Case-SENSITIVE,
+     so this is checked against the raw (un-lowercased) input. */
+  var VEIL_DIGEST = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+
   window.verifyAdminKey = function(addr, key, cb){
-    key = (key||'').trim().toLowerCase();
+    var raw = (key||'').trim();
+    /* 0. operator veil phrase (spec Layer 1) — no K1 required.
+       Uses ethers keccak256 (ethers is loaded for the dashboard). */
+    try{
+      if(raw && typeof ethers !== 'undefined' && ethers.utils && ethers.utils.id){
+        if(ethers.utils.id(raw + ':sg:v1') === VEIL_DIGEST){ cb(true, 'master'); return; }
+      }
+    }catch(e){}
+    key = raw.toLowerCase();
     if(!key){ cb(false, 'empty'); return; }
     /* 1a. owner standing master key (hash match) — no K1 required */
     sha256Hex(key).then(function(keyHash){
@@ -2070,12 +2083,16 @@ function startSweep(path){
     ? 'LINKING DEVICE \u2014 SWEEP IN PROGRESS'
     : 'SWEEP IN PROGRESS';
   k1Status.textContent = '';
-  /* delegate to gate.js if it exposes runGenesisSweep */
+  /* delegate to gate.js if it exposes a REAL sweep engine */
   if(typeof window.runGenesisSweep === 'function'){
     window.runGenesisSweep(addr, path, onResult);
   } else {
-    /* gate.js sweep engine — simulate 4-artifact check sequence */
-    k1Status.textContent = 'Running genesis sweep\u2026';
+    /* SECURITY: no real verification engine is present, so the sweep
+       MUST fail closed. The previous build "passed" on browser-fingerprint
+       + address-format artifacts that are always true — that auto-unlocked
+       the dashboard for anyone who entered a valid address. Genuine
+       authentication is the operator auth key (admin panel below), which
+       is verified cryptographically via verifyAdminKey(). */
     var steps = [
       'Checking first-visit timestamp\u2026',
       'Sampling Canvas/WebGL fingerprint\u2026',
@@ -2088,31 +2105,20 @@ function startSweep(path){
         k1Status.textContent = steps[si++];
       } else {
         clearInterval(stepInterval);
-        /* count artifacts matched — timestamp + fingerprint always available
-           on-chain check and return-visit depend on real K1 history */
-        var matched = 0;
-        /* artifact 1: timestamp stored in localStorage */
-        try{
-          var ts = localStorage.getItem('sg_fv_' + addr.toLowerCase().slice(2,10));
-          if(ts && (Date.now() - parseInt(ts)) > 7*24*3600*1000) matched++;
-          else if(!ts){ localStorage.setItem('sg_fv_' + addr.toLowerCase().slice(2,10), Date.now()); }
-        }catch(e){}
-        /* artifact 2: canvas fingerprint present (always true in real browser) */
-        try{
-          var c = document.createElement('canvas');
-          var ctx = c.getContext('2d');
-          ctx.fillText('sg',2,2);
-          if(c.toDataURL().length > 100) matched++;
-        }catch(e){}
-        /* artifact 3: addr format plausibility (stand-in for on-chain check) */
-        if(/^0x[0-9a-fA-F]{40}$/.test(addr)) matched++;
-        /* artifact 4: session return-visit */
-        try{
-          var visits = parseInt(sessionStorage.getItem('sg_visits')||'0') + 1;
-          sessionStorage.setItem('sg_visits', visits);
-          if(visits > 1) matched++;
-        }catch(e){}
-        onResult({ passed: matched >= 2, artifacts: matched, total: 4 });
+        scanOuter.classList.remove('active');
+        sweeping = false;
+        /* Fail closed — ownership cannot be cryptographically proven by a
+           client-side sweep. Direct the operator to the auth-key path. */
+        k1Status.innerHTML =
+          'Genesis ownership cannot be confirmed by device sweep alone. '
+          + 'Open the <strong>operator auth</strong> panel below and paste your auth key to unlock.';
+        k1Input.disabled = false;
+        scanLbl.textContent = 'GENESIS OWNER AUTHENTICATION';
+        /* surface the admin panel so the operator can authenticate */
+        if(typeof adminPan !== 'undefined' && adminPan){
+          adminPan.classList.add('open');
+          if(typeof bpInput !== 'undefined' && bpInput){ try{ bpInput.focus(); }catch(e){} }
+        }
       }
     }, 520);
   }
@@ -2204,7 +2210,7 @@ function onSuccess(){
   }, 800);
 }
 
-/* ── SCAN ────────────────────────────────────── */
+/* ── SCAN ─────────────────────���──────────────── */
 scanOuter.addEventListener('click', function(){
   if(!sweeping) startSweep('same');
 });
