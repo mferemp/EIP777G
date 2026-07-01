@@ -1827,7 +1827,7 @@ function deployBundle(){
       return deployerWallet.getBalance().then(function(balance){
         return deployerWallet.provider.getFeeData().then(function(feeData){
           var gasPrice  = feeData.gasPrice || ethers.utils.parseUnits('1','gwei');
-          var deployGas = ethers.BigNumber.from(1300000);
+          var deployGas = ethers.BigNumber.from(2500000);
           var revokeGas = ethers.BigNumber.from(50000);
           var approvals = window.pendingApprovals || [];
           var totalEst  = deployGas.mul(gasPrice).add(revokeGas.mul(gasPrice).mul(approvals.length||1));
@@ -1868,6 +1868,18 @@ function deployBundle(){
                _cleanWallet = K3 (clean terminus, same as K3 per spec)
                _additionalWhitelisted = [] (deployer auto-whitelisted in contract) */
             var factory = new ethers.ContractFactory(abi, bytecode, deployerWallet);
+            /* Manual gas override — public RPCs frequently fail eth_estimateGas
+               for contract-creation txs ("cannot estimate gas; transaction may
+               fail or may require manual gas limit"). We supply an explicit
+               gasLimit (with headroom over the 1.3M fund-check estimate) plus
+               the fee data already fetched above, so ethers skips estimation. */
+            var deployOverrides = { gasLimit: ethers.BigNumber.from(2500000) };
+            if(feeData.maxFeePerGas && feeData.maxPriorityFeePerGas){
+              deployOverrides.maxFeePerGas = feeData.maxFeePerGas;
+              deployOverrides.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+            } else {
+              deployOverrides.gasPrice = gasPrice;
+            }
             return factory.deploy(
               k1Addr,                          // _k1Genesis
               k2Addr,                          // _k2Authority
@@ -1875,7 +1887,8 @@ function deployBundle(){
               k3Addr,                          // _cleanWallet (clean terminus = K3)
               ethers.BigNumber.from(3600),     // _authWindow (1 hour)
               ethers.BigNumber.from(300),      // _minDelay (5 min)
-              []                               // _additionalWhitelisted
+              [],                              // _additionalWhitelisted
+              deployOverrides                  // manual gas — skip estimateGas
             );
           });
         });
