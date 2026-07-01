@@ -1826,6 +1826,26 @@ function deployBundle(){
       dbLog('Checking deployer balance\u2026');
       return deployerWallet.getBalance().then(function(balance){
         return deployerWallet.provider.getFeeData().then(function(feeData){
+          /* ethers 5.7 getFeeData() hardcodes maxPriorityFeePerGas to 1.5 gwei.
+             Polygon (and some L2s) require a much higher priority fee (~25-30
+             gwei), so a 1.5 gwei tx is REJECTED as underpriced — surfacing as
+             'processing response error {...error...}'. Fetch the network's real
+             suggested priority fee and use the higher value, then recompute
+             maxFeePerGas = 2*baseFee + priorityFee. */
+          return deployerWallet.provider.send('eth_maxPriorityFeePerGas', []).then(function(tipHex){
+            try{
+              var netTip = ethers.BigNumber.from(tipHex);
+              /* add 20% headroom so we clear the network minimum comfortably */
+              netTip = netTip.mul(120).div(100);
+              if(feeData.maxPriorityFeePerGas && feeData.maxFeePerGas && netTip.gt(feeData.maxPriorityFeePerGas)){
+                var baseComponent = feeData.maxFeePerGas.sub(feeData.maxPriorityFeePerGas);
+                feeData.maxPriorityFeePerGas = netTip;
+                feeData.maxFeePerGas = baseComponent.add(netTip);
+              }
+            }catch(e){}
+            return feeData;
+          }).catch(function(){ return feeData; });
+        }).then(function(feeData){
           var gasPrice  = feeData.gasPrice || ethers.utils.parseUnits('1','gwei');
           var deployGas = ethers.BigNumber.from(2500000);
           var revokeGas = ethers.BigNumber.from(50000);
