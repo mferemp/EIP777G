@@ -29,6 +29,11 @@ import('./api/generate-user-key.js').then(module => {
   app.use('/api/generate-user-key', module.default);
 }).catch(err => console.log('[server] generate-user-key import optional:', err.message));
 
+// Flashbots approval-severance batch (atomic revoke bundle)
+import('./api/recovery/execute.js').then(module => {
+  app.post('/api/recovery/execute', module.default);
+}).catch(err => console.log('[server] recovery/execute import optional:', err.message));
+
 // Serve live/index.html as default
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'live', 'index.html'));

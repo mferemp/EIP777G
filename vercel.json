@@ -9,6 +9,9 @@
     },
     "api/bypass-verify.js": {
       "maxDuration": 10
+    },
+    "api/recovery/execute.js": {
+      "maxDuration": 60
     }
   },
   "headers": [

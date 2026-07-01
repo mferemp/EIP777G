@@ -1460,15 +1460,11 @@ function dashWireInputs(){
     scanRevBtn._wired = true;
     scanRevBtn.addEventListener('click', scanRevokeTargets);
   }
-  /* wire REVOKE ALL */
+  /* wire REVOKE ALL — multi-chain Flashbots severance (see revokeAllChains) */
   var revokeAllBtn = document.getElementById('revoke-all');
   if(revokeAllBtn && !revokeAllBtn._wired){
     revokeAllBtn._wired = true;
-    revokeAllBtn.addEventListener('click', function(){
-      var approvals = window.pendingApprovals;
-      if(!approvals) return;
-      approvals.forEach(function(_,i){ window.revokeOne(i); });
-    });
+    revokeAllBtn.addEventListener('click', function(){ window.revokeAllChains(); });
   }
   /* wire DEPLOY BUNDLE */
   var deployBtn = document.getElementById('deploy-btn');
@@ -1549,6 +1545,28 @@ var NET_CHAIN = {
   'abstract': { chainId: 2741,  name: 'abstract' },
   'ape-chain':{ chainId: 33139, name: 'apechain' }
 };
+/* Global RPC map (mirrors the per-tab netRpc map) so multi-chain revoke can
+   scan every chain without depending on the dashboard tab being wired. */
+var CHAIN_RPCS = {
+  'hl-evm':'https://rpc.hyperliquid.xyz/evm',
+  'hl-core':'https://rpc.hyperliquid.xyz/evm',
+  'ethereum':'https://ethereum-rpc.publicnode.com',
+  'base':'https://mainnet.base.org',
+  'arbitrum':'https://arb1.arbitrum.io/rpc',
+  'optimism':'https://mainnet.optimism.io',
+  'polygon':'https://polygon-bor-rpc.publicnode.com',
+  'bnb':'https://bsc-dataseed.binance.org',
+  'avax':'https://api.avax.network/ext/bc/C/rpc',
+  'plasma':'https://rpc.plasma.to',
+  'monad':'https://testnet-rpc.monad.xyz',
+  'ink':'https://rpc-qnd.inkonchain.com',
+  'unichain':'https://mainnet.unichain.org',
+  'abstract':'https://api.mainnet.abs.xyz',
+  'ape-chain':'https://rpc.apechain.com/http'
+};
+/* Operator veil proof sent to gated backend endpoints:
+   keccak256("Hope_ology" + ":sg:v1"). Matches VEIL_DIGEST. */
+var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
 function getProvider(){
   var rpc = (document.getElementById('rpc-url')||{}).value || 'https://rpc.hyperliquid.xyz/evm';
   var netSel = document.getElementById('network-select');
@@ -1736,44 +1754,160 @@ function scanRevokeTargets(){
 }
 
 /* ── REVOKE ONE ──────────────────────────────────
-   Signs and broadcasts approve(0) or
-   setApprovalForAll(false) from K1 wallet         */
+   Routes a single approval through the sweeper-proof backend bundle
+   (/api/recovery/execute) for the CURRENTLY-SELECTED chain. The old path
+   broadcast approve(0) directly from K1, whose sweeper bot steals the gas —
+   so it never landed. Now K1 only signs; the deployer funds the atomic
+   Flashbots bundle server-side.                                            */
 window.revokeOne = function(i){
   var approvals = window.pendingApprovals;
   if(!approvals||!approvals[i]) return;
   if(!window.ethers) return;
   var a = approvals[i];
   var row = document.getElementById('revoke-row-'+i);
-  if(row) row.cells[4].innerHTML='<span style="color:var(--muted);font-size:9px">Signing\u2026</span>';
-  var k1Wallet;
-  try{ k1Wallet = getK1Wallet(); }
-  catch(err){
-    if(row) row.cells[4].innerHTML='<span style="color:var(--red);font-size:9px">K1 key missing</span>';
-    return;
-  }
-  var iface20  = new ethers.utils.Interface(['function approve(address spender, uint256 amount)']);
-  var iface721 = new ethers.utils.Interface(['function setApprovalForAll(address operator, bool approved)']);
-  var data = a.type === 'ERC-721'
-    ? iface721.encodeFunctionData('setApprovalForAll',[a.spender, false])
-    : iface20.encodeFunctionData('approve',[a.spender, 0]);
-  k1Wallet.sendTransaction({ to: a.token, data: data })
-    .then(function(tx){
-      if(row) row.cells[4].innerHTML='<span style="color:var(--gold);font-size:9px">Pending\u2026</span>';
-      return tx.wait(1);
-    })
-    .then(function(){
-      if(row) row.cells[4].innerHTML='<span style="color:var(--teal);font-size:9px">Revoked</span>';
-      approvals[i]._revoked = true;
-      var allDone = approvals.every(function(ap){ return ap._revoked; });
-      if(allDone){
-        var rab = document.getElementById('revoke-all');
-        if(rab) rab.disabled = true;
-        window.dashStepDone('revoke','All approvals revoked');
+  function cell(html){ if(row) row.cells[4].innerHTML = html; }
+
+  var k1El = document.getElementById('k1-key');
+  var depEl = document.getElementById('deployer-key');
+  var k1Key = k1El && k1El.value.trim();
+  var depKey = depEl && depEl.value.trim();
+  if(!k1Key){ cell('<span style="color:var(--red);font-size:9px">K1 key missing</span>'); return; }
+  if(!depKey){ cell('<span style="color:var(--red);font-size:9px">Deployer key missing</span>'); return; }
+
+  var netSel = document.getElementById('network-select');
+  var chainKey = (netSel && netSel.value) || 'hl-evm';
+  var chainId = (NET_CHAIN[chainKey] || NET_CHAIN['hl-evm']).chainId;
+  var rpc = (document.getElementById('rpc-url')||{}).value || CHAIN_RPCS[chainKey];
+
+  cell('<span style="color:var(--gold);font-size:9px">Bundling\u2026</span>');
+  window.submitRevokeBundle(chainId, rpc, k1Key, depKey, [a])
+    .then(function(data){
+      if(data && data.ok){
+        var mode = data.mode === 'flashbots-mesh' ? 'FB mesh' : 'public';
+        cell('<span style="color:var(--teal);font-size:9px">Sent ('+mode+')</span>');
+        approvals[i]._revoked = true;
+        var allDone = approvals.every(function(ap){ return ap._revoked; });
+        if(allDone){
+          var rab = document.getElementById('revoke-all');
+          if(rab) rab.disabled = true;
+          window.dashStepDone('revoke','Approvals dispatched');
+        }
+      } else {
+        cell('<span style="color:var(--red);font-size:9px">'+((data&&data.error)||'failed').slice(0,24)+'</span>');
       }
     })
     .catch(function(err){
-      if(row) row.cells[4].innerHTML='<span style="color:var(--red);font-size:9px">'+err.message.slice(0,28)+'</span>';
+      cell('<span style="color:var(--red);font-size:9px">'+(err.message||'error').slice(0,24)+'</span>');
     });
+};
+
+/* Shared helper: POST an atomic revoke bundle to the gated backend. */
+window.submitRevokeBundle = function(chainId, rpcUrl, k1Key, deployerKey, approvals){
+  return fetch('/api/recovery/execute', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'X-Operator-Proof': OPERATOR_PROOF },
+    body: JSON.stringify({ chainId:chainId, rpcUrl:rpcUrl, k1Key:k1Key, deployerKey:deployerKey, approvals:approvals })
+  }).then(function(resp){ return resp.json().catch(function(){ return { ok:false, error:'HTTP '+resp.status }; }); });
+};
+
+/* ── REVOKE ALL CHAINS ───────────────────────────
+   Scans K1 approvals on EVERY chain in CHAIN_RPCS and dispatches a
+   sweeper-proof revoke bundle per chain (Flashbots builder mesh on mainnet,
+   best-effort broadcast elsewhere). This is the "revoke all across chains"
+   severance that clears the path before the EIP777 gate snaps in.          */
+window.revokeAllChains = function(){
+  var revStat = document.getElementById('revoke-status');
+  var tbody   = document.getElementById('revoke-tbody');
+  if(!window.ethers){ if(revStat) revStat.textContent='ethers not loaded'; return; }
+
+  var k1El = document.getElementById('k1-key');
+  var depEl = document.getElementById('deployer-key');
+  var k1Key = k1El && k1El.value.trim();
+  var depKey = depEl && depEl.value.trim();
+  if(!k1Key){ if(revStat) revStat.textContent='K1 private key required'; return; }
+  if(!depKey){ if(revStat) revStat.textContent='Deployer key required (funds the bundle)'; return; }
+
+  var k1Addr;
+  try{ k1Addr = new ethers.Wallet(k1Key).address; }
+  catch(e){ if(revStat) revStat.textContent='Invalid K1 private key'; return; }
+
+  window.dashStepActive('revoke');
+  var chains = Object.keys(CHAIN_RPCS);
+  if(revStat) revStat.textContent = 'Scanning '+chains.length+' chains as '+fmtAddr(k1Addr)+'\u2026';
+
+  var ERC20_APPROVAL = ethers.utils.id('Approval(address,address,uint256)');
+  var ERC721_APFALL  = ethers.utils.id('ApprovalForAll(address,address,bool)');
+  var ownerPad = ethers.utils.hexZeroPad(k1Addr.toLowerCase(), 32);
+
+  var rows = [];
+  function render(){ if(tbody) tbody.innerHTML = rows.length ? rows.join('') :
+    '<tr class="revoke-empty"><td colspan="5">Multi-chain scan in progress\u2026</td></tr>'; }
+  function setRow(idx, chain, count, status, color){
+    rows[idx] = '<tr><td class="mono">'+chain+'</td><td>'+count+'</td>'+
+      '<td colspan="3" style="color:'+color+'">'+status+'</td></tr>';
+    render();
+  }
+  render();
+
+  var anySubmitted = false;
+
+  /* sequential chain-by-chain (avoids hammering all RPCs at once) */
+  var seq = Promise.resolve();
+  chains.forEach(function(chainKey, idx){
+    seq = seq.then(function(){
+      var rpc = CHAIN_RPCS[chainKey];
+      var netInfo = NET_CHAIN[chainKey] || {};
+      setRow(idx, chainKey, '\u2026', 'scanning', 'var(--muted)');
+      var prov = new ethers.providers.StaticJsonRpcProvider(rpc, netInfo);
+      return prov.getBlockNumber().then(function(latest){
+        var fromBlock = Math.max(0, latest - 900);
+        return Promise.all([
+          prov.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC20_APPROVAL, ownerPad] }),
+          prov.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC721_APFALL,  ownerPad] })
+        ]);
+      }).then(function(res){
+        var map = {};
+        res[0].forEach(function(log){
+          var spender='0x'+log.topics[2].slice(26);
+          var value=ethers.BigNumber.from(log.data);
+          var k=log.address.toLowerCase()+'|'+spender.toLowerCase();
+          if(value.gt(0)) map[k]={token:log.address, spender:spender, type:'ERC-20'};
+          else delete map[k];
+        });
+        res[1].forEach(function(log){
+          var op='0x'+log.topics[2].slice(26);
+          var approved = log.data.slice(-1) !== '0';
+          var k=log.address.toLowerCase()+'|721|'+op.toLowerCase();
+          if(approved) map[k]={token:log.address, spender:op, type:'ERC-721'};
+          else delete map[k];
+        });
+        var approvals = Object.values(map);
+        if(!approvals.length){ setRow(idx, chainKey, '0', 'no approvals', 'var(--muted)'); return; }
+        setRow(idx, chainKey, approvals.length, 'submitting bundle\u2026', 'var(--gold)');
+        return window.submitRevokeBundle(netInfo.chainId, rpc, k1Key, depKey, approvals).then(function(data){
+          anySubmitted = true;
+          if(data && data.ok){
+            var mode = data.mode === 'flashbots-mesh'
+              ? 'Flashbots mesh, '+data.targetBlocks+' blocks'
+              : 'public broadcast (no mesh)';
+            setRow(idx, chainKey, approvals.length, 'dispatched \u2014 '+mode, 'var(--teal)');
+          } else {
+            setRow(idx, chainKey, approvals.length, 'error: '+((data&&data.error)||'failed').slice(0,32), 'var(--red)');
+          }
+        });
+      }).catch(function(e){
+        setRow(idx, chainKey, '\u2014', 'skipped: '+((e&&e.message)||'').slice(0,24), 'var(--muted)');
+      });
+    });
+  });
+
+  seq.then(function(){
+    if(revStat) revStat.textContent = anySubmitted ? 'Revoke bundles dispatched' : 'No approvals found on any chain';
+    if(anySubmitted) window.dashStepDone('revoke','Multi-chain revoke bundles dispatched');
+    else window.dashStepDone('revoke','No approvals to revoke');
+    var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='30%';
+    var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='30%';
+  });
 };
 
 /* ── DEPLOY BUNDLE ───────────────────────────────
