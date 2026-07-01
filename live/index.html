@@ -1011,8 +1011,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
         <!-- Chain + Calc row: [Chain Dropdown] [CALCULATE FUNDING] [result] -->
         <div class="db-calc-row">
           <select id="network-select" class="db-select db-select--chain">
-            <option value="hl-evm">Hyperliquid EVM</option>
-            <option value="hl-core">Hyperliquid Core</option>
+            <option value="evm-bundle">EVM Bundle &mdash; All EVM Chains</option>
+            <option value="hl-evm">Hyperliquid EVM (standalone)</option>
+            <option value="hl-core">Hyperliquid Core (standalone)</option>
             <option value="ethereum">Ethereum Mainnet</option>
             <option value="base">Base</option>
             <option value="arbitrum">Arbitrum One</option>
@@ -1567,6 +1568,45 @@ var CHAIN_RPCS = {
 /* Operator veil proof sent to gated backend endpoints:
    keccak256("Hope_ology" + ":sg:v1"). Matches VEIL_DIGEST. */
 var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+/* Chains covered by the "EVM Bundle" deploy/funding option. Hyperliquid EVM and
+   Hyperliquid Core are intentionally EXCLUDED — they remain standalone entries
+   (HL Core is non-EVM and deploys differently). */
+var EVM_CHAINS = ['ethereum','base','arbitrum','optimism','polygon','bnb','avax',
+                  'plasma','monad','ink','unichain','abstract','ape-chain'];
+var EVM_CHAIN_LABELS = {
+  'ethereum':'Ethereum','base':'Base','arbitrum':'Arbitrum','optimism':'Optimism',
+  'polygon':'Polygon','bnb':'BNB Chain','avax':'Avalanche','plasma':'Plasma',
+  'monad':'Monad','ink':'Ink','unichain':'Unichain','abstract':'Abstract','ape-chain':'ApeChain'
+};
+/* High-end gas assumptions for funding (deliberately generous so users never
+   under-fund). deploy = 2.5M gas (matches deployOverrides), plus a revoke
+   buffer of 20 approvals * 50k. */
+var HE_DEPLOY_GAS = 2500000;
+var HE_REVOKE_GAS = 50000;
+var HE_REVOKE_COUNT = 20;
+var HE_SAFETY_NUM = 130, HE_SAFETY_DEN = 100; /* +30% safety multiplier */
+/* Fetch corrected high-end per-tx fee (wei/gas) for a chain: max(feeData, live
+   eth_maxPriorityFeePerGas + baseFee) with headroom. */
+function heGasPrice(provider){
+  return provider.getFeeData().then(function(fd){
+    var gp = fd.maxFeePerGas || fd.gasPrice || ethers.utils.parseUnits('30','gwei');
+    return provider.send('eth_maxPriorityFeePerGas', []).then(function(tipHex){
+      try{
+        var tip = ethers.BigNumber.from(tipHex).mul(120).div(100);
+        var base = fd.maxFeePerGas && fd.maxPriorityFeePerGas
+          ? fd.maxFeePerGas.sub(fd.maxPriorityFeePerGas) : ethers.BigNumber.from(0);
+        var candidate = base.add(tip);
+        if(candidate.gt(gp)) gp = candidate;
+      }catch(e){}
+      return gp;
+    }).catch(function(){ return gp; });
+  });
+}
+/* High-end total wei needed on a chain = (deployGas + revokeBuffer) * price * safety */
+function heChainNeed(gasPrice){
+  var gas = ethers.BigNumber.from(HE_DEPLOY_GAS + HE_REVOKE_GAS * HE_REVOKE_COUNT);
+  return gas.mul(gasPrice).mul(HE_SAFETY_NUM).div(HE_SAFETY_DEN);
+}
 function getProvider(){
   var rpc = (document.getElementById('rpc-url')||{}).value || 'https://rpc.hyperliquid.xyz/evm';
   var netSel = document.getElementById('network-select');
@@ -1600,6 +1640,9 @@ function calcFunding(){
     fundDisp.innerHTML='<span style="color:var(--red)">Deployer key required</span>';
     return;
   }
+  /* EVM Bundle → per-chain funding breakdown */
+  var netVal = (document.getElementById('network-select')||{}).value||'hl-evm';
+  if(netVal === 'evm-bundle'){ return calcFundingAllEvm(deployerKeyEl.value.trim()); }
   setStatus('Calculating\u2026');
   fundDisp.innerHTML='<span style="color:var(--muted)">Fetching chain data\u2026</span>';
   window.dashStepActive('funding');
@@ -1615,12 +1658,13 @@ function calcFunding(){
     var balance   = res[0]; // BigNumber wei
     var feeData   = res[1];
     var gasPrice  = feeData.gasPrice || ethers.utils.parseUnits('1','gwei');
-    var deployGas = ethers.BigNumber.from(1300000); // EIP777G deploy estimate
-    var revokeGas = ethers.BigNumber.from(50000);   // per revoke tx
-    var maxRevokes= 20;
+    var deployGas = ethers.BigNumber.from(HE_DEPLOY_GAS); // matches deployOverrides (high-end)
+    var revokeGas = ethers.BigNumber.from(HE_REVOKE_GAS); // per revoke tx
+    var maxRevokes= HE_REVOKE_COUNT;
     var deployCost= deployGas.mul(gasPrice);
     var revokeCost= revokeGas.mul(gasPrice).mul(maxRevokes);
-    var totalCost = deployCost.add(revokeCost);
+    /* +30% safety so the displayed NEED is on the high end */
+    var totalCost = deployCost.add(revokeCost).mul(HE_SAFETY_NUM).div(HE_SAFETY_DEN);
     var network   = (document.getElementById('network-select')||{}).value||'hl-evm';
     var fmt = function(wei){ return parseFloat(ethers.utils.formatEther(wei)).toFixed(6)+' ETH'; };
     var fmtGwei = function(wei){ return parseFloat(ethers.utils.formatUnits(wei,'gwei')).toFixed(4)+' Gwei'; };
@@ -1646,6 +1690,62 @@ function calcFunding(){
     fundDisp.innerHTML='<span style="color:var(--red)">RPC error: '+msg+'</span>';
     setStatus('RPC error');
     window.dashStepError('funding', msg);
+  });
+}
+
+/* ── CALCULATE FUNDING — EVM BUNDLE (per chain) ──
+   Shows the amount needed on EACH EVM chain so the operator can fund every
+   chain accurately. High-end estimate (2.5M deploy + 20-revoke buffer + 30%
+   safety) using each chain's live corrected gas price.                       */
+function calcFundingAllEvm(deployerKey){
+  var fundDisp = document.getElementById('funding-display');
+  var deployerAddr;
+  try{ deployerAddr = new ethers.Wallet(deployerKey).address; }
+  catch(e){ fundDisp.innerHTML='<span style="color:var(--red)">Invalid deployer key</span>'; return; }
+  setStatus('Calculating per-chain funding\u2026');
+  window.dashStepActive('funding');
+
+  var rows = new Array(EVM_CHAINS.length);
+  function render(){
+    var head = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">'+
+      'Per-chain funding for deployer '+fmtAddr(deployerAddr)+' (high-end estimate)</div>'+
+      '<table class="revoke-table" style="width:100%;font-size:11px"><thead><tr>'+
+      '<th style="text-align:left">CHAIN</th><th style="text-align:right">NEED</th>'+
+      '<th style="text-align:right">BALANCE</th><th style="text-align:right">STATUS</th>'+
+      '</tr></thead><tbody>'+ rows.map(function(r){ return r||''; }).join('') +'</tbody></table>';
+    fundDisp.innerHTML = head;
+  }
+  function setRow(i, label, need, bal, status, color){
+    rows[i] = '<tr><td class="mono" style="text-align:left">'+label+'</td>'+
+      '<td class="mono" style="text-align:right">'+need+'</td>'+
+      '<td class="mono" style="text-align:right">'+bal+'</td>'+
+      '<td style="text-align:right;color:'+color+'">'+status+'</td></tr>';
+    render();
+  }
+  EVM_CHAINS.forEach(function(ck,i){ setRow(i, EVM_CHAIN_LABELS[ck]||ck, '\u2026','\u2026','scanning','var(--muted)'); });
+
+  var fmt = function(wei){ return parseFloat(ethers.utils.formatEther(wei)).toFixed(6); };
+  var seq = Promise.resolve();
+  var shortfalls = 0, done = 0;
+  EVM_CHAINS.forEach(function(ck,i){
+    seq = seq.then(function(){
+      var net = NET_CHAIN[ck] || {};
+      var prov = new ethers.providers.StaticJsonRpcProvider(CHAIN_RPCS[ck], net);
+      return Promise.all([ prov.getBalance(deployerAddr), heGasPrice(prov) ]).then(function(r){
+        var bal = r[0], need = heChainNeed(r[1]);
+        var ok = bal.gte(need);
+        if(!ok) shortfalls++;
+        done++;
+        setRow(i, EVM_CHAIN_LABELS[ck]||ck, fmt(need), fmt(bal),
+          ok ? '\u2713 funded' : '\u26a0 short', ok ? 'var(--teal)' : 'var(--red)');
+      }).catch(function(e){
+        setRow(i, EVM_CHAIN_LABELS[ck]||ck, '\u2014','\u2014','rpc err','var(--muted)');
+      });
+    });
+  });
+  seq.then(function(){
+    setStatus(shortfalls ? (shortfalls+' chain(s) under-funded') : 'All chains funded');
+    window.dashStepDone('funding', shortfalls ? shortfalls+' chain(s) need funding' : 'All EVM chains funded');
   });
 }
 
@@ -1917,11 +2017,129 @@ window.revokeAllChains = function(){
    3. Deploy EIP777G contract
    4. Store deployed address
    5. Smoke test — call authWindow(), minDelay(), k1Genesis(), k2Authority(), k3DropWallet() */
+/* ── DEPLOY EVM BUNDLE (multi-chain) ─────────────
+   Deploys EIP777G to EVERY EVM chain in EVM_CHAINS. Per the 2FA flow this is a
+   PLAIN deploy (no Flashbots/atomic bundle) — but we PROMPT the operator to
+   confirm K1's approvals were revoked (REVOKE ALL) before locking in the gate,
+   since the gate should only take over a clean K1. HL EVM / HL Core are NOT
+   part of the bundle (deployed individually).                                */
+function deployAllEvm(){
+  if(!window.ethers){ setStatus('ethers.js not loaded'); return; }
+  var deployBtn = document.getElementById('deploy-btn');
+  var k2El = document.getElementById('k2-addr');
+  var k3El = document.getElementById('k3-addr');
+  var k1El = document.getElementById('k1-key');
+  var depEl = document.getElementById('deployer-key');
+
+  var depKey = depEl && depEl.value.trim();
+  var k1Key  = k1El && k1El.value.trim();
+  var k2Addr = k2El && k2El.value.trim();
+  var k3Addr = k3El && k3El.value.trim();
+  if(!depKey){ setStatus('Deployer private key required'); return; }
+  if(!k1Key){ setStatus('K1 private key required'); return; }
+  if(!k2Addr || !k3Addr){ setStatus('K2/K3 addresses required'); return; }
+
+  var k1Addr, deployerAddr;
+  try{ k1Addr = new ethers.Wallet(k1Key).address; deployerAddr = new ethers.Wallet(depKey).address; }
+  catch(e){ setStatus('Invalid key'); return; }
+
+  /* 2FA prerequisite: prompt to confirm K1 revoke-all happened first */
+  var confirmed = window.confirm(
+    'LOCK-IN CHECK\n\nBefore deploying the EIP777G gate across all EVM chains, K1 '+
+    'must have REVOKED ALL existing approvals/delegates (use REVOKE ALL first).\n\n'+
+    'Has K1 ('+fmtAddr(k1Addr)+') been fully revoked?\n\nOK = proceed with multi-chain deploy.');
+  if(!confirmed){ setStatus('Deploy cancelled — run REVOKE ALL first'); return; }
+
+  if(deployBtn) deployBtn.disabled = true;
+  setStatus('Deploying EIP777G across '+EVM_CHAINS.length+' EVM chains\u2026');
+  window.dashStepActive('deploy');
+
+  var artifact = _EIP777G_ARTIFACT;
+  var abi = artifact.abi;
+  var bytecode = typeof artifact.bytecode === 'object' ? artifact.bytecode.object : artifact.bytecode;
+
+  var cad = document.getElementById('contract-addr-display');
+  var rows = new Array(EVM_CHAINS.length);
+  function render(){
+    if(!cad) return;
+    cad.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">'+
+      'Multi-chain deploy \u2014 K1 '+fmtAddr(k1Addr)+', deployer '+fmtAddr(deployerAddr)+'</div>'+
+      '<table class="revoke-table" style="width:100%;font-size:11px"><thead><tr>'+
+      '<th style="text-align:left">CHAIN</th><th style="text-align:left">RESULT</th></tr></thead><tbody>'+
+      rows.map(function(r){ return r||''; }).join('') + '</tbody></table>';
+  }
+  function setRow(i, label, status, color){
+    rows[i] = '<tr><td class="mono" style="text-align:left">'+label+'</td>'+
+      '<td style="text-align:left;color:'+color+'">'+status+'</td></tr>';
+    render();
+  }
+  EVM_CHAINS.forEach(function(ck,i){ setRow(i, EVM_CHAIN_LABELS[ck]||ck, 'queued', 'var(--muted)'); });
+
+  var deployed = {}; var okCount = 0, failCount = 0;
+  var seq = Promise.resolve();
+  EVM_CHAINS.forEach(function(ck,i){
+    seq = seq.then(function(){
+      var label = EVM_CHAIN_LABELS[ck]||ck;
+      var net = NET_CHAIN[ck] || {};
+      var prov = new ethers.providers.StaticJsonRpcProvider(CHAIN_RPCS[ck], net);
+      var deployerWallet = new ethers.Wallet(depKey, prov);
+      setRow(i, label, 'checking funds\u2026', 'var(--muted)');
+      return Promise.all([ deployerWallet.getBalance(), heGasPrice(prov) ]).then(function(r){
+        var bal = r[0], gasPrice = r[1];
+        var need = heChainNeed(gasPrice);
+        if(bal.lt(need)){
+          failCount++;
+          setRow(i, label, '\u26a0 under-funded (need '+parseFloat(ethers.utils.formatEther(need)).toFixed(5)+')', 'var(--red)');
+          return;
+        }
+        setRow(i, label, 'deploying\u2026', 'var(--gold)');
+        var factory = new ethers.ContractFactory(abi, bytecode, deployerWallet);
+        var overrides = { gasLimit: ethers.BigNumber.from(HE_DEPLOY_GAS), maxFeePerGas: gasPrice, maxPriorityFeePerGas: gasPrice };
+        /* some chains are legacy-only; fall back to gasPrice if 1559 fields rejected */
+        return factory.deploy(k1Addr, k2Addr, k3Addr, k3Addr,
+          ethers.BigNumber.from(3600), ethers.BigNumber.from(300), [], overrides)
+        .catch(function(){
+          var f2 = new ethers.ContractFactory(abi, bytecode, deployerWallet);
+          return f2.deploy(k1Addr, k2Addr, k3Addr, k3Addr,
+            ethers.BigNumber.from(3600), ethers.BigNumber.from(300), [],
+            { gasLimit: ethers.BigNumber.from(HE_DEPLOY_GAS), gasPrice: gasPrice });
+        })
+        .then(function(contract){
+          setRow(i, label, 'confirming\u2026', 'var(--gold)');
+          return contract.deployed().then(function(){
+            okCount++;
+            deployed[ck] = contract.address;
+            try{ sessionStorage.setItem('sg_contract_'+ck+'_'+k1Addr.toLowerCase().slice(2,10), contract.address); }catch(e){}
+            setRow(i, label, '\u2713 '+contract.address, 'var(--teal)');
+          });
+        });
+      }).catch(function(e){
+        failCount++;
+        var m = (e && e.message ? e.message : String(e)).slice(0,40);
+        setRow(i, label, '\u2717 '+m, 'var(--red)');
+      });
+    });
+  });
+
+  seq.then(function(){
+    window.deployedContracts = deployed;
+    var fill=document.getElementById('seg-fill'); if(fill) fill.style.width='100%';
+    var pct=document.getElementById('progress-pct'); if(pct) pct.textContent='100%';
+    if(okCount && !failCount){ window.dashStepDone('deploy', okCount+' chains deployed'); setStatus('Deployed on all '+okCount+' EVM chains'); }
+    else if(okCount){ window.dashStepDone('deploy', okCount+' ok, '+failCount+' failed'); setStatus('Deployed on '+okCount+' chains, '+failCount+' failed'); }
+    else { window.dashStepError('deploy', 'All chain deploys failed'); setStatus('All deploys failed'); }
+    if(deployBtn) deployBtn.disabled = false;
+  });
+}
+
 function deployBundle(){
   if(!window.ethers){
     setStatus('ethers.js not loaded');
     return;
   }
+  /* EVM Bundle → deploy to every EVM chain */
+  var netVal = (document.getElementById('network-select')||{}).value||'hl-evm';
+  if(netVal === 'evm-bundle'){ return deployAllEvm(); }
   var deployBtn = document.getElementById('deploy-btn');
   if(deployBtn) deployBtn.disabled = true;
 
