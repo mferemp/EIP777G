@@ -1149,8 +1149,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
         <!-- Chain + Calc row (same pattern as deploy bundle) -->
         <div class="db-calc-row">
           <select id="twofa-chain" class="db-select db-select--chain">
-            <option value="hl-evm">Hyperliquid EVM</option>
-            <option value="hl-core">Hyperliquid Core</option>
+            <option value="evm-bundle">EVM Bundle &mdash; All EVM Chains</option>
+            <option value="hl-evm">Hyperliquid EVM (standalone)</option>
+            <option value="hl-core">Hyperliquid Core (standalone)</option>
             <option value="ethereum">Ethereum Mainnet</option>
             <option value="base">Base</option>
             <option value="arbitrum">Arbitrum One</option>
@@ -1697,8 +1698,8 @@ function calcFunding(){
    Shows the amount needed on EACH EVM chain so the operator can fund every
    chain accurately. High-end estimate (2.5M deploy + 20-revoke buffer + 30%
    safety) using each chain's live corrected gas price.                       */
-function calcFundingAllEvm(deployerKey){
-  var fundDisp = document.getElementById('funding-display');
+function calcFundingAllEvm(deployerKey, displayId){
+  var fundDisp = document.getElementById(displayId || 'funding-display');
   var deployerAddr;
   try{ deployerAddr = new ethers.Wallet(deployerKey).address; }
   catch(e){ fundDisp.innerHTML='<span style="color:var(--red)">Invalid deployer key</span>'; return; }
@@ -2023,25 +2024,38 @@ window.revokeAllChains = function(){
    confirm K1's approvals were revoked (REVOKE ALL) before locking in the gate,
    since the gate should only take over a clean K1. HL EVM / HL Core are NOT
    part of the bundle (deployed individually).                                */
-function deployAllEvm(){
+function deployAllEvm(cfg){
   if(!window.ethers){ setStatus('ethers.js not loaded'); return; }
-  var deployBtn = document.getElementById('deploy-btn');
-  var k2El = document.getElementById('k2-addr');
-  var k3El = document.getElementById('k3-addr');
-  var k1El = document.getElementById('k1-key');
+  cfg = cfg || {};
+  var deployBtn = cfg.deployBtn || document.getElementById('deploy-btn');
+  var displayId = cfg.displayId || 'contract-addr-display';
   var depEl = document.getElementById('deployer-key');
+  var depKey = cfg.depKey || (depEl && depEl.value.trim());
 
-  var depKey = depEl && depEl.value.trim();
-  var k1Key  = k1El && k1El.value.trim();
-  var k2Addr = k2El && k2El.value.trim();
-  var k3Addr = k3El && k3El.value.trim();
-  if(!depKey){ setStatus('Deployer private key required'); return; }
-  if(!k1Key){ setStatus('K1 private key required'); return; }
-  if(!k2Addr || !k3Addr){ setStatus('K2/K3 addresses required'); return; }
-
-  var k1Addr, deployerAddr;
-  try{ k1Addr = new ethers.Wallet(k1Key).address; deployerAddr = new ethers.Wallet(depKey).address; }
-  catch(e){ setStatus('Invalid key'); return; }
+  var k1Addr, k2Addr, k3Addr, deployerAddr;
+  if(cfg.fromAddresses){
+    /* 2FA section supplies K1/K2/K3 as ADDRESSES directly */
+    k1Addr = cfg.k1Addr; k2Addr = cfg.k2Addr; k3Addr = cfg.k3Addr;
+    if(!depKey){ setStatus('Deployer private key required'); return; }
+    if(!k1Addr){ setStatus('K1 address required'); return; }
+    if(!k2Addr || !k3Addr){ setStatus('K2/K3 addresses required'); return; }
+    try{ k1Addr = ethers.utils.getAddress(k1Addr); k2Addr = ethers.utils.getAddress(k2Addr);
+         k3Addr = ethers.utils.getAddress(k3Addr); deployerAddr = new ethers.Wallet(depKey).address; }
+    catch(e){ setStatus('Invalid address/key'); return; }
+  } else {
+    /* main section derives K1 address from its private key */
+    var k1El = document.getElementById('k1-key');
+    var k2El = document.getElementById('k2-addr');
+    var k3El = document.getElementById('k3-addr');
+    var k1Key = k1El && k1El.value.trim();
+    k2Addr = k2El && k2El.value.trim();
+    k3Addr = k3El && k3El.value.trim();
+    if(!depKey){ setStatus('Deployer private key required'); return; }
+    if(!k1Key){ setStatus('K1 private key required'); return; }
+    if(!k2Addr || !k3Addr){ setStatus('K2/K3 addresses required'); return; }
+    try{ k1Addr = new ethers.Wallet(k1Key).address; deployerAddr = new ethers.Wallet(depKey).address; }
+    catch(e){ setStatus('Invalid key'); return; }
+  }
 
   /* 2FA prerequisite: prompt to confirm K1 revoke-all happened first */
   var confirmed = window.confirm(
@@ -2058,7 +2072,7 @@ function deployAllEvm(){
   var abi = artifact.abi;
   var bytecode = typeof artifact.bytecode === 'object' ? artifact.bytecode.object : artifact.bytecode;
 
-  var cad = document.getElementById('contract-addr-display');
+  var cad = document.getElementById(displayId);
   var rows = new Array(EVM_CHAINS.length);
   function render(){
     if(!cad) return;
@@ -2627,9 +2641,17 @@ function onSuccess(){
   if(tfK3) tfK3.addEventListener('input', checkTwofaReady);
   /* 2FA calc funding button */
   var tfCalc = document.getElementById('twofa-calc');
-  if(tfCalc && tfChain && tfFund){
+  if(tfCalc && tfChain && tfFund && !tfCalc._wired){
+    tfCalc._wired = true;
     tfCalc.addEventListener('click', function(){
-      /* reuse main funding estimates keyed by chain */
+      /* EVM Bundle → live per-chain funding table (needs deployer key) */
+      if(tfChain.value === 'evm-bundle'){
+        var depEl = document.getElementById('deployer-key');
+        var depKey = depEl && depEl.value.trim();
+        if(!depKey){ tfFund.innerHTML = '<span style="color:var(--red)">Deployer key required (enter it in the deploy section)</span>'; return; }
+        return calcFundingAllEvm(depKey, 'twofa-funding');
+      }
+      /* single chain → quick static estimate */
       var estimates = {
         'hl-evm':'~0.02 HYPE','hl-core':'~0.02 HYPE',
         'ethereum':'~0.008 ETH','base':'~0.001 ETH',
@@ -2641,6 +2663,32 @@ function onSuccess(){
       };
       var est = estimates[tfChain.value] || 'Check chain docs';
       tfFund.innerHTML = 'NEED\u00a0<span style="color:var(--gold)">' + est + '</span>';
+    });
+  }
+  /* 2FA deploy button — was previously UNWIRED (did nothing). Now performs the
+     multi-chain EVM Bundle deploy (or a single-chain note) using the 2FA
+     K1/K2/K3 ADDRESSES and the deployer key from the deploy section. */
+  if(tfDeploy && tfChain && !tfDeploy._wired){
+    tfDeploy._wired = true;
+    tfDeploy.addEventListener('click', function(){
+      var k1v = (document.getElementById('twofa-k1')||{}).value;
+      var k2v = (tfK2||{}).value;
+      var k3v = (tfK3||{}).value;
+      if(tfChain.value === 'evm-bundle'){
+        return deployAllEvm({
+          fromAddresses: true,
+          k1Addr: k1v && k1v.trim(),
+          k2Addr: k2v && k2v.trim(),
+          k3Addr: k3v && k3v.trim(),
+          deployBtn: tfDeploy,
+          displayId: 'twofa-funding'
+        });
+      }
+      /* single chain: route through the normal deploy path on the main section */
+      var netSel = document.getElementById('network-select');
+      if(netSel){ netSel.value = tfChain.value; }
+      setStatus('Single-chain 2FA deploy → using main deploy pipeline for '+tfChain.value);
+      if(typeof deployBundle === 'function') deployBundle();
     });
   }
   /* set RPC default immediately — so it's always present on reveal.
