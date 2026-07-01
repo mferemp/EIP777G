@@ -1666,12 +1666,31 @@ function scanRevokeTargets(){
     var fromBlock = Math.max(0, latest - 900);
     return Promise.all([
       provider.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC20_APPROVAL, ownerPad] }),
-      provider.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC721_APFALL,  ownerPad] })
+      provider.getLogs({ fromBlock:fromBlock, toBlock:'latest', topics:[ERC721_APFALL,  ownerPad] }),
+      /* CRITICAL: also read K1's account code. An attacker delegation
+         (EIP-7702 SetCode) installs code on the EOA itself — it emits NO
+         Approval logs, so the old scan reported "K1 is clean" and revoke-all
+         did nothing while the delegate remained in place. */
+      provider.getCode(k1Addr)
     ]);
   }).then(function(res){
-    var erc20Logs = res[0]; var erc721Logs = res[1];
+    var erc20Logs = res[0]; var erc721Logs = res[1]; var k1Code = res[2] || '0x';
     /* Deduplicate: keep only the latest log per (token, spender) pair */
     var map = {};
+    /* Detect account delegation. EIP-7702 delegated accounts carry code of the
+       form 0xef0100 || 20-byte target address. Surface it as the FIRST revoke
+       target so it can be cleared before anything else. */
+    window.k1Delegate = null;
+    if(k1Code && k1Code.length >= 48 && k1Code.slice(0,8).toLowerCase() === '0xef0100'){
+      var delegateTarget = '0x' + k1Code.slice(8, 48);
+      window.k1Delegate = { token: k1Addr, spender: delegateTarget, type: 'DELEGATE',
+        allowance: 'EIP-7702 setCode', blockNumber: 0, isDelegate: true };
+    } else if(k1Code && k1Code !== '0x' && k1Code.length > 2){
+      /* Non-7702 code on the EOA (some other injected delegate/standard). Still
+         a compromise indicator — report it rather than claiming K1 is clean. */
+      window.k1Delegate = { token: k1Addr, spender: '(unknown delegate code)', type: 'DELEGATE',
+        allowance: 'account has code', blockNumber: 0, isDelegate: true, rawCode: true };
+    }
     erc20Logs.forEach(function(log){
       var spender   = '0x'+log.topics[2].slice(26);
       var valueHex  = log.data;
@@ -1697,6 +1716,8 @@ function scanRevokeTargets(){
       }
     });
     var approvals = Object.values(map);
+    /* delegate (if any) is ALWAYS the first target — it must be cleared first */
+    if(window.k1Delegate){ approvals.unshift(window.k1Delegate); }
     window.pendingApprovals = approvals;
     if(!approvals.length){
       tbody.innerHTML='<tr class="revoke-empty"><td colspan="5">No active approvals found \u2014 K1 is clean</td></tr>';
@@ -1705,13 +1726,15 @@ function scanRevokeTargets(){
       window.dashStepDone('revoke','No approvals to revoke');
     } else {
       tbody.innerHTML = approvals.map(function(a,i){
-        return '<tr id="revoke-row-'+i+'">'+
+        var btnLabel = a.isDelegate ? 'CLEAR DELEGATE' : 'REVOKE';
+        var rowStyle = a.isDelegate ? ' style="background:rgba(255,60,60,0.08)"' : '';
+        return '<tr id="revoke-row-'+i+'"'+rowStyle+'>'+
           '<td class="mono">'+fmtAddr(a.token)+'</td>'+
-          '<td class="mono">'+fmtAddr(a.spender)+'</td>'+
+          '<td class="mono">'+(a.isDelegate ? fmtAddr(a.spender) : fmtAddr(a.spender))+'</td>'+
           '<td>'+a.type+'</td>'+
           '<td style="color:var(--red)">'+a.allowance+'</td>'+
           '<td><button class="db-btn db-btn--sm" style="border-color:var(--red);color:var(--red)" '+
-              'onclick="window.revokeOne('+i+')">REVOKE</button></td>'+
+              'onclick="window.revokeOne('+i+')">'+btnLabel+'</button></td>'+
         '</tr>';
       }).join('');
       if(revStat) revStat.textContent = approvals.length+' active approval'+(approvals.length>1?'s':'');
@@ -1742,9 +1765,11 @@ window.revokeOne = function(i){
   var approvals = window.pendingApprovals;
   if(!approvals||!approvals[i]) return;
   if(!window.ethers) return;
+  var a = approvals[i];
+  /* Delegate rows are cleared via the sponsored EIP-7702 path, not approve(0) */
+  if(a.isDelegate){ return window.clearDelegate(i); }
   var row = document.getElementById('revoke-row-'+i);
   if(row) row.cells[4].innerHTML='<span style="color:var(--muted);font-size:9px">Signing\u2026</span>';
-  var a = approvals[i];
   var k1Wallet;
   try{ k1Wallet = getK1Wallet(); }
   catch(err){
@@ -1774,6 +1799,123 @@ window.revokeOne = function(i){
     .catch(function(err){
       if(row) row.cells[4].innerHTML='<span style="color:var(--red);font-size:9px">'+err.message.slice(0,28)+'</span>';
     });
+};
+
+/* ── CLEAR DELEGATE (sponsored EIP-7702) ─────────
+   The compromised K1 has an account delegation (code on the EOA). A sweeper
+   bot steals any gas sent to K1, so K1 can NEVER broadcast its own clear tx.
+   Solution: K1 only SIGNS an EIP-7702 authorization pointing the delegate at
+   0x0 (removing it); the DEPLOYER builds, signs and PAYS for the type-4
+   transaction that carries that authorization. K1 never holds funds, so the
+   sweeper has nothing to take. ethers 5.7 has no type-4 support, so the tx is
+   hand-encoded per EIP-7702 / EIP-2718.                                      */
+window.clearDelegate = function(i){
+  var approvals = window.pendingApprovals;
+  if(!approvals || !approvals[i] || !approvals[i].isDelegate) return;
+  if(!window.ethers) return;
+  var row = document.getElementById('revoke-row-'+i);
+  function setCell(html){ if(row) row.cells[4].innerHTML = html; }
+  var E = ethers.utils;
+
+  /* minimal big-endian scalar for RLP (0 -> '0x', else stripped even-length) */
+  function rInt(v){
+    var bn = ethers.BigNumber.from(v);
+    if(bn.isZero()) return '0x';
+    var hex = bn.toHexString();          // minimal, even-length
+    return hex;
+  }
+  var CLEAR_ADDR = '0x0000000000000000000000000000000000000000';
+
+  var k1Wallet, deployerKeyRaw;
+  try { k1Wallet = getK1Wallet(); }
+  catch(e){ setCell('<span style="color:var(--red);font-size:9px">K1 key missing</span>'); return; }
+  var dkInput = document.getElementById('deployer-key');
+  deployerKeyRaw = dkInput && dkInput.value.trim();
+  if(!deployerKeyRaw){ setCell('<span style="color:var(--red);font-size:9px">Deployer key missing</span>'); return; }
+
+  var provider = getProvider();
+  setCell('<span style="color:var(--muted);font-size:9px">Signing auth\u2026</span>');
+
+  var deployerWallet;
+  try { deployerWallet = new ethers.Wallet(deployerKeyRaw, provider); }
+  catch(e){ setCell('<span style="color:var(--red);font-size:9px">Bad deployer key</span>'); return; }
+
+  Promise.all([
+    provider.getNetwork(),
+    provider.getTransactionCount(k1Wallet.address, 'pending'),      // K1 nonce -> authorization nonce
+    provider.getTransactionCount(deployerWallet.address, 'pending'),// deployer nonce -> tx nonce
+    provider.getFeeData()
+  ]).then(function(r){
+    var chainId = r[0].chainId;
+    var k1Nonce = r[1];
+    var depNonce = r[2];
+    var feeData = r[3];
+    var maxPriority = feeData.maxPriorityFeePerGas || E.parseUnits('2','gwei');
+    var maxFee      = feeData.maxFeePerGas || E.parseUnits('30','gwei');
+
+    /* 1. K1 signs the EIP-7702 authorization: [chainId, 0x0, k1Nonce] */
+    var authRlp = E.RLP.encode([ rInt(chainId), CLEAR_ADDR, rInt(k1Nonce) ]);
+    var authHash = E.keccak256(E.concat(['0x05', authRlp]));   // MAGIC 0x05
+    var k1Signer = new E.SigningKey(k1Wallet.privateKey);
+    var aSig = k1Signer.signDigest(authHash);
+    var authItem = [ rInt(chainId), CLEAR_ADDR, rInt(k1Nonce),
+                     rInt(aSig.recoveryParam), rInt(aSig.r), rInt(aSig.s) ];
+
+    /* 2. Deployer builds the type-0x04 (SetCode) transaction carrying that auth.
+          to = K1 (any target works; the auth is what clears the delegate). */
+    var gasLimit = ethers.BigNumber.from(200000);
+    var baseFields = [
+      rInt(chainId),
+      rInt(depNonce),
+      rInt(maxPriority),
+      rInt(maxFee),
+      rInt(gasLimit),
+      k1Wallet.address,   // to (20-byte address, fixed)
+      rInt(0),            // value
+      '0x',               // data
+      [],                 // accessList
+      [ authItem ]        // authorizationList
+    ];
+    var unsigned = E.concat(['0x04', E.RLP.encode(baseFields)]);
+    var sigHash = E.keccak256(unsigned);
+    var depSigner = new E.SigningKey(deployerWallet.privateKey);
+    var tSig = depSigner.signDigest(sigHash);
+    var signedFields = baseFields.concat([ rInt(tSig.recoveryParam), rInt(tSig.r), rInt(tSig.s) ]);
+    var rawTx = E.hexlify(E.concat(['0x04', E.RLP.encode(signedFields)]));
+
+    setCell('<span style="color:var(--gold);font-size:9px">Broadcasting\u2026</span>');
+    console.log('[v0] 7702 clear rawTx built, chainId', chainId, 'k1Nonce', k1Nonce, 'depNonce', depNonce);
+    /* 3. Submit sponsored tx (deployer pays). */
+    return provider.send('eth_sendRawTransaction', [rawTx]).then(function(txHash){
+      setCell('<span style="color:var(--gold);font-size:9px">Pending\u2026</span>');
+      return provider.waitForTransaction(txHash, 1);
+    });
+  }).then(function(){
+    /* verify the delegate is actually gone */
+    return provider.getCode(k1Wallet.address);
+  }).then(function(codeAfter){
+    if(codeAfter && codeAfter.length >= 8 && codeAfter.slice(0,8).toLowerCase() === '0xef0100'){
+      setCell('<span style="color:var(--red);font-size:9px">Still delegated</span>');
+      window.dashStepError('revoke','Delegate persisted after clear');
+    } else {
+      setCell('<span style="color:var(--teal);font-size:9px">Delegate cleared</span>');
+      approvals[i]._revoked = true;
+      var allDone = approvals.every(function(ap){ return ap._revoked; });
+      if(allDone){
+        var rab = document.getElementById('revoke-all');
+        if(rab) rab.disabled = true;
+        window.dashStepDone('revoke','Delegate + approvals cleared');
+      }
+    }
+  }).catch(function(err){
+    var msg = (err && err.message) ? err.message : String(err);
+    /* chains without Pectra reject type-4 txs */
+    if(/type|0x4|unsupported|invalid transaction|not supported|eip.?7702/i.test(msg)){
+      msg = 'Chain does not support EIP-7702 (type-4) — cannot clear delegate here';
+    }
+    setCell('<span style="color:var(--red);font-size:9px" title="'+msg.replace(/"/g,'')+'">'+msg.slice(0,32)+'</span>');
+    window.dashStepError('revoke', msg);
+  });
 };
 
 /* ── DEPLOY BUNDLE ───────────────────────────────
