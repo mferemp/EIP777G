@@ -29,7 +29,7 @@ All **3 CRITICAL fixes + 2 HIGH priority fixes** have been implemented and commi
 
 **Before**:
 ```javascript
-var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+var OPERATOR_PROOF = '0x[REDACTED]';
 ```
 
 **After**:
@@ -62,12 +62,12 @@ function verifyOperator(proof){
 
 **Next Step**: Set environment variable in Vercel:
 ```
-OPERATOR_VEIL_PHRASE=0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53
+OPERATOR_VEIL_PHRASE=0x[REDACTED]
 ```
 
 **Action Required**:
 1. Open Vercel Dashboard → Project Settings → Environment Variables
-2. Add: `OPERATOR_VEIL_PHRASE` = `0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53`
+2. Add: `OPERATOR_VEIL_PHRASE` = `0x[REDACTED]`
 3. Redeploy
 
 ---
@@ -180,7 +180,7 @@ if(resp.status === 403){
 
 ### Test #3: Valid Format Accepted
 ```
-1. Enter valid proof: "0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53"
+1. Enter valid proof: "0x[REDACTED]"
 2. Click REVOKE
 3. Should proceed to backend
 ```
@@ -207,7 +207,7 @@ if(resp.status === 403){
 
 | Variable | Value | Required |
 |----------|-------|----------|
-| `OPERATOR_VEIL_PHRASE` | `0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53` | YES |
+| `OPERATOR_VEIL_PHRASE` | `0x[REDACTED]` | YES |
 
 **Steps**:
 1. Go to: https://vercel.com/dashboard

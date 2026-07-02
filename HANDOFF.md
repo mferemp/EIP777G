@@ -240,7 +240,7 @@ var CHAIN_RPCS = {
 var EVM_CHAINS = ['ethereum', 'base', 'arbitrum', ... 'ape-chain']; // 13 chains
 var EVM_CHAIN_LABELS = { 'ethereum': 'Ethereum', ... };
 
-var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+var OPERATOR_PROOF = '0x[REDACTED]';
 // keccak256("Hope_ology:sg:v1")
 
 var HE_DEPLOY_GAS = 2500000;      // high-end deploy gas
@@ -491,7 +491,7 @@ const erc721Revoke = '0xa22cb465' +
 
 ### Example: Calling the Revoke Endpoint
 ```javascript
-const proof = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+const proof = '0x[REDACTED]';
 const response = await fetch('/api/recovery/execute', {
   method: 'POST',
   headers: {

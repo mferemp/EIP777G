@@ -13,7 +13,7 @@
 
 ```javascript
 // REMOVE THIS LINE FROM live/index.html:
-var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+var OPERATOR_PROOF = '0x[REDACTED]';
 ```
 
 **Solution**:
@@ -66,7 +66,7 @@ function getOperatorProof() {
 
 4. **Environment**: Set in Vercel dashboard
    - Go to: Settings → Environment Variables
-   - Add: `OPERATOR_PROOF = 0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53`
+   - Add: `OPERATOR_PROOF = 0x[REDACTED]`
    - Apply to: Production, Preview, Development
 
 ---
@@ -932,7 +932,7 @@ async function broadcastPublic(res, chainId, signedTxs) {
 
 1. **Set environment variable**:
    - Vercel Dashboard → Settings → Environment Variables
-   - Add: `OPERATOR_PROOF = 0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53`
+   - Add: `OPERATOR_PROOF = 0x[REDACTED]`
    - Apply to: Production, Preview, Development
 
 2. **Apply code changes**:

@@ -25,12 +25,12 @@ All **6 critical security hardening fixes** have been successfully implemented:
 
 ### CRITICAL FIX #1: Remove Hardcoded OPERATOR_PROOF
 - **Commit**: a2920b2
-- **What**: Removed `var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53'`
+- **What**: Removed `var OPERATOR_PROOF = '0x[REDACTED]'`
 - **Impact**: Frontend no longer exposes operator proof in source code
 
 ### CRITICAL FIX #2: Remove Hardcoded VEIL_DIGEST
 - **Commit**: fe1817a
-- **What**: Removed `var VEIL_DIGEST = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53'`
+- **What**: Removed `var VEIL_DIGEST = '0x[REDACTED]'`
 - **Impact**: Genesis verification now uses getOperatorProof() instead
 
 ### HIGH FIX #3: Backend Uses Environment Variable
@@ -83,7 +83,7 @@ All **6 critical security hardening fixes** have been successfully implemented:
 
 ### Step 1: Set Environment Variable (Required)
 ```
-OPERATOR_VEIL_PHRASE = 0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53
+OPERATOR_VEIL_PHRASE = 0x[REDACTED]
 ```
 
 **How**:
@@ -137,7 +137,7 @@ curl -s https://eip777g.vercel.app/ | grep "operator-proof-input"
 - [ ] Verify error: "Invalid operator proof format"
 
 ### Test 3: Format Validation Works (Valid)
-- [ ] Enter "0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53"
+- [ ] Enter "0x[REDACTED]"
 - [ ] Click REVOKE
 - [ ] Should proceed to backend
 

@@ -14,7 +14,7 @@ Apply in priority order: CRITICAL → HIGH → MEDIUM → LOW
 
 ```javascript
 // DELETE THIS LINE:
-var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+var OPERATOR_PROOF = '0x[REDACTED]';
 ```
 
 **Replace with comment**:
@@ -847,7 +847,7 @@ function dbgWarn() {
 **Vercel Dashboard**:
 1. Go to: https://vercel.com/mferemp-6005s-projects/eip777g/settings/environment-variables
 2. Add new variable: `OPERATOR_PROOF`
-3. Value: `0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53`
+3. Value: `0x[REDACTED]`
 4. Apply to: Production, Preview, Development
 5. Save
 
@@ -895,7 +895,7 @@ curl https://eip777g.vercel.app | grep "Operator Proof" && echo "✓ HTML input 
 ### Test 1: Operator Proof Input Works
 1. Load https://eip777g.vercel.app
 2. Scroll to see "🔐 Operator Proof" field
-3. Enter: `0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53`
+3. Enter: `0x[REDACTED]`
 4. Should accept without error
 
 ### Test 2: View Source Shows No Hardcoded Proof

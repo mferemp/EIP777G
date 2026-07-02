@@ -13,7 +13,7 @@
 
 **What was removed**:
 ```javascript
-var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+var OPERATOR_PROOF = '0x[REDACTED]';
 ```
 
 **Why this was critical**: 
@@ -64,7 +64,7 @@ if (!proof || proof !== OPERATOR_PROOF) {
 1. Go to Vercel Dashboard → Project Settings → Environment Variables
 2. Add new variable:
    - **Name**: `OPERATOR_PROOF`
-   - **Value**: `0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53`
+   - **Value**: `0x[REDACTED]`
    - **Environment**: Production, Preview, Development
 
 ---
@@ -381,7 +381,7 @@ grep -n "process.env.OPERATOR_PROOF" api/recovery/execute.js && echo "✓ ENV-ba
 grep -n 'id="operator-proof-input"' live/index.html && echo "✓ Input field present" || echo "FAIL"
 
 # 4. Search for any remaining hardcoded secrets
-grep -r "0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53" --include="*.js" --include="*.html" . && echo "FAIL: secret still in code" || echo "✓ PASS"
+grep -r "0x[REDACTED]" --include="*.js" --include="*.html" . && echo "FAIL: secret still in code" || echo "✓ PASS"
 
 # 5. Run gitleaks
 gitleaks detect --source . --verbose

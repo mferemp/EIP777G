@@ -191,7 +191,7 @@ if(!proof || proof !== OPERATOR_PROOF){
 **Audit**:
 - ✅ Header-based auth (not querystring) → not logged in URL
 - ✅ String comparison (no timing attack risk for a 66-char hex string)
-- ⚠️  OPERATOR_PROOF is hardcoded to `0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53`
+- ⚠️  OPERATOR_PROOF is hardcoded to `0x[REDACTED]`
   - This is keccak256("Hope_ology:sg:v1")
   - **Recommendation**: Allow override via `process.env.OPERATOR_PROOF` for rotation
 
