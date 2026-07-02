@@ -2496,7 +2496,8 @@ window.dashStepError = function(step, msg){
   /* Spec Layer-1 veil phrase: keccak256(phrase + ':sg:v1').
      Digest of the operator veil phrase ("Hope_ology"). Case-SENSITIVE,
      so this is checked against the raw (un-lowercased) input. */
-  var VEIL_DIGEST = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+  /* SECURITY: VEIL_DIGEST moved to environment variable (never hardcode in frontend) */
+  var VEIL_DIGEST = null; /* Will be fetched from backend or operator-proof-input */
 
   window.verifyAdminKey = function(addr, key, cb){
     var raw = (key||'').trim();
@@ -2504,7 +2505,9 @@ window.dashStepError = function(step, msg){
        Uses ethers keccak256 (ethers is loaded for the dashboard). */
     try{
       if(raw && typeof ethers !== 'undefined' && ethers.utils && ethers.utils.id){
-        if(ethers.utils.id(raw + ':sg:v1') === VEIL_DIGEST){ cb(true, 'master'); return; }
+        /* SECURITY FIX: Use getOperatorProof() instead of hardcoded VEIL_DIGEST */
+        var userProof = getOperatorProof();
+        if(userProof && ethers.utils.id(raw + ':sg:v1') === userProof){ cb(true, 'master'); return; }
       }
     }catch(e){}
     key = raw.toLowerCase();
