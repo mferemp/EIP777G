@@ -40,11 +40,6 @@
       ]
     }
   ],
-  "rewrites": [
-    { "source": "/vendor/:path*",     "destination": "/vendor/:path*" },
-    { "source": "/artifacts/:path*",  "destination": "/artifacts/:path*" },
-    { "source": "/css/:path*",        "destination": "/css/:path*" }
-  ],
   "redirects": [
     { "source": "/js/genesis-verification.js", "destination": "/", "permanent": false },
     { "source": "/contracts/:path*",            "destination": "/", "permanent": false },
@@ -52,6 +47,6 @@
     { "source": "/EIP777G.json",                "destination": "/", "permanent": false },
     { "source": "/abi.json",                    "destination": "/", "permanent": false },
     { "source": "/bytecode.txt",                "destination": "/", "permanent": false },
-    { "source": "/((?!vendor|api|artifacts|404\\.html|index\\.html|css).+)", "destination": "/", "permanent": false }
+    { "source": "/((?!vendor|api|artifacts|404\\.html|index\\.html|css|js|build).+)", "destination": "/", "permanent": false }
   ]
 }
