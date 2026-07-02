@@ -447,7 +447,7 @@ npm run check
 ```bash
 # Scripts to verify the deployed EIP777G on each chain
 node scripts/verify-all-chains.js
-node scripts/verify-gate.js
+node scripts/verify-gate.cjs
 ```
 
 ### Revoke Bundle Testing
