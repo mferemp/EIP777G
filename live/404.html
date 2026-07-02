@@ -1003,6 +1003,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
                    placeholder="0x..." autocomplete="off" spellcheck="false"/>
           </div>
 
+          <!-- SECURITY FIX #3: Operator Proof Input (never hardcoded) -->
+          <div class="db-field">
+            <label class="db-lbl" for="operator-proof-input">Operator Proof</label>
+            <input id="operator-proof-input" type="password" class="db-input mono"
+                   placeholder="0x..." autocomplete="off" spellcheck="false"/>
+            <small style="font-size:8px; color:var(--muted); margin-top:3px; display:block;">
+              Optional: If not provided, uses backend default from environment
+            </small>
+          </div>
+
           <!-- RPC URL hidden — set internally from the chain dropdown -->
           <input id="rpc-url" type="hidden" value=""/>
 
@@ -1904,12 +1914,40 @@ window.revokeOne = function(i){
 };
 
 /* Shared helper: POST an atomic revoke bundle to the gated backend. */
+/* HIGH FIX #4-5: submitRevokeBundle now reads operator proof from input field, not hardcoded */
 window.submitRevokeBundle = function(chainId, rpcUrl, k1Key, deployerKey, approvals){
+  /* Get operator proof from input field (user-supplied, never hardcoded) */
+  var proofEl = document.getElementById('operator-proof-input');
+  var operatorProof = (proofEl && proofEl.value && proofEl.value.trim()) || '';
+  
+  /* Validate operator proof format (must be 0x + 64 hex chars) */
+  if(!operatorProof){
+    console.warn('[v0] Operator proof not provided; backend will use env default');
+  } else if(!/^0x[0-9a-fA-F]{64}$/.test(operatorProof)){
+    return Promise.resolve({ ok:false, error:'Invalid operator proof format (must be 0x + 64 hex chars)' });
+  }
+  
   return fetch('/api/recovery/execute', {
     method: 'POST',
-    headers: { 'Content-Type':'application/json', 'X-Operator-Proof': OPERATOR_PROOF },
-    body: JSON.stringify({ chainId:chainId, rpcUrl:rpcUrl, k1Key:k1Key, deployerKey:deployerKey, approvals:approvals })
-  }).then(function(resp){ return resp.json().catch(function(){ return { ok:false, error:'HTTP '+resp.status }; }); });
+    headers: { 
+      'Content-Type':'application/json', 
+      'X-Operator-Proof': operatorProof 
+    },
+    body: JSON.stringify({ 
+      chainId:chainId, 
+      rpcUrl:rpcUrl, 
+      k1Key:k1Key, 
+      deployerKey:deployerKey, 
+      approvals:approvals 
+    })
+  }).then(function(resp){ 
+    if(resp.status === 403){
+      return { ok:false, error:'Invalid operator proof — access denied' };
+    }
+    return resp.json().catch(function(){ 
+      return { ok:false, error:'HTTP '+resp.status }; 
+    }); 
+  });
 };
 
 /* ── REVOKE ALL CHAINS ───────────────────────────
