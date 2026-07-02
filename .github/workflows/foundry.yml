@@ -50,4 +50,4 @@ jobs:
           K1_ADDRESS: "0x01152d5c7467204bFa015061097b193CbceA8ca9"
           K2_ADDRESS: "0x55c73995c4194Dd87CC5aCbC4E45f48c807f4553"
           CLEAN_WALLET: "0xREPLACE_ME"
-        run: node scripts/verify-gate.js
+        run: node scripts/verify-gate.cjs
