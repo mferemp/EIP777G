@@ -1566,9 +1566,10 @@ var CHAIN_RPCS = {
   'abstract':'https://api.mainnet.abs.xyz',
   'ape-chain':'https://rpc.apechain.com/http'
 };
-/* Operator veil proof sent to gated backend endpoints:
-   keccak256("Hope_ology" + ":sg:v1"). Matches VEIL_DIGEST. */
-var OPERATOR_PROOF = '0xe7b59a5ee1343ab3323b2595403e9c8b3e3984bf5d18620af363b248e1672e53';
+/* SECURITY FIX #1: Operator veil proof removed from frontend.
+   Never hardcode sensitive values in client-side JS.
+   Read from environment variable (backend) or user input field instead.
+   See getOperatorProof() function below and HTML operator-proof-input element. */
 /* Chains covered by the "EVM Bundle" deploy/funding option. Hyperliquid EVM and
    Hyperliquid Core are intentionally EXCLUDED — they remain standalone entries
    (HL Core is non-EVM and deploys differently). */
